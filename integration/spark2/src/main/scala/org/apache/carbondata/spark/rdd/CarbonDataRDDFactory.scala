@@ -1013,8 +1013,12 @@ object CarbonDataRDDFactory {
       val serializationNullFormat =
         carbonLoadModel.getSerializationNullFormat.split(CarbonCommonConstants.COMMA, 2)(1)
       dataFrame.get.rdd.map { row =>
-        (CarbonScalaUtil.getString(row.get(partitionColumnIndex), serializationNullFormat,
-          delimiterLevel1, delimiterLevel2, timeStampFormat, dateFormat), row)
+        if (row != null && partitionColumnIndex < row.length) {
+          (CarbonScalaUtil.getString(row.get(partitionColumnIndex), serializationNullFormat,
+            delimiterLevel1, delimiterLevel2, timeStampFormat, dateFormat), row)
+        } else {
+          (null, row)
+        }
       }
     } else {
       // input data from csv files
@@ -1030,7 +1034,13 @@ object CarbonDataRDDFactory {
         hadoopConfiguration
       ).map { currentRow =>
         val row = new StringArrayRow(new Array[String](columnCount))
-        (currentRow._2.get()(partitionColumnIndex), row.setValues(currentRow._2.get()))
+        val values = currentRow._2.get
+        row.setValues(values)
+        if (values != null && partitionColumnIndex < values.length) {
+          (values(partitionColumnIndex), row)
+        } else {
+          (null, row)
+        }
       }
     }
 

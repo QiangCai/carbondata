@@ -969,12 +969,12 @@ object CarbonDataRDDFactory {
     val columns = carbonLoadModel.getCsvHeaderColumns
     var partitionColumnIndex = -1
     for (i <- 0 until columns.length) {
-      if (partitionColumn.equals(columns(i))) {
+      if (partitionColumn.equalsIgnoreCase(columns(i))) {
         partitionColumnIndex = i
       }
     }
     if (partitionColumnIndex == -1) {
-      throw new DataLoadingException("Partition column not found.")
+      throw new DataLoadingException("Partition column not found in input data.")
     }
     // generate RDD[(K, V)] to use the partitionBy method of PairRDDFunctions
     val inputRDD: RDD[(String, Row)] = if (dataFrame.isDefined) {
@@ -990,8 +990,12 @@ object CarbonDataRDDFactory {
       val serializationNullFormat =
         carbonLoadModel.getSerializationNullFormat.split(CarbonCommonConstants.COMMA, 2)(1)
       dataFrame.get.rdd.map { row =>
-        (CarbonScalaUtil.getString(row.get(partitionColumnIndex), serializationNullFormat,
-          delimiterLevel1, delimiterLevel2, timeStampFormat, dateFormat), row)
+        if (row != null && partitionColumnIndex < row.length) {
+          (CarbonScalaUtil.getString(row.get(partitionColumnIndex), serializationNullFormat,
+            delimiterLevel1, delimiterLevel2, timeStampFormat, dateFormat), row)
+        } else {
+          (null, row)
+        }
       }
     } else {
       // input data from csv files
@@ -1007,7 +1011,13 @@ object CarbonDataRDDFactory {
         hadoopConfiguration
       ).map { currentRow =>
         val row = new StringArrayRow(new Array[String](columnCount))
-        (currentRow._2.get()(partitionColumnIndex), row.setValues(currentRow._2.get()))
+        val values = currentRow._2.get
+        row.setValues(values)
+        if (values != null && partitionColumnIndex < values.length) {
+          (values(partitionColumnIndex), row)
+        } else {
+          (null, row)
+        }
       }
     }
 
