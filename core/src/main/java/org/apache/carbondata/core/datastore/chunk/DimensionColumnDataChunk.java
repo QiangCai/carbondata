@@ -95,11 +95,11 @@ public interface DimensionColumnDataChunk {
   /**
    * to compare the data
    *
-   * @param index        row index to be compared
+   * @param rowId        row index to be compared
    * @param compareValue value to compare
    * @return compare result
    */
-  int compareTo(int index, byte[] compareValue);
+  int compareTo(int rowId, byte[] compareValue);
 
   /**
    * below method will be used to free the allocated memory

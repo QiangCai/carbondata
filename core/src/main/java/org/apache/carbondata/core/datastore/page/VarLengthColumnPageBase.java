@@ -76,6 +76,11 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
     throw new UnsupportedOperationException("invalid data type: " + dataType);
   }
 
+  @Override
+  public void setByteArrayPage(byte[][] byteArray) {
+    throw new UnsupportedOperationException("invalid data type: " + dataType);
+  }
+
   /**
    * Create a new column page for decimal page
    */
@@ -85,10 +90,10 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
         DecimalConverterFactory.INSTANCE.getDecimalConverter(precision, scale);
     int size = decimalConverter.getSize();
     if (size < 0) {
-      return getLVBytesColumnPage(lvEncodedBytes, DataType.DECIMAL);
+      return newLVBytesColumnPage(lvEncodedBytes, DataType.DECIMAL);
     } else {
       // Here the size is always fixed.
-      return getDecimalColumnPage(lvEncodedBytes, scale, precision, size);
+      return newDecimalColumnPage(lvEncodedBytes, scale, precision, size);
     }
   }
 
@@ -97,10 +102,10 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
    */
   static ColumnPage newLVBytesColumnPage(byte[] lvEncodedBytes)
       throws MemoryException {
-    return getLVBytesColumnPage(lvEncodedBytes, DataType.BYTE_ARRAY);
+    return newLVBytesColumnPage(lvEncodedBytes, DataType.BYTE_ARRAY);
   }
 
-  private static ColumnPage getDecimalColumnPage(byte[] lvEncodedBytes, int scale, int precision,
+  private static ColumnPage newDecimalColumnPage(byte[] lvEncodedBytes, int scale, int precision,
       int size) throws MemoryException {
     List<Integer> rowOffset = new ArrayList<>();
     int offset;
@@ -130,7 +135,7 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
     return page;
   }
 
-  private static ColumnPage getLVBytesColumnPage(byte[] lvEncodedBytes, DataType dataType)
+  private static ColumnPage newLVBytesColumnPage(byte[] lvEncodedBytes, DataType dataType)
       throws MemoryException {
     // extract length and data, set them to rowOffset and unsafe memory correspondingly
     int rowId = 0;
@@ -176,6 +181,21 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
     }
 
     return page;
+  }
+
+  /**
+   * Return the length of each byte array in this page
+   */
+  public byte[] getLengths() {
+    byte[] lengths = new byte[pageSize];
+    for (int rowId = 0; rowId < pageSize; rowId++) {
+      int length = rowOffset[rowId + 1] - rowOffset[rowId];
+      if (length > Byte.MAX_VALUE) {
+        throw new RuntimeException("not support value length exceed " + Short.MAX_VALUE + " bytes");
+      }
+      lengths[rowId] = (byte) (rowOffset[rowId + 1] - rowOffset[rowId]);
+    }
+    return lengths;
   }
 
   @Override
@@ -309,7 +329,7 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
   abstract void copyBytes(int rowId, byte[] dest, int destOffset, int length);
 
   @Override
-  public byte[] getFlattenedBytePage() {
+  public byte[] getLVFlattenedBytePage() {
     // output LV encoded byte array
     int offset = 0;
     byte[] data = new byte[totalLength + pageSize * 4];
@@ -326,4 +346,5 @@ public abstract class VarLengthColumnPageBase extends ColumnPage {
   public void convertValue(ColumnPageValueConverter codec) {
     throw new UnsupportedOperationException("invalid data type: " + dataType);
   }
+
 }

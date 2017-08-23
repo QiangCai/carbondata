@@ -24,10 +24,10 @@ import org.apache.carbondata.core.datastore.page.ColumnPage;
 import org.apache.carbondata.core.datastore.page.encoding.adaptive.AdaptiveDeltaIntegralCodec;
 import org.apache.carbondata.core.datastore.page.encoding.adaptive.AdaptiveIntegralCodec;
 import org.apache.carbondata.core.datastore.page.encoding.compress.DirectCompressCodec;
-import org.apache.carbondata.core.datastore.page.encoding.dimension.legacy.ComplexDimensionIndexCodec;
 import org.apache.carbondata.core.datastore.page.encoding.dimension.legacy.DictDimensionIndexCodec;
 import org.apache.carbondata.core.datastore.page.encoding.dimension.legacy.DirectDictDimensionIndexCodec;
 import org.apache.carbondata.core.datastore.page.encoding.dimension.legacy.HighCardDictDimensionIndexCodec;
+import org.apache.carbondata.core.datastore.page.encoding.directstring.DirectStringCodec;
 import org.apache.carbondata.core.datastore.page.statistics.SimpleStatsResult;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 
@@ -39,35 +39,31 @@ public class DefaultEncodingStrategy extends EncodingStrategy {
   private static final int THREE_BYTES_MAX = (int) Math.pow(2, 23) - 1;
   private static final int THREE_BYTES_MIN = - THREE_BYTES_MAX - 1;
 
-  private static final boolean newWay = false;
-
   @Override
   public ColumnPageEncoder createEncoder(TableSpec.ColumnSpec columnSpec, ColumnPage inputPage) {
     // TODO: add log
     if (columnSpec instanceof TableSpec.MeasureSpec) {
       return createEncoderForMeasure(inputPage);
     } else {
-      if (newWay) {
-        return createEncoderForDimension((TableSpec.DimensionSpec) columnSpec, inputPage);
-      } else {
-        return createEncoderForDimensionLegacy((TableSpec.DimensionSpec) columnSpec);
+      ColumnPageEncoder encoder = createEncoderForDimension((TableSpec.DimensionSpec) columnSpec,
+          inputPage);
+      if (encoder == null) {
+        // if it is null, use the legacy encoding
+        encoder = createEncoderForDimensionLegacy((TableSpec.DimensionSpec) columnSpec);
       }
+      return encoder;
     }
   }
 
+  // Add all new encoding in this method, currently only DIREST_STRING encoding
+  // for string column (high cardinality) is supported.
   private ColumnPageEncoder createEncoderForDimension(TableSpec.DimensionSpec columnSpec,
       ColumnPage inputPage) {
-    Compressor compressor = CompressorFactory.getInstance().getCompressor();
     switch (columnSpec.getDimensionType()) {
-      case GLOBAL_DICTIONARY:
-      case DIRECT_DICTIONARY:
       case PLAIN_VALUE:
-        return new DirectCompressCodec(inputPage.getDataType()).createEncoder(null);
-      case COMPLEX:
-        return new ComplexDimensionIndexCodec(false, false, compressor).createEncoder(null);
+        return new DirectStringCodec().createEncoder(null);
       default:
-        throw new RuntimeException("unsupported dimension type: " +
-            columnSpec.getDimensionType());
+        return null;
     }
   }
 

@@ -20,8 +20,13 @@ package org.apache.carbondata.core.datastore.chunk.store;
 import org.apache.carbondata.core.datastore.chunk.DimensionColumnDataChunk;
 import org.apache.carbondata.core.datastore.page.ColumnPage;
 import org.apache.carbondata.core.scan.executor.infos.KeyStructureInfo;
+import org.apache.carbondata.core.scan.result.vector.CarbonColumnVector;
 import org.apache.carbondata.core.scan.result.vector.ColumnVectorInfo;
+import org.apache.carbondata.core.util.ByteUtil;
 
+/**
+ * ColumnPage wrapper for dimension column reader
+ */
 public class ColumnPageWrapper implements DimensionColumnDataChunk {
 
   private ColumnPage columnPage;
@@ -45,13 +50,32 @@ public class ColumnPageWrapper implements DimensionColumnDataChunk {
   @Override
   public int fillConvertedChunkData(ColumnVectorInfo[] vectorInfo, int column,
       KeyStructureInfo restructuringInfo) {
-    throw new UnsupportedOperationException("internal error");
+    // fill the vector with data in column page
+    ColumnVectorInfo columnVectorInfo = vectorInfo[column];
+    CarbonColumnVector vector = columnVectorInfo.vector;
+    int offsetRowId = columnVectorInfo.offset;
+    int vectorOffset = columnVectorInfo.vectorOffset;
+    int maxRowId = offsetRowId + columnVectorInfo.size;
+    for (int rowId = offsetRowId; rowId < maxRowId; rowId++) {
+      byte[] data = columnPage.getBytes(rowId);
+      vector.putBytes(vectorOffset++, 0, data.length, data);
+    }
+    return column + 1;
   }
 
   @Override
   public int fillConvertedChunkData(int[] rowMapping, ColumnVectorInfo[] vectorInfo, int column,
       KeyStructureInfo restructuringInfo) {
-    throw new UnsupportedOperationException("internal error");
+    ColumnVectorInfo columnVectorInfo = vectorInfo[column];
+    CarbonColumnVector vector = columnVectorInfo.vector;
+    int offsetRowId = columnVectorInfo.offset;
+    int vectorOffset = columnVectorInfo.vectorOffset;
+    int maxRowId = offsetRowId + columnVectorInfo.size;
+    for (int rowId = offsetRowId; rowId < maxRowId; rowId++) {
+      byte[] data = columnPage.getBytes(rowMapping[rowId]);
+      vector.putBytes(vectorOffset++, 0, data.length, data);
+    }
+    return column + 1;
   }
 
   @Override
@@ -80,13 +104,15 @@ public class ColumnPageWrapper implements DimensionColumnDataChunk {
   }
 
   @Override
-  public int compareTo(int index, byte[] compareValue) {
-    throw new UnsupportedOperationException("internal error");
+  public int compareTo(int rowId, byte[] compareValue) {
+    byte[] data = columnPage.getBytes(rowId);
+    return ByteUtil.UnsafeComparer.INSTANCE
+        .compareTo(data, 0, data.length, compareValue, 0, compareValue.length);
   }
 
   @Override
   public void freeMemory() {
-
+    columnPage.freeMemory();
   }
 
 }

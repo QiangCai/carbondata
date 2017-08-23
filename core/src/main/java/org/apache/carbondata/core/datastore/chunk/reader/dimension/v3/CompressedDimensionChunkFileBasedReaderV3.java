@@ -234,7 +234,6 @@ public class CompressedDimensionChunkFileBasedReaderV3 extends AbstractChunkRead
     if (encodings != null && encodings.size() == 1) {
       Encoding encoding = encodings.get(0);
       switch (encoding) {
-        case DIRECT_COMPRESS:
         case DIRECT_STRING:
           return true;
       }

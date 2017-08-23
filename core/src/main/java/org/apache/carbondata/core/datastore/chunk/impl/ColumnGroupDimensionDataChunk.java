@@ -112,11 +112,11 @@ public class ColumnGroupDimensionDataChunk extends AbstractDimensionDataChunk {
   /**
    * to compare the data
    *
-   * @param index        row index to be compared
+   * @param rowId        row index to be compared
    * @param compareValue value to compare
    * @return compare result
    */
-  @Override public int compareTo(int index, byte[] compareValue) {
+  @Override public int compareTo(int rowId, byte[] compareValue) {
     throw new UnsupportedOperationException("Operation not supported in case of cloumn group");
   }
 

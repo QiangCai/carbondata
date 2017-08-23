@@ -31,6 +31,8 @@ import org.apache.carbondata.core.datastore.page.encoding.adaptive.AdaptiveInteg
 import org.apache.carbondata.core.datastore.page.encoding.adaptive.AdaptiveIntegralEncoderMeta;
 import org.apache.carbondata.core.datastore.page.encoding.compress.DirectCompressCodec;
 import org.apache.carbondata.core.datastore.page.encoding.compress.DirectCompressorEncoderMeta;
+import org.apache.carbondata.core.datastore.page.encoding.directstring.DirectStringCodec;
+import org.apache.carbondata.core.datastore.page.encoding.directstring.DirectStringEncoderMeta;
 import org.apache.carbondata.core.datastore.page.encoding.rle.RLECodec;
 import org.apache.carbondata.core.datastore.page.encoding.rle.RLEEncoderMeta;
 import org.apache.carbondata.core.datastore.page.statistics.PrimitivePageStatsCollector;
@@ -42,6 +44,7 @@ import org.apache.carbondata.format.Encoding;
 import static org.apache.carbondata.format.Encoding.ADAPTIVE_DELTA_INTEGRAL;
 import static org.apache.carbondata.format.Encoding.ADAPTIVE_INTEGRAL;
 import static org.apache.carbondata.format.Encoding.DIRECT_COMPRESS;
+import static org.apache.carbondata.format.Encoding.DIRECT_STRING;
 import static org.apache.carbondata.format.Encoding.RLE_INTEGRAL;
 
 /**
@@ -86,6 +89,10 @@ public abstract class EncodingStrategy {
       RLEEncoderMeta metadata = new RLEEncoderMeta();
       metadata.readFields(in);
       return new RLECodec().createDecoder(metadata);
+    } else if (encoding == DIRECT_STRING) {
+      DirectStringEncoderMeta metadata = new DirectStringEncoderMeta();
+      metadata.readFields(in);
+      return new DirectStringCodec().createDecoder(metadata);
     } else {
       // for backward compatibility
       ValueEncoderMeta metadata = CarbonUtil.deserializeEncoderMetaV3(encoderMeta);

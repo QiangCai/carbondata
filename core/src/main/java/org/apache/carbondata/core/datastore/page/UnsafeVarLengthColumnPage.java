@@ -26,6 +26,8 @@ import org.apache.carbondata.core.memory.UnsafeMemoryManager;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.util.ThreadLocalTaskInfo;
 
+import static org.apache.carbondata.core.metadata.datatype.DataType.STRING;
+
 // This extension uses unsafe memory to store page data, for variable length data type (string,
 // decimal)
 public class UnsafeVarLengthColumnPage extends VarLengthColumnPageBase {
@@ -168,9 +170,36 @@ public class UnsafeVarLengthColumnPage extends VarLengthColumnPageBase {
   }
 
   @Override
+  public byte[] getDirectFlattenedBytePage() {
+    byte[] bytes = new byte[totalLength];
+    CarbonUnsafe.getUnsafe().copyMemory(baseAddress, baseOffset, bytes,
+        CarbonUnsafe.BYTE_ARRAY_OFFSET, totalLength);
+    return bytes;
+  }
+
+  @Override
   void copyBytes(int rowId, byte[] dest, int destOffset, int length) {
     CarbonUnsafe.getUnsafe().copyMemory(baseAddress, baseOffset + rowOffset[rowId],
         dest, CarbonUnsafe.BYTE_ARRAY_OFFSET + destOffset, length);
+  }
+
+  /**
+   * Return a new column page that construct from input byte array and length of each row
+   */
+  public static ColumnPage newStringPage(byte[] bytes, byte[] lengths) throws MemoryException {
+    int pageSize = lengths.length;
+    UnsafeVarLengthColumnPage page = new UnsafeVarLengthColumnPage(STRING, pageSize,
+        bytes.length, -1, -1);
+    CarbonUnsafe.getUnsafe().copyMemory(bytes, CarbonUnsafe.BYTE_ARRAY_OFFSET,
+        page.baseAddress, page.baseOffset, bytes.length);
+    int size = 0;
+    page.rowOffset[0] = 0;
+    for (int rowId = 0; rowId < pageSize; rowId++) {
+      page.rowOffset[rowId + 1] = page.rowOffset[rowId] + bytes.length;
+      size += bytes.length;
+    }
+    page.totalLength = size;
+    return page;
   }
 
 }

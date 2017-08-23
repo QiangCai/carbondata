@@ -266,7 +266,12 @@ public class UnsafeFixLengthColumnPage extends ColumnPage {
   }
 
   @Override
-  public byte[] getFlattenedBytePage() {
+  public byte[] getLVFlattenedBytePage() {
+    throw new UnsupportedOperationException("invalid data type: " + dataType);
+  }
+
+  @Override
+  public byte[] getDirectFlattenedBytePage() {
     throw new UnsupportedOperationException("invalid data type: " + dataType);
   }
 

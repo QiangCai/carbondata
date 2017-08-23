@@ -536,9 +536,14 @@ public abstract class ColumnPage {
   public abstract byte[][] getByteArrayPage();
 
   /**
-   * For variable length page, get the flattened data
+   * For variable length page, get the Length-Value flattened data
    */
-  public abstract byte[] getFlattenedBytePage();
+  public abstract byte[] getLVFlattenedBytePage();
+
+  /**
+   * For variable length page, get the directly flattened data
+   */
+  public abstract byte[] getDirectFlattenedBytePage();
 
   /**
    * For decimals
@@ -572,7 +577,7 @@ public abstract class ColumnPage {
       case DECIMAL:
         return compressor.compressByte(getDecimalPage());
       case BYTE_ARRAY:
-        return compressor.compressByte(getFlattenedBytePage());
+        return compressor.compressByte(getLVFlattenedBytePage());
       default:
         throw new UnsupportedOperationException("unsupport compress column page: " + dataType);
     }
@@ -625,6 +630,15 @@ public abstract class ColumnPage {
     return newDecimalPage(lvEncodedBytes, scale, precision);
   }
 
+  /**
+   * Decompress and return a String page.
+   */
+  public static ColumnPage decompressStringPage(Compressor compressor,
+      byte[] compressedData, int offset, int length, byte[] lengths) throws MemoryException {
+    byte[] bytes = compressor.unCompressByte(compressedData, offset, length);
+    return SafeVarLengthColumnPage.newStringPage(bytes, lengths);
+  }
+
   public BitSet getNullBits() {
     return nullBitSet;
   }
@@ -632,4 +646,6 @@ public abstract class ColumnPage {
   public void setNullBits(BitSet nullBitSet) {
     this.nullBitSet = nullBitSet;
   }
+
+
 }
