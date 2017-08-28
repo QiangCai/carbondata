@@ -29,6 +29,7 @@ public class KeyPageStatsCollector implements ColumnPageStatsCollector {
   private byte[] min, max;
 
   public static KeyPageStatsCollector newInstance(DataType dataType) {
+    assert (dataType == DataType.BYTE_ARRAY);
     return new KeyPageStatsCollector(dataType);
   }
 

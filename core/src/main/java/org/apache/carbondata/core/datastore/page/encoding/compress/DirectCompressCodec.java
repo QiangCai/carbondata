@@ -114,7 +114,7 @@ public class DirectCompressCodec implements ColumnPageCodec {
       } else {
         decodedPage = ColumnPage.decompress(compressor, dataType, input, offset, length);
       }
-      return LazyColumnPage.newPage(decodedPage, converter);
+      return LazyColumnPage.newPage(dataType, decodedPage, converter);
     }
   }
 

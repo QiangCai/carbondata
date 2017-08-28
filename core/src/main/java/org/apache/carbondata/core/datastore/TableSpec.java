@@ -17,6 +17,7 @@
 
 package org.apache.carbondata.core.datastore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.carbondata.core.metadata.datatype.DataType;
@@ -27,52 +28,36 @@ public class TableSpec {
 
   // column spec for each dimension and measure
   private DimensionSpec[] dimensionSpec;
+  private DimensionSpec[] complexDimensionSpec;
   private MeasureSpec[] measureSpec;
 
-  // number of simple dimensions
-  private int numSimpleDimensions;
-
   public TableSpec(List<CarbonDimension> dimensions, List<CarbonMeasure> measures) {
-    // first calculate total number of columnar field considering column group and complex column
-    numSimpleDimensions = 0;
-    for (CarbonDimension dimension : dimensions) {
-      if (dimension.isColumnar()) {
-        if (!dimension.isComplex()) {
-          numSimpleDimensions++;
-        }
-      } else {
-        throw new UnsupportedOperationException("column group is not supported");
-      }
-    }
-    dimensionSpec = new DimensionSpec[dimensions.size()];
-    measureSpec = new MeasureSpec[measures.size()];
     addDimensions(dimensions);
     addMeasures(measures);
   }
 
   private void addDimensions(List<CarbonDimension> dimensions) {
-    int dimIndex = 0;
-    for (int i = 0; i < dimensions.size(); i++) {
-      CarbonDimension dimension = dimensions.get(i);
+    List<DimensionSpec> dictDims = new ArrayList<>();
+    List<DimensionSpec> complexDims = new ArrayList<>();
+    for (CarbonDimension dimension : dimensions) {
       if (dimension.isColumnar()) {
         if (dimension.isComplex()) {
-          DimensionSpec spec = new DimensionSpec(DimensionType.COMPLEX, dimension);
-          dimensionSpec[dimIndex++] = spec;
+          complexDims.add(new DimensionSpec(DimensionType.COMPLEX, dimension));
         } else if (dimension.isDirectDictionaryEncoding()) {
-          DimensionSpec spec = new DimensionSpec(DimensionType.DIRECT_DICTIONARY, dimension);
-          dimensionSpec[dimIndex++] = spec;
+          dictDims.add(new DimensionSpec(DimensionType.DIRECT_DICTIONARY, dimension));
         } else if (dimension.isGlobalDictionaryEncoding()) {
-          DimensionSpec spec = new DimensionSpec(DimensionType.GLOBAL_DICTIONARY, dimension);
-          dimensionSpec[dimIndex++] = spec;
+          dictDims.add(new DimensionSpec(DimensionType.GLOBAL_DICTIONARY, dimension));
         } else {
-          DimensionSpec spec = new DimensionSpec(DimensionType.PLAIN_VALUE, dimension);
-          dimensionSpec[dimIndex++] = spec;
+          dictDims.add(new DimensionSpec(DimensionType.PLAIN_VALUE, dimension));
         }
       }
     }
+    this.dimensionSpec = dictDims.toArray(new DimensionSpec[dictDims.size()]);
+    this.complexDimensionSpec = complexDims.toArray(new DimensionSpec[complexDims.size()]);
   }
 
   private void addMeasures(List<CarbonMeasure> measures) {
+    this.measureSpec = new MeasureSpec[measures.size()];
     for (int i = 0; i < measures.size(); i++) {
       CarbonMeasure measure = measures.get(i);
       measureSpec[i] = new MeasureSpec(measure.getColName(), measure.getDataType(), measure
@@ -80,27 +65,16 @@ public class TableSpec {
     }
   }
 
-  public DimensionSpec getDimensionSpec(int dimensionIndex) {
-    return dimensionSpec[dimensionIndex];
+  public DimensionSpec[] getDimensionSpec() {
+    return dimensionSpec;
   }
 
-  public MeasureSpec getMeasureSpec(int measureIndex) {
-    return measureSpec[measureIndex];
+  public DimensionSpec[] getComplexDimensionSpec() {
+    return complexDimensionSpec;
   }
 
-  public int getNumSimpleDimensions() {
-    return numSimpleDimensions;
-  }
-
-  public int getNumDimensions() {
-    return dimensionSpec.length;
-  }
-
-  /**
-   * return number of measures
-   */
-  public int getNumMeasures() {
-    return measureSpec.length;
+  public MeasureSpec[] getMeasureSpec() {
+    return measureSpec;
   }
 
   public class ColumnSpec {

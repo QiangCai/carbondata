@@ -118,7 +118,7 @@ public class AdaptiveDeltaIntegralCodec extends AdaptiveCodec {
         ColumnPage page = ColumnPage.decompress(compressor, targetDataType, input, offset, length);
         DeltaIntegralConverter converter = new DeltaIntegralConverter(page, targetDataType,
             srcDataType, stats.getMax());
-        return LazyColumnPage.newPage(page, converter);
+        return LazyColumnPage.newPage(srcDataType, page, converter);
       }
     };
   }

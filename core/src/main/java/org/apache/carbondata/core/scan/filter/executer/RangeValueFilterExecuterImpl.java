@@ -24,8 +24,6 @@ import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.block.SegmentProperties;
 import org.apache.carbondata.core.datastore.chunk.DimensionColumnDataChunk;
 import org.apache.carbondata.core.datastore.chunk.impl.DimensionRawColumnChunk;
-import org.apache.carbondata.core.keygenerator.directdictionary.DirectDictionaryGenerator;
-import org.apache.carbondata.core.keygenerator.directdictionary.DirectDictionaryKeyGeneratorFactory;
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
@@ -550,9 +548,12 @@ public class RangeValueFilterExecuterImpl extends ValueBasedFilterExecuterImpl {
     } else {
       byte[] defaultValue = null;
       if (dimColEvaluatorInfo.getDimension().hasEncoding(Encoding.DIRECT_DICTIONARY)) {
-        DirectDictionaryGenerator directDictionaryGenerator = DirectDictionaryKeyGeneratorFactory
-            .getDirectDictionaryGenerator(dimColEvaluatorInfo.getDimension().getDataType());
-        int key = directDictionaryGenerator.generateDirectSurrogateKey(null) + 1;
+        //        DirectDictionaryGenerator directDictionaryGenerator =
+        // DirectDictionaryKeyGeneratorFactory
+        //            .getDirectDictionaryGenerator(
+        // dimColEvaluatorInfo.getDimension().getDataType());
+        //        int key = directDictionaryGenerator.generateDirectSurrogateKey(null) + 1;
+        int key = 0;
         CarbonDimension currentBlockDimension =
             segmentProperties.getDimensions().get(dimensionBlocksIndex);
         defaultValue = FilterUtil.getMaskKey(key, currentBlockDimension,

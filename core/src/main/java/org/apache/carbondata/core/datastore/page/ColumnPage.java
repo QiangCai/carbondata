@@ -24,7 +24,10 @@ import java.util.BitSet;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.compression.Compressor;
 import org.apache.carbondata.core.datastore.page.statistics.ColumnPageStatsCollector;
+import org.apache.carbondata.core.datastore.page.statistics.KeyPageStatsCollector;
+import org.apache.carbondata.core.datastore.page.statistics.PrimitivePageStatsCollector;
 import org.apache.carbondata.core.datastore.page.statistics.SimpleStatsResult;
+import org.apache.carbondata.core.datastore.page.statistics.StringStatsCollector;
 import org.apache.carbondata.core.memory.MemoryException;
 import org.apache.carbondata.core.metadata.datatype.DataType;
 import org.apache.carbondata.core.metadata.datatype.DecimalConverterFactory;
@@ -113,10 +116,6 @@ public abstract class ColumnPage {
     return pageSize;
   }
 
-  public void setStatsCollector(ColumnPageStatsCollector statsCollector) {
-    this.statsCollector = statsCollector;
-  }
-
   private static ColumnPage createVarLengthPage(DataType dataType, int pageSize, int scale,
       int precision) {
     if (unsafe) {
@@ -177,8 +176,8 @@ public abstract class ColumnPage {
         case DOUBLE:
           instance = new UnsafeFixLengthColumnPage(dataType, pageSize, -1, -1);
           break;
-        case DECIMAL:
         case STRING:
+        case DECIMAL:
         case BYTE_ARRAY:
           instance = new UnsafeVarLengthColumnPage(dataType, pageSize, scale, precision);
           break;
@@ -219,7 +218,34 @@ public abstract class ColumnPage {
           throw new RuntimeException("Unsupported data dataType: " + dataType);
       }
     }
+    instance.setStatsCollector(dataType, scale, precision);
     return instance;
+  }
+
+  private void setStatsCollector(DataType dataType, int scale, int precision) {
+    ColumnPageStatsCollector collector;
+    switch (dataType) {
+      case BYTE:
+      case SHORT:
+      case SHORT_INT:
+      case INT:
+      case LONG:
+      case DOUBLE:
+        collector = PrimitivePageStatsCollector.newInstance(dataType, -1, -1);
+        break;
+      case DECIMAL:
+        collector = PrimitivePageStatsCollector.newInstance(dataType, scale, precision);
+        break;
+      case STRING:
+        collector = StringStatsCollector.newInstance();
+        break;
+      case BYTE_ARRAY:
+        collector = KeyPageStatsCollector.newInstance(dataType);
+        break;
+      default:
+        throw new RuntimeException("internal error");
+    }
+    this.statsCollector = collector;
   }
 
   public static ColumnPage wrapByteArrayPage(byte[][] byteArray) {

@@ -34,7 +34,7 @@ import org.apache.carbondata.core.metadata.datatype.DataType;
 /**
  * Default strategy will select encoding base on column page data type and statistics
  */
-public class DefaultEncodingStrategy extends EncodingStrategy {
+public class DefaultEncodingFactory extends EncodingFactory {
 
   private static final int THREE_BYTES_MAX = (int) Math.pow(2, 23) - 1;
   private static final int THREE_BYTES_MIN = - THREE_BYTES_MAX - 1;
@@ -60,11 +60,20 @@ public class DefaultEncodingStrategy extends EncodingStrategy {
   private ColumnPageEncoder createEncoderForDimension(TableSpec.DimensionSpec columnSpec,
       ColumnPage inputPage) {
     switch (columnSpec.getDimensionType()) {
+      case DIRECT_DICTIONARY:
+        return selectCodecByAlgorithm(inputPage.getStatistics()).createEncoder(null);
       case PLAIN_VALUE:
-        return new DirectStringCodec().createEncoder(null);
-      default:
-        return null;
+        switch (inputPage.getDataType()) {
+          case BYTE:
+          case SHORT:
+          case INT:
+          case LONG:
+            return selectCodecByAlgorithm(inputPage.getStatistics()).createEncoder(null);
+          case STRING:
+            return new DirectStringCodec().createEncoder(null);
+        }
     }
+    return null;
   }
 
   private ColumnPageEncoder createEncoderForDimensionLegacy(TableSpec.DimensionSpec columnSpec) {

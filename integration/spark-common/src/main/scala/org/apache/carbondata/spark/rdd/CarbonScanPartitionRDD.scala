@@ -196,6 +196,7 @@ class CarbonScanPartitionRDD(
         val dictionaryIndex = dictionaryIndexGroup.indexOf(partColIdx)
         val surrogateValue = (keyArray(dictionaryIndex) / factor).toInt
         partitionValue = directDictionaryGenerator.getValueFromSurrogate(surrogateValue)
+          .asInstanceOf[AnyRef]
       } else if (!encodings.contains(Encoding.DICTIONARY)) {
         // no dictionary
         val byteArray = row(0).asInstanceOf[ByteArrayWrapper].getNoDictionaryKeys

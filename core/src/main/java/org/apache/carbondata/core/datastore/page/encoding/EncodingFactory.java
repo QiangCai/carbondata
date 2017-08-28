@@ -50,7 +50,7 @@ import static org.apache.carbondata.format.Encoding.RLE_INTEGRAL;
 /**
  * Base class for encoding strategy implementation.
  */
-public abstract class EncodingStrategy {
+public abstract class EncodingFactory {
 
   /**
    * Return new encoder for specified column
@@ -110,7 +110,7 @@ public abstract class EncodingStrategy {
       case SHORT:
       case INT:
       case LONG:
-        return DefaultEncodingStrategy.selectCodecByAlgorithm(stats).createDecoder(null);
+        return DefaultEncodingFactory.selectCodecByAlgorithm(stats).createDecoder(null);
       case FLOAT:
       case DOUBLE:
       case DECIMAL:
