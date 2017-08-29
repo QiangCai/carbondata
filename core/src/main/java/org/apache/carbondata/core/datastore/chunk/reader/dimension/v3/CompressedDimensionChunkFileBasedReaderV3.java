@@ -250,6 +250,7 @@ public class CompressedDimensionChunkFileBasedReaderV3 extends AbstractChunkRead
       switch (encoding) {
         case ADAPTIVE_INTEGRAL:
         case ADAPTIVE_DELTA_INTEGRAL:
+        case DIRECT_COMPRESS:
         case DIRECT_STRING:
           return true;
       }
