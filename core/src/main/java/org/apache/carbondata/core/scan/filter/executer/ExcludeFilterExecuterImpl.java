@@ -204,7 +204,7 @@ public class ExcludeFilterExecuterImpl implements FilterExecuter {
     bitSet.flip(0, numerOfRows);
     byte[][] filterValues = dimColumnExecuterInfo.getFilterKeys();
     // binary search can only be applied if column is sorted
-    if (isNaturalSorted) {
+    if (isNaturalSorted && !dimensionColumnDataChunk.isNoDicitionaryColumn()) {
       int startIndex = 0;
       for (int i = 0; i < filterValues.length; i++) {
         if (startIndex >= numerOfRows) {

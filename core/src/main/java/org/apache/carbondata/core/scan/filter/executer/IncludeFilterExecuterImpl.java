@@ -225,7 +225,7 @@ public class IncludeFilterExecuterImpl implements FilterExecuter {
     byte[][] filterValues = dimColumnExecuterInfo.getFilterKeys();
     // binary search can only be applied if column is sorted and
     // inverted index exists for that column
-    if (isNaturalSorted) {
+    if (isNaturalSorted && !dimensionColumnDataChunk.isNoDicitionaryColumn()) {
       int startIndex = 0;
       for (int i = 0; i < filterValues.length; i++) {
         if (startIndex >= numerOfRows) {

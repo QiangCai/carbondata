@@ -17,6 +17,7 @@
 
 package org.apache.carbondata.core.datastore.chunk.store;
 
+import java.nio.ByteBuffer;
 import java.util.BitSet;
 
 import org.apache.carbondata.core.datastore.chunk.DimensionColumnDataChunk;
@@ -44,7 +45,9 @@ public class ColumnPageWrapper implements DimensionColumnDataChunk {
   @Override
   public int fillChunkData(byte[] data, int offset, int columnIndex,
       KeyStructureInfo restructuringInfo) {
-    //columnPage.fillRow(columnIndex, data, offset);
+    int surrogate = columnPage.getInt(columnIndex);
+    ByteBuffer buffer = ByteBuffer.wrap(data);
+    buffer.putInt(offset, surrogate);
     return columnValueSize;
   }
 
@@ -176,9 +179,15 @@ public class ColumnPageWrapper implements DimensionColumnDataChunk {
 
   @Override
   public int compareTo(int rowId, byte[] compareValue) {
-    byte[] data = columnPage.getBytes(rowId);
-    return ByteUtil.UnsafeComparer.INSTANCE
-        .compareTo(data, 0, data.length, compareValue, 0, compareValue.length);
+    if (columnPage.getDataType() == DataType.INT) {
+      int surrogate = columnPage.getInt(rowId);
+      int input = ByteBuffer.wrap(compareValue).getInt();
+      return surrogate - input;
+    } else {
+      byte[] data = columnPage.getBytes(rowId);
+      return ByteUtil.UnsafeComparer.INSTANCE
+          .compareTo(data, 0, data.length, compareValue, 0, compareValue.length);
+    }
   }
 
   @Override
