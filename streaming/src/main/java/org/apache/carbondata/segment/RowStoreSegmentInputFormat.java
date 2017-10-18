@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.datastore.row;
+package org.apache.carbondata.segment;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.carbondata.file.mapreduce.CarbonRowStoreInputFormat;
+
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.JobContext;
 
 /**
- * Load status type
+ * Row-store segment input format
  */
-public enum LoadStatusType {
 
-  INSERT_OVERWRITE("Overwrite In Progress"), // if insert overwrite operation is in progress
-  IN_PROGRESS("In Progress"), // if load, insert into operation is in progress
-  STREAMING_IN_PROGRESS("Streaming In Progress"); // if streaming ingest is in progress
+public class RowStoreSegmentInputFormat extends CarbonRowStoreInputFormat {
 
-  private String message;
-
-  LoadStatusType(String message) {
-    this.message = message;
-  }
-
-  public String getMessage() {
-    return message;
+  @Override public List<InputSplit> getSplits(JobContext job) throws IOException {
+    return super.getSplits(job);
   }
 }

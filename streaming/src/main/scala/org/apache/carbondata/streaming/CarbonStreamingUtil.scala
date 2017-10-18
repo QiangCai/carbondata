@@ -15,24 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.datastore.row;
+package org.apache.carbondata.streaming
 
-/**
- * Load status type
- */
-public enum LoadStatusType {
+import org.apache.spark.sql.Row
 
-  INSERT_OVERWRITE("Overwrite In Progress"), // if insert overwrite operation is in progress
-  IN_PROGRESS("In Progress"), // if load, insert into operation is in progress
-  STREAMING_IN_PROGRESS("Streaming In Progress"); // if streaming ingest is in progress
+import org.apache.carbondata.common.logging.LogServiceFactory
 
-  private String message;
+object CarbonStreamingUtil {
+  private val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
 
-  LoadStatusType(String message) {
-    this.message = message;
+  def generateDataFile(batchId: Long,
+      tablePath: String,
+      segmentId: String,
+      partitionIndex: Int,
+      iterator: Iterator[Row]): Iterator[Row] = {
+    ???
   }
 
-  public String getMessage() {
-    return message;
-  }
+  def appendDataFileToStreamingFile(): Unit = ???
 }

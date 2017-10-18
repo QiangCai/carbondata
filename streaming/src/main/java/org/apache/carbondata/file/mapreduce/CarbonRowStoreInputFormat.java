@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.datastore.row;
+package org.apache.carbondata.file.mapreduce;
+
+import java.io.IOException;
+
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 /**
- * Load status type
+ * Row-store input format
  */
-public enum LoadStatusType {
+public class CarbonRowStoreInputFormat extends FileInputFormat {
 
-  INSERT_OVERWRITE("Overwrite In Progress"), // if insert overwrite operation is in progress
-  IN_PROGRESS("In Progress"), // if load, insert into operation is in progress
-  STREAMING_IN_PROGRESS("Streaming In Progress"); // if streaming ingest is in progress
-
-  private String message;
-
-  LoadStatusType(String message) {
-    this.message = message;
+  @Override public RecordReader createRecordReader(InputSplit split, TaskAttemptContext context)
+      throws IOException, InterruptedException {
+    return null;
   }
 
-  public String getMessage() {
-    return message;
-  }
 }

@@ -15,24 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.datastore.row;
+package org.apache.carbondata.streaming;
 
-/**
- * Load status type
- */
-public enum LoadStatusType {
 
-  INSERT_OVERWRITE("Overwrite In Progress"), // if insert overwrite operation is in progress
-  IN_PROGRESS("In Progress"), // if load, insert into operation is in progress
-  STREAMING_IN_PROGRESS("Streaming In Progress"); // if streaming ingest is in progress
-
-  private String message;
-
-  LoadStatusType(String message) {
-    this.message = message;
-  }
-
-  public String getMessage() {
-    return message;
-  }
+public class CarbonStreamingException extends Exception{
 }

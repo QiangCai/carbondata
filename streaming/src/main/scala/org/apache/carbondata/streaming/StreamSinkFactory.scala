@@ -15,24 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.datastore.row;
+package org.apache.carbondata.streaming
+
+import org.apache.spark.sql.execution.streaming.Sink
+
+import org.apache.carbondata.streaming.format.CarbonRowStoreSink
 
 /**
- * Load status type
+ * Stream sink factory
  */
-public enum LoadStatusType {
+object StreamSinkFactory {
 
-  INSERT_OVERWRITE("Overwrite In Progress"), // if insert overwrite operation is in progress
-  IN_PROGRESS("In Progress"), // if load, insert into operation is in progress
-  STREAMING_IN_PROGRESS("Streaming In Progress"); // if streaming ingest is in progress
+  def getSinkByFormat(format: String): Sink = {
+    // TODO get/create streaming segment into tablestatus file
 
-  private String message;
-
-  LoadStatusType(String message) {
-    this.message = message;
+    // default is carbon row-store
+    new CarbonRowStoreSink()
   }
 
-  public String getMessage() {
-    return message;
-  }
 }

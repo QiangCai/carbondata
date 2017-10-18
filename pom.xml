@@ -478,6 +478,7 @@
         <module>integration/spark2</module>
         <module>integration/hive</module>
         <module>integration/presto</module>
+        <module>streaming</module>
         <module>examples/spark2</module>
       </modules>
       <build>
