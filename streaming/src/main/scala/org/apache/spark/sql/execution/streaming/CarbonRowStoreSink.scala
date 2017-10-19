@@ -15,29 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.streaming.format
+package org.apache.spark.sql.execution.streaming
 
-import org.apache.spark.TaskContext
 import org.apache.spark.internal.io.FileCommitProtocol
-import org.apache.spark.sql.{DataFrame, Row, SparkSession, SparkSqlUtil}
-import org.apache.spark.sql.execution.streaming.{FileStreamSinkLog, ManifestFileCommitProtocol, Sink}
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.datastore.impl.FileFactory
-import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.util.path.{CarbonStorePath, CarbonTablePath}
-import org.apache.carbondata.streaming.{CarbonStreamingException, CarbonStreamingUtil}
+import org.apache.carbondata.streaming.CarbonStreamException
 
-class CarbonRowStoreSink(sparkSession: SparkSession,
-    tablePath: String) extends Sink {
+class CarbonRowStoreSink(
+    sparkSession: SparkSession,
+    carbonTable: CarbonTable,
+    parameters: Map[String, String]) extends Sink {
 
   private val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
 
-  private val identifier = AbsoluteTableIdentifier.fromTablePath(tablePath)
-  private val carbonTablePath = CarbonStorePath.getCarbonTablePath(identifier)
-  private val currentSegmentId = "0"
-  private val fileLogPath = tablePath + "/streaming"
+  private val carbonTablePath = CarbonStorePath
+    .getCarbonTablePath(carbonTable.getAbsoluteTableIdentifier)
+  private val currentSegmentId = getStreamingSegmentId
+  private val fileLogPath = carbonTablePath.getStreamingLogDir
   private val fileLog = new FileStreamSinkLog(FileStreamSinkLog.VERSION, sparkSession, fileLogPath)
+  private val hadoopConf = sparkSession.sessionState.newHadoopConf()
 
   override def addBatch(batchId: Long, data: DataFrame): Unit = {
 
@@ -45,10 +47,11 @@ class CarbonRowStoreSink(sparkSession: SparkSession,
       LOGGER.info(s"Skipping already committed batch $batchId")
     } else {
 
-      validateSegment(carbonTablePath, currentSegmentId)
+      validateSchema(data.schema)
+      validateSegment(carbonTablePath)
 
       val committer = FileCommitProtocol.instantiate(
-        className = SparkSqlUtil.streamingFileCommitProtocolClass(sparkSession),
+        className = sparkSession.sessionState.conf.streamingFileCommitProtocolClass,
         jobId = batchId.toString,
         outputPath = fileLogPath,
         isAppend = false)
@@ -60,29 +63,40 @@ class CarbonRowStoreSink(sparkSession: SparkSession,
       }
 
       // step 1: write batch data to temporary folder
-      val result = data.mapPartitions { iterator =>
-        val partitionindex = TaskContext.getPartitionId()
-        CarbonStreamingUtil
-          .generateDataFile(batchId, tablePath, currentSegmentId, partitionindex, iterator)
-      }.collect()
-
-      // TODO check result
+      CarbonStreamProcessor.writeDataFileJob(
+        sparkSession,
+        carbonTable,
+        parameters,
+        batchId,
+        currentSegmentId,
+        data.queryExecution,
+        committer,
+        hadoopConf)
 
       // step 2: append temporary data to streaming segment
-      CarbonStreamingUtil.appendDataFileToStreamingFile()
+      CarbonStreamProcessor.appendSegmentJob()
 
     }
 
   }
 
-  private def validateSegment(carbonTablePath: CarbonTablePath, currentSegmentId: String): Unit = {
+  private def validateSegment(carbonTablePath: CarbonTablePath): Unit = {
     val segmentDir = carbonTablePath.getSegmentDir("0", currentSegmentId)
     val streamingTempDir = carbonTablePath.getStreamingTempDir(segmentDir)
-    if
+    // TODO fault tolerant
 
     if (FileFactory.isFileExist(streamingTempDir, FileFactory.getFileType(streamingTempDir))) {
-      throw new CarbonStreamingException(s"Require to recover streaming segment $currentSegmentId" +
-                                         s" at first.")
+      throw new CarbonStreamException(s"Require to recover streaming segment $currentSegmentId" +
+                                      s" at first.")
     }
+  }
+
+  private def validateSchema(dataSchema: StructType): Unit = {
+    // TODO check whether source schema is same with target table
+  }
+
+  private def getStreamingSegmentId: String = {
+    // TODO get streaming segment id
+    "0"
   }
 }

@@ -17,20 +17,25 @@
 
 package org.apache.carbondata.streaming
 
-import org.apache.spark.sql.execution.streaming.Sink
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.execution.streaming.{CarbonRowStoreSink, Sink}
 
-import org.apache.carbondata.streaming.format.CarbonRowStoreSink
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 
 /**
  * Stream sink factory
  */
 object StreamSinkFactory {
 
-  def getSinkByFormat(format: String): Sink = {
+  def createSinkByFormat(
+      sparkSession: SparkSession,
+      carbonTable: CarbonTable,
+      parameters: Map[String, String]): Sink = {
+
     // TODO get/create streaming segment into tablestatus file
 
     // default is carbon row-store
-    new CarbonRowStoreSink()
+    new CarbonRowStoreSink(sparkSession, carbonTable, parameters)
   }
 
 }

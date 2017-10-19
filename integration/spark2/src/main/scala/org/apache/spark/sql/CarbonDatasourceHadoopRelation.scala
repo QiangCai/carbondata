@@ -108,8 +108,13 @@ case class CarbonDatasourceHadoopRelation(
       parameters: Map[String, String],
       partitionColumns: Seq[String],
       outputMode: OutputMode): Sink = {
-    // default streaming format is row-store
-    val formatType = parameters.getOrElse("streaming.sink.format", "row-store")
-    StreamSinkFactory.getSinkByFormat(formatType)
+
+    // TODO now this method will ignore partitionColumns and outputMode
+
+    // create sink
+    StreamSinkFactory.createSinkByFormat(
+      sqlContext.sparkSession,
+      carbonTable,
+      parameters)
   }
 }

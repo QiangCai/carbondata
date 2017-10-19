@@ -17,6 +17,31 @@
 
 package org.apache.carbondata.streaming;
 
+import org.apache.carbondata.common.CarbonIterator;
+import org.apache.carbondata.file.mapreduce.CarbonRowStoreOutputFormat;
+import org.apache.carbondata.file.mapreduce.CarbonRowStoreRecordWriter;
 
-public class CarbonStreamingException extends Exception{
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+public class DataWriterTaskExecutor {
+
+  public void execute(CarbonIterator<String[]> inputIterators, TaskAttemptContext job)
+      throws Exception {
+
+    CarbonRowStoreOutputFormat outputFormat = new CarbonRowStoreOutputFormat();
+    CarbonRowStoreRecordWriter writer = null;
+    try {
+      writer = (CarbonRowStoreRecordWriter) outputFormat.getRecordWriter(job);
+      while (inputIterators.hasNext()) {
+        writer.write(null, inputIterators.next());
+      }
+
+    } finally {
+      if (writer != null) {
+        writer.close(job);
+      }
+    }
+
+
+  }
 }

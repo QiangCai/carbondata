@@ -15,22 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.streaming
+package org.apache.carbondata.streaming;
 
-import org.apache.spark.sql.Row
+public class CarbonStreamException extends Exception {
 
-import org.apache.carbondata.common.logging.LogServiceFactory
-
-object CarbonStreamingUtil {
-  private val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
-
-  def generateDataFile(batchId: Long,
-      tablePath: String,
-      segmentId: String,
-      partitionIndex: Int,
-      iterator: Iterator[Row]): Iterator[Row] = {
-    ???
+  public CarbonStreamException(String message) {
+    super(message);
   }
 
-  def appendDataFileToStreamingFile(): Unit = ???
+  public CarbonStreamException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

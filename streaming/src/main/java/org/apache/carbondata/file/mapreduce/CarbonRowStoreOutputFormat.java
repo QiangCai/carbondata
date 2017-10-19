@@ -19,6 +19,10 @@ package org.apache.carbondata.file.mapreduce;
 
 import java.io.IOException;
 
+import org.apache.carbondata.hadoop.util.ObjectSerializationUtil;
+import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
+
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -27,9 +31,30 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
  * Row-store output format
  */
 public class CarbonRowStoreOutputFormat extends FileOutputFormat {
+
+  public final static byte[] SYNC_MARKER = new byte[16];
+
+  private final static String LOAD_Model = "mapreduce.output.carbon.load.model";
+
   @Override public RecordWriter getRecordWriter(TaskAttemptContext job)
       throws IOException, InterruptedException {
-    return null;
+    return new CarbonRowStoreRecordWriter(job);
+  }
+
+  public static void setCarbonLoadModel(Configuration hadoopConf, CarbonLoadModel carbonLoadModel)
+      throws IOException {
+    if (carbonLoadModel != null) {
+      hadoopConf.set(LOAD_Model, ObjectSerializationUtil.convertObjectToString(carbonLoadModel));
+    }
+  }
+
+  public static CarbonLoadModel getCarbonLoadModel(Configuration hadoopConf) throws IOException {
+    String value = hadoopConf.get(LOAD_Model);
+    if (value == null) {
+      return null;
+    } else {
+      return (CarbonLoadModel) ObjectSerializationUtil.convertStringToObject(value);
+    }
   }
 
 }

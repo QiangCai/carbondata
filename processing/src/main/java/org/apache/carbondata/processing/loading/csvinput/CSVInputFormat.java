@@ -64,7 +64,7 @@ public class CSVInputFormat extends FileInputFormat<NullWritable, StringArrayWri
   public static final String QUOTE_DEFAULT = "\"";
   public static final String ESCAPE = "carbon.csvinputformat.escape";
   public static final String ESCAPE_DEFAULT = "\\";
-  public static final String HEADER_PRESENT = "caron.csvinputformat.header.present";
+  public static final String HEADER_PRESENT = "carbon.csvinputformat.header.present";
   public static final boolean HEADER_PRESENT_DEFAULT = false;
   public static final String READ_BUFFER_SIZE = "carbon.csvinputformat.read.buffer.size";
   public static final String READ_BUFFER_SIZE_DEFAULT = "65536";

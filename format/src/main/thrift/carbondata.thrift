@@ -230,4 +230,5 @@ struct BlockletHeader{
 	3: optional BlockletIndex blocklet_index;  // Index for the following blocklet
 	4: required BlockletInfo blocklet_info;  // Info for the following blocklet
 	5: optional dictionary.ColumnDictionaryChunk dictionary; // Blocklet local dictionary
+	6: optional i32 blocklet_batch;
 }
