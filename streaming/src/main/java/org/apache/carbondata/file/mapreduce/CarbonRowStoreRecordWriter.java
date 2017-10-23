@@ -37,7 +37,6 @@ import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.compression.Compressor;
 import org.apache.carbondata.core.datastore.compression.CompressorFactory;
 import org.apache.carbondata.core.datastore.exception.CarbonDataWriterException;
-import org.apache.carbondata.core.datastore.filesystem.CarbonFile;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.datastore.row.CarbonRow;
 import org.apache.carbondata.core.metadata.datatype.DataTypes;
@@ -109,7 +108,7 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
   private Compressor compressor = null;
 
   // data write
-  private String localFolder;
+  private String localDir;
   private String fileName;
   private String localPath;
   private FileOutputStream outputStream;
@@ -157,16 +156,16 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
 
     // initialize local temp location
     if (localStoreLocation.length == 1) {
-      localFolder = localStoreLocation[0];
+      localDir = localStoreLocation[0];
     } else {
-      localFolder = localStoreLocation[new Random().nextInt(localStoreLocation.length)];
+      localDir = localStoreLocation[new Random().nextInt(localStoreLocation.length)];
     }
-    localFolder =
-        localFolder + File.separator + configuration.getTableIdentifier().getCarbonTableIdentifier()
+    localDir =
+        localDir + File.separator + configuration.getTableIdentifier().getCarbonTableIdentifier()
             .getTableUniqueName() + "-" + timestamp;
     fileName =
         CarbonTablePath.getCarbonDataFileName(0, taskNo, 0, 0, "" + System.currentTimeMillis());
-    localPath = localFolder + File.separator + fileName;
+    localPath = localDir + File.separator + fileName;
 
     // initialize
     nullBitSet = new BitSet(dataFields.length);
@@ -221,6 +220,10 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
     fileChannel.write(ByteBuffer.wrap(headerBytes));
   }
 
+  /**
+   * write a blocklet to file
+   * @throws IOException
+   */
   private void writeBlocklet() throws IOException {
     if (rowIndex == -1) {
       return;
@@ -245,6 +248,12 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
     totalSizeOfBuffer = 0;
   }
 
+  /**
+   * encode a row to byte array
+   * @param row
+   * @return
+   * @throws IOException
+   */
   private byte[] encodeRow(Object[] row) throws IOException {
     // parse and convert row
     currentRow.setData(rowParser.parseRow(row));
@@ -263,6 +272,7 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
     int dimCount = 0;
     Object value;
 
+    // primitive type dimension
     for (; dimCount < isNoDictionaryDimensionColumn.length; dimCount++) {
       value = currentRow.getObject(dimCount);
       if (value != null) {
@@ -275,7 +285,7 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
         }
       }
     }
-
+    // complex type dimension
     for (; dimCount < dimensionWithComplexCount; dimCount++) {
       value = currentRow.getObject(dimCount);
       if (value != null) {
@@ -284,6 +294,7 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
         oos.write(col);
       }
     }
+    // measure
     int dataType;
     for (int msrCount = 0; msrCount < measureCount; msrCount++) {
       value = currentRow.getObject(dimCount + msrCount);
@@ -313,8 +324,11 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
     return bos.getBytes();
   }
 
+  /**
+   * use snappy to compress buffer data
+   * @return
+   */
   private byte[] compressBlockletData() {
-    // use snappy to compress buffer data
     if (rowIndex == 0) {
       return compressor.compressByte(buffer[rowIndex]);
     } else if (rowIndex > 0) {
@@ -329,57 +343,63 @@ public class CarbonRowStoreRecordWriter extends RecordWriter {
     return null;
   }
 
-  private void copyLocalFileToCarbonStorePath() {
-    CarbonTablePath tablePath =
-        CarbonStorePath.getCarbonTablePath(carbonTable.getAbsoluteTableIdentifier());
-    String targetFolder = tablePath.getStreamingTempDir("0", segmentId);
-    LOGGER.info("Copying " + localPath + " --> " + targetFolder);
-    long copyStartTime = System.currentTimeMillis();
-    try {
-      CarbonFile localCarbonFile =
-          FileFactory.getCarbonFile(localPath, FileFactory.getFileType(localPath));
-      String targetFilePath = targetFolder + File.separator + fileName;
-
-      DataOutputStream dataOutputStream = null;
-      DataInputStream dataInputStream = null;
+  /**
+   * copy local file to carbon store and remove local file
+   * @throws IOException
+   */
+  private void copyLocalFileToStore() throws IOException {
+    if (FileFactory.isFileExist(localPath, FileFactory.getFileType(localPath))) {
+      CarbonTablePath tablePath =
+          CarbonStorePath.getCarbonTablePath(carbonTable.getAbsoluteTableIdentifier());
+      String targetDir = tablePath.getStreamingTempDir("0", segmentId);
+      LOGGER.info("Copying " + localPath + " --> " + targetDir);
+      long copyStartTime = System.currentTimeMillis();
       try {
-        dataOutputStream = FileFactory
-            .getDataOutputStream(targetFilePath, FileFactory.getFileType(targetFilePath),
-                CarbonCommonConstants.BYTEBUFFER_SIZE, 128 * 1024 * 1024);
-        dataInputStream = FileFactory
-            .getDataInputStream(localPath, FileFactory.getFileType(localPath),
-                CarbonCommonConstants.BYTEBUFFER_SIZE);
-        IOUtils.copyBytes(dataInputStream, dataOutputStream, CarbonCommonConstants.BYTEBUFFER_SIZE);
+        String targetFilePath = targetDir + File.separator + fileName;
+
+        DataOutputStream dataOutputStream = null;
+        DataInputStream dataInputStream = null;
+        try {
+          dataOutputStream = FileFactory
+              .getDataOutputStream(targetFilePath, FileFactory.getFileType(targetFilePath),
+                  CarbonCommonConstants.BYTEBUFFER_SIZE, 128 * 1024 * 1024);
+          dataInputStream = FileFactory
+              .getDataInputStream(localPath, FileFactory.getFileType(localPath),
+                  CarbonCommonConstants.BYTEBUFFER_SIZE);
+          IOUtils.copyBytes(dataInputStream, dataOutputStream, CarbonCommonConstants.BYTEBUFFER_SIZE);
+        } finally {
+          CarbonUtil.closeStream(dataInputStream);
+          CarbonUtil.closeStream(dataOutputStream);
+        }
+      } catch (IOException e) {
+        throw new CarbonDataWriterException(
+            "Problem while copying file from local store to carbon store", e);
       } finally {
-        CarbonUtil.closeStream(dataInputStream);
-        CarbonUtil.closeStream(dataOutputStream);
+        FileFactory.deleteFile(localPath, FileFactory.getFileType(localPath));
       }
-    } catch (IOException e) {
-      throw new CarbonDataWriterException(
-          "Problem while copying file from local store to carbon store", e);
+      LOGGER.info(
+          "Total copy time (ms) to copy file " + fileName + " is " + (System.currentTimeMillis()
+              - copyStartTime));
     }
-    LOGGER.info(
-        "Total copy time (ms) to copy file " + fileName + " is " + (System.currentTimeMillis()
-            - copyStartTime));
   }
 
   @Override public void close(TaskAttemptContext context) throws IOException, InterruptedException {
     // write remain buffer data to temp file
-    writeBlocklet();
-
-    copyLocalFileToCarbonStorePath();
-
-    // close resource
-    if (outputStream != null) {
-      try {
-        outputStream.close();
-      } catch (Exception ex) {
-        LOGGER.error(ex, "Failed to close output stream");
-      } finally {
-        outputStream = null;
-        fileChannel = null;
+    try {
+      writeBlocklet();
+      copyLocalFileToStore();
+    } finally {
+      // close resource
+      if (outputStream != null) {
+        try {
+          outputStream.close();
+        } catch (Exception ex) {
+          LOGGER.error(ex, "Failed to close output stream");
+        } finally {
+          outputStream = null;
+          fileChannel = null;
+        }
       }
     }
   }
-
 }

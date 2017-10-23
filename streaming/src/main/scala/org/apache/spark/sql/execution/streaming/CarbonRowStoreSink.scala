@@ -62,7 +62,6 @@ class CarbonRowStoreSink(
         case _ => // Do nothing
       }
 
-      // step 1: write batch data to temporary folder
       CarbonStreamProcessor.writeDataFileJob(
         sparkSession,
         carbonTable,
@@ -72,12 +71,7 @@ class CarbonRowStoreSink(
         data.queryExecution,
         committer,
         hadoopConf)
-
-      // step 2: append temporary data to streaming segment
-      CarbonStreamProcessor.appendSegmentJob()
-
     }
-
   }
 
   private def validateSegment(carbonTablePath: CarbonTablePath): Unit = {

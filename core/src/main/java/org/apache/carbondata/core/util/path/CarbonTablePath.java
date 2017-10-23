@@ -53,6 +53,7 @@ public class CarbonTablePath extends Path {
   protected static final String STREAMING_TEMP_DIR = ".temporary";
   protected static final String STREAMING_LOG_DIR = "streaming_log";
   protected static final String STREAMING_CHECKPOINT_DIR = "streaming_checkpoint";
+  protected static final String STREAMING_APPEND_PLAN_FILE = "appendplan";
 
   protected String tablePath;
   protected CarbonTableIdentifier carbonTableIdentifier;
@@ -451,6 +452,10 @@ public class CarbonTablePath extends Path {
 
   public String getStreamingTempDir(String segmentDir) {
     return segmentDir + File.separator + STREAMING_TEMP_DIR;
+  }
+
+  public String getStreamingAppendPlanFile(String tempDir) {
+    return tempDir + File.separator + STREAMING_APPEND_PLAN_FILE;
   }
 
   public String getPartitionDir(String partitionId) {
