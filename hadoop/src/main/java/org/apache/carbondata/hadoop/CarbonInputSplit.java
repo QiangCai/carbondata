@@ -81,6 +81,8 @@ public class CarbonInputSplit extends FileSplit
 
   private BlockletDetailInfo detailInfo;
 
+  private String format = "carbondata";
+
   public CarbonInputSplit() {
     segmentId = null;
     taskId = "0";
@@ -109,6 +111,30 @@ public class CarbonInputSplit extends FileSplit
       int numberOfBlocklets, ColumnarFormatVersion version, String[] deleteDeltaFiles) {
     this(segmentId, path, start, length, locations, version, deleteDeltaFiles);
     this.numberOfBlocklets = numberOfBlocklets;
+  }
+
+  public CarbonInputSplit(String segmentId, Path path, long start, long length, String[] locations,
+      String format) {
+    super(path, start, length, locations);
+    this.segmentId = segmentId;
+    this.format = format;
+    taskId = "0";
+    bucketId = "0";
+    numberOfBlocklets = 0;
+    invalidSegments = new ArrayList<>();
+    version = CarbonProperties.getInstance().getFormatVersion();
+  }
+
+  public CarbonInputSplit(String segmentId, Path path, long start, long length, String[] locations,
+      String[] inMemoryHosts, String format) {
+    super(path, start, length, locations, inMemoryHosts);
+    this.segmentId = segmentId;
+    this.format = format;
+    taskId = "0";
+    bucketId = "0";
+    numberOfBlocklets = 0;
+    invalidSegments = new ArrayList<>();
+    version = CarbonProperties.getInstance().getFormatVersion();
   }
 
   /**
@@ -362,5 +388,13 @@ public class CarbonInputSplit extends FileSplit
 
   public void setDetailInfo(BlockletDetailInfo detailInfo) {
     this.detailInfo = detailInfo;
+  }
+
+  public String getFormat() {
+    return format;
+  }
+
+  public void setFormat(String format) {
+    this.format = format;
   }
 }

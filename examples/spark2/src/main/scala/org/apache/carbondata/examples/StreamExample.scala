@@ -47,49 +47,62 @@ object StreamExample {
     import org.apache.spark.sql.CarbonSession._
     val spark = SparkSession
       .builder()
-      .master("local[2]")
+      .master("local")
       .appName("StreamExample")
       .config("spark.sql.warehouse.dir", warehouse)
       .getOrCreateCarbonSession(storeLocation, metastoredb)
 
     spark.sparkContext.setLogLevel("ERROR")
 
+
     import spark.implicits._
 
-    // drop table if exists previously
-    spark.sql(s"DROP TABLE IF EXISTS ${ streamTableName }")
-    // Create target carbon table and populate with initial data
-    spark.sql(
-      s"""
-         | CREATE TABLE ${ streamTableName }(
-         | id INT,
-         | name STRING,
-         | city STRING,
-         | salary FLOAT
-         | )
-         | STORED BY 'carbondata'""".stripMargin)
+    val requireCreateTable = false
 
-    val carbonTable = CarbonEnv.getInstance(spark).carbonMetastore.
-      lookupRelation(Some("default"), streamTableName)(spark).asInstanceOf[CarbonRelation].
-      tableMeta.carbonTable
-    val tablePath = CarbonStorePath.getCarbonTablePath(carbonTable.getAbsoluteTableIdentifier)
+    if (requireCreateTable) {
+      // drop table if exists previously
+      spark.sql(s"DROP TABLE IF EXISTS ${ streamTableName }")
+      // Create target carbon table and populate with initial data
+      spark.sql(
+        s"""
+           | CREATE TABLE ${ streamTableName }(
+           | id INT,
+           | name STRING,
+           | city STRING,
+           | salary FLOAT
+           | )
+           | STORED BY 'carbondata'""".stripMargin)
 
-    val serverSocket = new ServerSocket(7071)
-    var thread1 = startStreaming(spark, tablePath)
-    val thread2 = writeSocket(serverSocket)
-    val thread3 = showFileSize(tablePath.getPath)
+      val carbonTable = CarbonEnv.getInstance(spark).carbonMetastore.
+        lookupRelation(Some("default"), streamTableName)(spark).asInstanceOf[CarbonRelation].
+        tableMeta.carbonTable
+      val tablePath = CarbonStorePath.getCarbonTablePath(carbonTable.getAbsoluteTableIdentifier)
 
-    System.out.println("type enter to interrupt streaming")
-    System.in.read()
-    thread1.interrupt()
+      // batch load
+      val path = s"$rootPath/examples/spark2/src/main/resources/streamSample.csv"
+      spark.sql(
+        s"""
+           | LOAD DATA LOCAL INPATH '$path'
+           | INTO TABLE $streamTableName
+           | OPTIONS('HEADER'='true')
+         """.stripMargin)
 
-    // stop
-    System.out.println("type enter to stop all")
-    System.in.read()
-    thread1.interrupt()
-    thread2.interrupt()
-    thread3.interrupt()
-    serverSocket.close()
+      // streaming ingest
+      val serverSocket = new ServerSocket(7071)
+      var thread1 = startStreaming(spark, tablePath)
+      val thread2 = writeSocket(serverSocket)
+      val thread3 = showFileSize(tablePath.getFactDir)
+
+      System.out.println("type enter to interrupt streaming")
+      System.in.read()
+      thread1.interrupt()
+      thread2.interrupt()
+      thread3.interrupt()
+      serverSocket.close()
+    }
+
+    spark.sql(s"select * from ${streamTableName} where id = 100000001 limit 100").show(1000, false)
+
     spark.stop()
     System.out.println("streaming finished")
   }
@@ -98,7 +111,11 @@ object StreamExample {
     val thread = new Thread() {
       override def run(): Unit = {
         for (i <- 0 to 100) {
-          System.out.println("Table Size(byte): " + FileFactory.getDirectorySize(path))
+          if (FileFactory.isFileExist(path, FileFactory.getFileType(path))){
+            System.out.println("Table Size(byte): " + FileFactory.getDirectorySize(path))
+          } else {
+            System.out.println("Table Size(byte): " + 0)
+          }
           Thread.sleep(1000 * 3)
         }
       }

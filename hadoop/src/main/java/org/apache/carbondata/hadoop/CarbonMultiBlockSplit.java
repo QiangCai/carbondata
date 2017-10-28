@@ -44,6 +44,8 @@ public class CarbonMultiBlockSplit extends InputSplit implements Writable {
    */
   private String[] locations;
 
+  private boolean isStream;
+
   public CarbonMultiBlockSplit() {
     splitList = null;
     locations = null;
@@ -88,6 +90,7 @@ public class CarbonMultiBlockSplit extends InputSplit implements Writable {
     for (int i = 0; i < locations.length; i++) {
       out.writeUTF(locations[i]);
     }
+    out.writeBoolean(isStream);
   }
 
   @Override
@@ -105,6 +108,14 @@ public class CarbonMultiBlockSplit extends InputSplit implements Writable {
     for (int i = 0; i < len; i++) {
       locations[i] = in.readUTF();
     }
+    isStream = in.readBoolean();
   }
 
+  public boolean isStream() {
+    return isStream;
+  }
+
+  public void setStream(boolean stream) {
+    isStream = stream;
+  }
 }

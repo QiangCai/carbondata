@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.streaming.file;
+package org.apache.carbondata.hadoop.streaming;
 
 import java.io.IOException;
 
@@ -27,11 +27,14 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 /**
  * Stream input format
  */
-public class CarbonStreamInputFormat extends FileInputFormat {
+public class CarbonStreamInputFormat extends FileInputFormat<Void, Object> {
 
-  @Override public RecordReader createRecordReader(InputSplit split, TaskAttemptContext context)
-      throws IOException, InterruptedException {
-    return null;
+  public static final String READ_BUFFER_SIZE = "carbon.stream.read.buffer.size";
+  public static final String READ_BUFFER_SIZE_DEFAULT = "65536";
+
+  @Override public RecordReader<Void, Object> createRecordReader(InputSplit split,
+      TaskAttemptContext context) throws IOException, InterruptedException {
+    return new CarbonStreamRecordReader();
   }
 
 }

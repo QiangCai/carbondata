@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.streaming.file;
+package org.apache.carbondata.hadoop.streaming;
 
 import java.io.IOException;
 
@@ -34,7 +34,7 @@ public class CarbonStreamOutputFormat extends FileOutputFormat {
 
   public static final byte[] CARBON_SYNC_MARKER = "@carbondata_sync".getBytes();
 
-  public static final String CARBON_ENCODER_ROW_BUFFER_SIZE = "carbon.encoder.row.buffer.size";
+  public static final String CARBON_ENCODER_ROW_BUFFER_SIZE = "carbon.stream.row.buffer.size";
 
   public static final int CARBON_ENCODER_ROW_BUFFER_SIZE_DEFAULT = 1024;
 

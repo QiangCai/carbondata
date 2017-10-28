@@ -37,9 +37,10 @@ import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.util.CarbonProperties
 import org.apache.carbondata.core.util.path.CarbonStorePath
-import org.apache.carbondata.spark.util.CommonUtil
+import org.apache.carbondata.hadoop.streaming.CarbonStreamOutputFormat
+import org.apache.carbondata.processing.loading.model.CarbonLoadModel
+import org.apache.carbondata.spark.util.{CommonUtil, DataLoadingUtil}
 import org.apache.carbondata.streaming.CarbonStreamException
-import org.apache.carbondata.streaming.file.CarbonStreamOutputFormat
 import org.apache.carbondata.streaming.parser.CarbonStreamParser
 import org.apache.carbondata.streaming.segment.StreamSegmentManager
 
@@ -68,17 +69,19 @@ object CarbonStreamProcessor {
     // prepare configuration for executor
     val carbonProperty: CarbonProperties = CarbonProperties.getInstance()
     carbonProperty.addProperty("zookeeper.enable.lock", "false")
-    val optionsFinal = CommonUtil.getFinalOptions(carbonProperty, parameters)
+    val optionsFinal = DataLoadingUtil.getDataLoadingOptions(carbonProperty, parameters)
     optionsFinal.put("sort_scope", "no_sort")
     if (parameters.get("fileheader").isEmpty) {
       optionsFinal.put("fileheader", carbonTable.getCreateOrderColumn(carbonTable.getFactTableName)
         .asScala.map(_.getColName).mkString(","))
     }
-    val carbonLoadModel = CommonUtil.buildCarbonLoadModel(
+    val carbonLoadModel = new CarbonLoadModel()
+    DataLoadingUtil.buildCarbonLoadModel(
       carbonTable,
       carbonProperty,
       parameters,
-      optionsFinal
+      optionsFinal,
+      carbonLoadModel
     )
     carbonLoadModel.setSegmentId(segmentId)
     CarbonStreamOutputFormat.setCarbonLoadModel(hadoopConf, carbonLoadModel)

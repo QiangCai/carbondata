@@ -39,7 +39,7 @@ import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.core.writer.CarbonIndexFileWriter;
 import org.apache.carbondata.format.BlockIndex;
 import org.apache.carbondata.format.BlockletIndex;
-import org.apache.carbondata.streaming.file.CarbonStreamOutputFormat;
+import org.apache.carbondata.hadoop.streaming.CarbonStreamOutputFormat;
 
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -70,7 +70,8 @@ public class StreamSegmentManager {
             "Acquired lock for table" + table.getDatabaseName() + "." + table.getFactTableName()
                 + " for stream table get or create segment");
 
-        LoadMetadataDetails[] details = SegmentStatusManager.readLoadMetadata(tablePath.getPath());
+        LoadMetadataDetails[] details =
+            SegmentStatusManager.readLoadMetadata(tablePath.getMetadataDirectoryPath());
         LoadMetadataDetails streamSegment = null;
         for (LoadMetadataDetails detail : details) {
           if (FILE_FORMAT.equals(detail.getFileFormat())) {

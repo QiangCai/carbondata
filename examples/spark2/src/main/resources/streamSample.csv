@@ -1,0 +1,6 @@
+id,name,city,salary
+100000001, batch_1, city_1, 0.1
+100000002, batch_2, city_2, 0.2
+100000003, batch_3, city_3, 0.3
+100000004, batch_4, city_4, 0.4
+100000005, batch_5, city_5, 0.5

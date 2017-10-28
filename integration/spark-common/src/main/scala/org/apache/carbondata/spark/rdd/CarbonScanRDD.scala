@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.{ArrayList, Date, List}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 import org.apache.hadoop.conf.Configuration
@@ -38,9 +39,10 @@ import org.apache.carbondata.core.metadata.schema.table.TableInfo
 import org.apache.carbondata.core.scan.expression.Expression
 import org.apache.carbondata.core.scan.model.QueryModel
 import org.apache.carbondata.core.stats.{QueryStatistic, QueryStatisticsConstants, QueryStatisticsRecorder}
-import org.apache.carbondata.core.util.{CarbonProperties, CarbonTimeStatisticsFactory, TaskMetricsMap}
+import org.apache.carbondata.core.util.{CarbonProperties, CarbonTimeStatisticsFactory, DataTypeUtil, TaskMetricsMap}
 import org.apache.carbondata.hadoop._
 import org.apache.carbondata.hadoop.api.CarbonTableInputFormat
+import org.apache.carbondata.hadoop.streaming.{CarbonStreamInputFormat, CarbonStreamRecordReader}
 import org.apache.carbondata.processing.util.CarbonLoaderUtil
 import org.apache.carbondata.spark.InitInputMetrics
 import org.apache.carbondata.spark.util.SparkDataTypeConverterImpl
@@ -82,8 +84,40 @@ class CarbonScanRDD(
 
     // get splits
     val splits = format.getSplits(job)
-    val result = distributeSplits(splits)
-    result
+
+    val columnarSplits = new ArrayList[InputSplit]()
+    val streamSplits = new ArrayBuffer[InputSplit]()
+    for(i <- 0 until splits.size()) {
+      val carbonInputSplit = splits.get(i).asInstanceOf[CarbonInputSplit]
+      if ("row-format".equals(carbonInputSplit.getFormat)) {
+        streamSplits += splits.get(i)
+      } else {
+        columnarSplits.add(splits.get(i))
+      }
+    }
+    val batchPartitions = distributeSplits(columnarSplits)
+    if (streamSplits.isEmpty) {
+      batchPartitions
+    } else {
+      val index = batchPartitions.length
+      val streamPartitions: ArrayBuffer[Partition] =
+        streamSplits.zipWithIndex.map { splitWithIndex =>
+          val multiBlockSplit =
+            new CarbonMultiBlockSplit(identifier,
+              Seq(splitWithIndex._1.asInstanceOf[CarbonInputSplit]).asJava,
+              splitWithIndex._1.getLocations)
+          multiBlockSplit.setStream(true)
+          new CarbonSparkPartition(id, splitWithIndex._2 + index, multiBlockSplit)
+        }
+      if (batchPartitions.isEmpty) {
+        streamPartitions.toArray
+      } else {
+        val result = new ArrayBuffer[Partition](batchPartitions.length + streamPartitions.size)
+        result.appendAll(batchPartitions)
+        result.appendAll(streamPartitions)
+        result.toArray
+      }
+    }
   }
 
   private def distributeSplits(splits: List[InputSplit]): Array[Partition] = {
@@ -210,8 +244,17 @@ class CarbonScanRDD(
     inputMetricsStats.initBytesReadCallback(context, inputSplit)
     val iterator = if (inputSplit.getAllSplits.size() > 0) {
       val model = format.getQueryModel(inputSplit, attemptContext)
-      val reader = {
-        if (vectorReader) {
+      val reader: RecordReader[Void, Object] = {
+        if (inputSplit.isStream) {
+          DataTypeUtil.setDataTypeConverter(new SparkDataTypeConverterImpl)
+          val inputFormat = new CarbonStreamInputFormat
+          val streamReader = inputFormat.createRecordReader(inputSplit, attemptContext)
+            .asInstanceOf[CarbonStreamRecordReader]
+          model.setStatisticsRecorder(
+            CarbonTimeStatisticsFactory.createExecutorRecorder(model.getQueryId))
+          streamReader.setQueryModel(model)
+          streamReader
+        } else if (vectorReader) {
           val carbonRecordReader = createVectorizedCarbonRecordReader(model, inputMetricsStats)
           if (carbonRecordReader == null) {
             new CarbonRecordReader(model,

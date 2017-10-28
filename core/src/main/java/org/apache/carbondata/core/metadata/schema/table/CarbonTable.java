@@ -431,6 +431,30 @@ public class CarbonTable implements Serializable {
   }
 
   /**
+   * This method will give storage order column list
+   */
+  public List<CarbonColumn> getStreamStorageOrderColumn(String tableName) {
+    List<CarbonDimension> dimensions = tableDimensionsMap.get(tableName);
+    List<CarbonMeasure> measures = tableMeasuresMap.get(tableName);
+    List<CarbonColumn> columnList = new ArrayList<>(dimensions.size() + measures.size());
+    List<CarbonColumn> complexdimensionList = new ArrayList<>(dimensions.size());
+    for (CarbonColumn column : dimensions) {
+      if (column.isComplex()) {
+        complexdimensionList.add(column);
+      } else {
+        columnList.add(column);
+      }
+    }
+    columnList.addAll(complexdimensionList);
+    for (CarbonColumn column : measures) {
+      if (!(column.getColName().equals("default_dummy_measure"))) {
+        columnList.add(column);
+      }
+    }
+    return columnList;
+  }
+
+  /**
    * to get particular measure from a table
    *
    * @param tableName
