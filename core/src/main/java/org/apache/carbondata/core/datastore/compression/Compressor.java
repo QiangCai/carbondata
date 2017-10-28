@@ -63,5 +63,7 @@ public interface Compressor {
 
   long rawCompress(long inputAddress, int inputSize, long outputAddress) throws IOException;
 
+  long rawUncompress(byte[] input, byte[] output) throws IOException;
+
   int maxCompressedLength(int inputSize);
 }

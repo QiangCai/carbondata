@@ -22,6 +22,7 @@ import java.lang.reflect.Field;
 
 import org.apache.carbondata.common.logging.LogService;
 import org.apache.carbondata.common.logging.LogServiceFactory;
+import org.apache.carbondata.core.memory.CarbonUnsafe;
 
 import org.xerial.snappy.Snappy;
 import org.xerial.snappy.SnappyNative;
@@ -235,6 +236,11 @@ public class SnappyCompressor implements Compressor {
   @Override
   public long rawCompress(long inputAddress, int inputSize, long outputAddress) throws IOException {
     return snappyNative.rawCompress(inputAddress, inputSize, outputAddress);
+  }
+
+  public long rawUncompress(byte[] input, byte[] output) throws IOException {
+    return snappyNative.rawUncompress(input, 0, input.length, output,
+        CarbonUnsafe.BYTE_ARRAY_OFFSET);
   }
 
   @Override

@@ -29,9 +29,13 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
  */
 public class CarbonStreamInputFormat extends FileInputFormat {
 
+  public static final String READ_BUFFER_SIZE = "carbon.stream.read.buffer.size";
+  public static final String READ_BUFFER_SIZE_DEFAULT = "65536";
+
+
   @Override public RecordReader createRecordReader(InputSplit split, TaskAttemptContext context)
       throws IOException, InterruptedException {
-    return null;
+    return new CarbonStreamRecordReader();
   }
 
 }

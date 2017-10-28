@@ -230,8 +230,11 @@ public class CarbonStreamRecordWriter extends RecordWriter {
         }
       }
       bos.nextRow();
-      bos.skip();
-      bos.writeBytes(nullBitSet.toByteArray());
+      byte[] b = nullBitSet.toByteArray();
+      bos.writeShort(b.length);
+      if (b.length > 0) {
+        bos.writeBytes(b);
+      }
       int dimCount = 0;
       Object columnValue;
 
@@ -275,7 +278,7 @@ public class CarbonStreamRecordWriter extends RecordWriter {
         } else if (dataType == DataTypes.DECIMAL_TYPE_ID) {
           BigDecimal val = (BigDecimal) columnValue;
           byte[] bigDecimalInBytes = DataTypeUtil.bigDecimalToByte(val);
-          bos.writeInt(bigDecimalInBytes.length);
+          bos.writeShort(bigDecimalInBytes.length);
           bos.writeBytes(bigDecimalInBytes);
         } else {
           String msg =
@@ -285,7 +288,6 @@ public class CarbonStreamRecordWriter extends RecordWriter {
           throw new IllegalArgumentException(msg);
         }
       }
-      bos.backFill();
 
       if (bos.isFull()) {
         appendBlockletToDataFile();
@@ -356,7 +358,6 @@ public class CarbonStreamRecordWriter extends RecordWriter {
     private int maxRowNum;
     private int rowSize;
     private int count = 0;
-    private int skip = 0;
     private int rowIndex = -1;
     private Compressor compressor = CompressorFactory.getInstance().getCompressor();
 
@@ -378,7 +379,6 @@ public class CarbonStreamRecordWriter extends RecordWriter {
 
     void reset() {
       count = 0;
-      skip = 0;
       rowIndex = -1;
     }
 
@@ -399,20 +399,6 @@ public class CarbonStreamRecordWriter extends RecordWriter {
 
     int getRowIndex() {
       return rowIndex;
-    }
-
-    void skip() {
-      ensureCapacity(4);
-      skip = count;
-      count += 4;
-    }
-
-    void backFill() {
-      int val = count - skip - 4;
-      buffer[skip + 3] = (byte) (val);
-      buffer[skip + 2] = (byte) (val >>> 8);
-      buffer[skip + 1] = (byte) (val >>> 16);
-      buffer[skip] = (byte) (val >>> 24);
     }
 
     void nextRow() {
@@ -473,17 +459,21 @@ public class CarbonStreamRecordWriter extends RecordWriter {
     }
 
     void apppendBlocklet(DataOutputStream outputStream) throws IOException {
+      outputStream.write(CarbonStreamOutputFormat.CARBON_SYNC_MARKER);
+
       BlockletInfo blockletInfo = new BlockletInfo();
       blockletInfo.setNum_rows(getRowIndex() + 1);
       BlockletHeader blockletHeader = new BlockletHeader();
-      byte[] compressed = compressor.compressByte(getBytes(), getCount());
-      blockletHeader.setBlocklet_length(compressed.length);
+      blockletHeader.setBlocklet_length(getCount());
       blockletHeader.setMutation(MutationType.INSERT);
       blockletHeader.setBlocklet_info(blockletInfo);
       byte[] headerBytes = CarbonUtil.getByteArray(blockletHeader);
+      outputStream.writeInt(headerBytes.length);
       outputStream.write(headerBytes);
+
+      byte[] compressed = compressor.compressByte(getBytes(), getCount());
+      outputStream.writeInt(compressed.length);
       outputStream.write(compressed);
-      outputStream.write(CarbonStreamOutputFormat.CARBON_SYNC_MARKER);
     }
   }
 }
