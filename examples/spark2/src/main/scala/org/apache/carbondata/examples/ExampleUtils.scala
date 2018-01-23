@@ -47,7 +47,8 @@ object ExampleUtils {
     import org.apache.spark.sql.CarbonSession._
     val spark = SparkSession
       .builder()
-      .master("local")
+      .master("spark://X160912:7077")
+      .config("spark.jars", "/home/david/Documents/code/carbondata/assembly/target/scala-2.11/carbondata_2.11-1.3.0-SNAPSHOT-shade-hadoop2.7.2.jar")
       .appName("CarbonSessionExample")
       .config("spark.sql.warehouse.dir", warehouse)
       .config("spark.driver.host", "localhost")
