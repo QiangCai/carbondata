@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -242,7 +243,7 @@ class FGDataMap extends AbstractFineGrainDataMap {
    * Clear complete index table and release memory.
    */
   override def clear():Unit = {
-    ???
+
   }
 
   override def isScanRequired(filterExp: FilterResolverIntf): Boolean = ???

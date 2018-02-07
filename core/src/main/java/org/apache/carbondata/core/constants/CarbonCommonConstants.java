@@ -912,6 +912,7 @@ public final class CarbonCommonConstants {
    */
   public static final String DICTIONARY_PATH = "dictionary_path";
   public static final String SORT_COLUMNS = "sort_columns";
+  public static final String TEXT_COLUMNS = "text_columns";
   public static final String PARTITION_TYPE = "partition_type";
   public static final String NUM_PARTITIONS = "num_partitions";
   public static final String RANGE_INFO = "range_info";
