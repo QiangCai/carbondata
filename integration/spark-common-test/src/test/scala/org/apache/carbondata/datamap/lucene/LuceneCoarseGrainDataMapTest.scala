@@ -22,6 +22,7 @@ import org.scalatest.BeforeAndAfterAll
 
 import org.apache.carbondata.core.datamap.DataMapStoreManager
 import org.apache.carbondata.core.metadata.CarbonMetadata
+import org.apache.carbondata.core.metadata.schema.table.DataMapSchema
 
 class LuceneCoarseGrainDataMapTest extends QueryTest with BeforeAndAfterAll {
 
@@ -51,12 +52,12 @@ class LuceneCoarseGrainDataMapTest extends QueryTest with BeforeAndAfterAll {
       """.stripMargin)
     val table = CarbonMetadata.getInstance().getCarbonTable("default_datamap_test")
 
-    val LuceneCGName = "LuceneCoarseGrainDatamap";
+    val LuceneCGName = "LuceneCoarseGrainDatamap"
+
 
     val luceneCGTableDataMap =
       DataMapStoreManager.getInstance().getDataMap(table.getAbsoluteTableIdentifier,
-        LuceneCGName,
-        classOf[LuceneCoarseGrainDataMapFactory].getName);
+        new DataMapSchema(LuceneCGName, classOf[LuceneCoarseGrainDataMapFactory].getName))
 
 
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE datamap_test OPTIONS('header'='false')")

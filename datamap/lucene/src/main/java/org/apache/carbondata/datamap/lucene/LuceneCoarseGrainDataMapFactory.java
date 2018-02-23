@@ -138,6 +138,11 @@ public class LuceneCoarseGrainDataMapFactory extends AbstractCoarseGrainDataMapF
     analyzer = new StandardAnalyzer();
   }
 
+  public void init(AbsoluteTableIdentifier identifier, DataMapSchema dataMapSchema)
+      throws IOException {
+
+  }
+
   /**
    * Return a new write for this datamap
    */
@@ -180,8 +185,8 @@ public class LuceneCoarseGrainDataMapFactory extends AbstractCoarseGrainDataMapF
   public List<DataMapDistributable> toDistributable(String segmentId) {
     List<DataMapDistributable> lstDataMapDistribute = new ArrayList<DataMapDistributable>();
     DataMapDistributable luceneDataMapDistributable = new LuceneDataMapDistributable();
-    luceneDataMapDistributable.setDataMapFactoryClass(this.getClass().getName());
-    luceneDataMapDistributable.setDataMapName(dataMapName);
+//    luceneDataMapDistributable.setDataMapFactoryClass(this.getClass().getName());
+//    luceneDataMapDistributable.setDataMapName(dataMapName);
     luceneDataMapDistributable.setSegmentId(segmentId);
     lstDataMapDistribute.add(luceneDataMapDistributable);
     return lstDataMapDistribute;
