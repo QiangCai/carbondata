@@ -35,6 +35,8 @@ import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.hive.DistributionUtil
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.execution.SQLExecution
+import org.apache.spark.sql.monitor.{GetPartition, MonitorEndPoint, QueryTaskEnd}
 import org.apache.spark.sql.util.SparkSQLUtil.sessionState
 
 import org.apache.carbondata.common.logging.LogServiceFactory
@@ -72,7 +74,7 @@ class CarbonScanRDD(
     @transient val partitionNames: Seq[PartitionSpec])
   extends CarbonRDDWithTableInfo[InternalRow](spark.sparkContext, Nil, serializedTableInfo) {
 
-  private val queryId = sparkContext.getConf.get("queryId", System.nanoTime() + "")
+  private val queryId = System.nanoTime().toString
   private val jobTrackerId: String = {
     val formatter = new SimpleDateFormat("yyyyMMddHHmm")
     formatter.format(new Date())
@@ -86,53 +88,87 @@ class CarbonScanRDD(
   @transient val LOGGER = LogServiceFactory.getLogService(this.getClass.getName)
 
   override def getPartitions: Array[Partition] = {
-    val conf = new Configuration()
-    val jobConf = new JobConf(conf)
-    SparkHadoopUtil.get.addCredentials(jobConf)
-    val job = Job.getInstance(jobConf)
-    val format = prepareInputFormatForDriver(job.getConfiguration)
+    val startTime = System.currentTimeMillis()
+    var partitions: Array[Partition] = Array.empty[Partition]
+    var getSplitsStartTime: Long = -1
+    var getSplitsEndTime: Long = -1
+    var distributeStartTime: Long = -1
+    var distributeEndTime: Long = -1
+    try {
+      val conf = new Configuration()
+      val jobConf = new JobConf(conf)
+      SparkHadoopUtil.get.addCredentials(jobConf)
+      val job = Job.getInstance(jobConf)
+      val format = prepareInputFormatForDriver(job.getConfiguration)
 
-    // initialise query_id for job
-    job.getConfiguration.set("query.id", queryId)
+      // initialise query_id for job
+      job.getConfiguration.set("query.id", queryId)
 
-    // get splits
-    val splits = format.getSplits(job)
+      // get splits
+      getSplitsStartTime = System.currentTimeMillis()
+      val splits = format.getSplits(job)
+      getSplitsEndTime = System.currentTimeMillis()
 
-    // separate split
-    // 1. for batch splits, invoke distributeSplits method to create partitions
-    // 2. for stream splits, create partition for each split by default
-    val columnarSplits = new ArrayList[InputSplit]()
-    val streamSplits = new ArrayBuffer[InputSplit]()
-    splits.asScala.foreach { split =>
-      val carbonInputSplit = split.asInstanceOf[CarbonInputSplit]
-      if (FileFormat.ROW_V1 == carbonInputSplit.getFileFormat) {
-        streamSplits += split
-      } else {
-        columnarSplits.add(split)
-      }
-    }
-    val batchPartitions = distributeColumnarSplits(columnarSplits)
-    // check and remove InExpression from filterExpression
-    checkAndRemoveInExpressinFromFilterExpression(format, batchPartitions)
-    if (streamSplits.isEmpty) {
-      batchPartitions.toArray
-    } else {
-      val index = batchPartitions.length
-      val streamPartitions: mutable.Buffer[Partition] =
-        streamSplits.zipWithIndex.map { splitWithIndex =>
-          val multiBlockSplit =
-            new CarbonMultiBlockSplit(
-              Seq(splitWithIndex._1.asInstanceOf[CarbonInputSplit]).asJava,
-              splitWithIndex._1.getLocations,
-              FileFormat.ROW_V1)
-          new CarbonSparkPartition(id, splitWithIndex._2 + index, multiBlockSplit)
+      // separate split
+      // 1. for batch splits, invoke distributeSplits method to create partitions
+      // 2. for stream splits, create partition for each split by default
+      val columnarSplits = new ArrayList[InputSplit]()
+      val streamSplits = new ArrayBuffer[InputSplit]()
+      splits.asScala.foreach { split =>
+        val carbonInputSplit = split.asInstanceOf[CarbonInputSplit]
+        if (FileFormat.ROW_V1 == carbonInputSplit.getFileFormat) {
+          streamSplits += split
+        } else {
+          columnarSplits.add(split)
         }
-      if (batchPartitions.isEmpty) {
-        streamPartitions.toArray
+      }
+      distributeStartTime = System.currentTimeMillis()
+      val batchPartitions = distributeColumnarSplits(columnarSplits)
+      distributeEndTime = System.currentTimeMillis()
+      // check and remove InExpression from filterExpression
+      checkAndRemoveInExpressinFromFilterExpression(format, batchPartitions)
+      if (streamSplits.isEmpty) {
+        partitions = batchPartitions.toArray
       } else {
-        // should keep the order by index of partition
-        batchPartitions.appendAll(streamPartitions)
-        batchPartitions.toArray
+        val index = batchPartitions.length
+        val streamPartitions: mutable.Buffer[Partition] =
+          streamSplits.zipWithIndex.map { splitWithIndex =>
+            val multiBlockSplit =
+              new CarbonMultiBlockSplit(
+                Seq(splitWithIndex._1.asInstanceOf[CarbonInputSplit]).asJava,
+                splitWithIndex._1.getLocations,
+                FileFormat.ROW_V1)
+            new CarbonSparkPartition(id, splitWithIndex._2 + index, multiBlockSplit)
+          }
+        if (batchPartitions.isEmpty) {
+          partitions = streamPartitions.toArray
+        } else {
+          // should keep the order by index of partition
+          batchPartitions.appendAll(streamPartitions)
+          partitions = batchPartitions.toArray
+        }
+      }
+      partitions
+    } finally {
+      MonitorEndPoint.scope {
+        val endTime = System.currentTimeMillis()
+        val executionId = spark.sparkContext.getLocalProperty(SQLExecution.EXECUTION_ID_KEY).toLong
+        MonitorEndPoint.send(
+          GetPartition(
+            executionId,
+            tableInfo.getDatabaseName + "." + tableInfo.getFactTable.getTableName,
+            queryId,
+            partitions.length,
+            startTime,
+            endTime,
+            getSplitsStartTime,
+            getSplitsEndTime,
+            distributeStartTime,
+            distributeEndTime,
+            if (filterExpression == null) "" else filterExpression.getStatement,
+            if (columnProjection == null) "" else columnProjection.getAllColumns.mkString(",")
+          )
+        )
       }
     }
   }
@@ -328,7 +364,8 @@ class CarbonScanRDD(
         System.getProperty("user.dir") + '/' + "conf" + '/' + "carbon.properties"
       )
     }
-
+    val executionId = context.getLocalProperty(SQLExecution.EXECUTION_ID_KEY).toLong
+    val taskId = split.index
     val attemptId = new TaskAttemptID(jobTrackerId, id, TaskType.MAP, split.index, 0)
     val attemptContext = new TaskAttemptContextImpl(new Configuration(), attemptId)
     val format = prepareInputFormatForExecutor(attemptContext.getConfiguration)
@@ -337,6 +374,8 @@ class CarbonScanRDD(
     inputMetricsStats.initBytesReadCallback(context, inputSplit)
     val iterator = if (inputSplit.getAllSplits.size() > 0) {
       val model = format.createQueryModel(inputSplit, attemptContext)
+      // one query id per table
+      model.setQueryId(queryId)
       // get RecordReader by FileFormat
       val reader: RecordReader[Void, Object] = inputSplit.getFileFormat match {
         case FileFormat.ROW_V1 =>
@@ -374,7 +413,7 @@ class CarbonScanRDD(
       context.addTaskCompletionListener { _ =>
         reader.close()
         close()
-        logStatistics(queryStartTime, model.getStatisticsRecorder)
+        logStatistics(executionId, taskId, queryStartTime, model.getStatisticsRecorder)
       }
       // initialize the reader
       reader.initialize(inputSplit, attemptContext)
@@ -466,14 +505,30 @@ class CarbonScanRDD(
     format
   }
 
-  def logStatistics(queryStartTime: Long, recorder: QueryStatisticsRecorder): Unit = {
+  def logStatistics(
+      executionId: Long,
+      taskId: Long,
+      queryStartTime: Long,
+      recorder: QueryStatisticsRecorder): Unit = {
     if (null != recorder) {
       val queryStatistic = new QueryStatistic()
       queryStatistic.addFixedTimeStatistic(QueryStatisticsConstants.EXECUTOR_PART,
         System.currentTimeMillis - queryStartTime)
       recorder.recordStatistics(queryStatistic)
       // print executor query statistics for each task_id
-      recorder.logStatisticsAsTableExecutor()
+      val statistics = recorder.statisticsForTask(taskId, queryStartTime)
+      if (statistics != null) {
+        MonitorEndPoint.scope {
+          MonitorEndPoint.send(
+            QueryTaskEnd(
+              executionId,
+              queryId,
+              statistics.getValues
+            )
+          )
+        }
+      }
+      recorder.logStatisticsForTask(statistics)
     }
   }
 
