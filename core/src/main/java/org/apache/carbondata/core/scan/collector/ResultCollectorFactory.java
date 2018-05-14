@@ -21,6 +21,7 @@ import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.scan.collector.impl.AbstractScannedResultCollector;
 import org.apache.carbondata.core.scan.collector.impl.DictionaryBasedResultCollector;
 import org.apache.carbondata.core.scan.collector.impl.DictionaryBasedVectorResultCollector;
+import org.apache.carbondata.core.scan.collector.impl.PushDownUdfResultCollector;
 import org.apache.carbondata.core.scan.collector.impl.RawBasedResultCollector;
 import org.apache.carbondata.core.scan.collector.impl.RestructureBasedDictionaryResultCollector;
 import org.apache.carbondata.core.scan.collector.impl.RestructureBasedRawResultCollector;
@@ -71,6 +72,8 @@ public class ResultCollectorFactory {
       } else if (blockExecutionInfo.isRequiredRowId()) {
         LOGGER.info("RowId based dictionary collector is used to scan and collect the data");
         scannerResultAggregator = new RowIdBasedResultCollector(blockExecutionInfo);
+      } else if (blockExecutionInfo.usingAiModel()) {
+        scannerResultAggregator = new PushDownUdfResultCollector(blockExecutionInfo);
       } else {
         LOGGER.info("Row based dictionary collector is used to scan and collect the data");
         scannerResultAggregator = new DictionaryBasedResultCollector(blockExecutionInfo);

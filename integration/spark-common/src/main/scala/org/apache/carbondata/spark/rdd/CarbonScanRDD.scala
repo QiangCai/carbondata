@@ -80,8 +80,8 @@ class CarbonScanRDD[T: ClassTag](
     val readSupportClz: Class[_ <: CarbonReadSupport[_]] = SparkReadSupport.readSupportClass)
   extends CarbonRDDWithTableInfo[T](spark.sparkContext, Nil, serializedTableInfo) {
 
-  private val queryId = sparkContext.getConf.get("queryId", System.nanoTime() + "")
-  private val jobTrackerId: String = {
+  protected val queryId = sparkContext.getConf.get("queryId", System.nanoTime() + "")
+  protected val jobTrackerId: String = {
     val formatter = new SimpleDateFormat("yyyyMMddHHmm")
     formatter.format(new Date())
   }
@@ -511,12 +511,12 @@ class CarbonScanRDD[T: ClassTag](
     iterator.asInstanceOf[Iterator[T]]
   }
 
-  private def close() {
+  protected def close() {
     TaskMetricsMap.getInstance().updateReadBytes(Thread.currentThread().getId)
     inputMetricsStats.updateAndClose()
   }
 
-  def prepareInputFormatForDriver(conf: Configuration): CarbonTableInputFormat[Object] = {
+  protected def prepareInputFormatForDriver(conf: Configuration): CarbonTableInputFormat[Object] = {
     CarbonInputFormat.setTableInfo(conf, tableInfo)
     CarbonInputFormat.setDatabaseName(conf, tableInfo.getDatabaseName)
     CarbonInputFormat.setTableName(conf, tableInfo.getFactTable.getTableName)
@@ -538,7 +538,7 @@ class CarbonScanRDD[T: ClassTag](
     createFileInputFormat(conf)
   }
 
-  private def prepareInputFormatForExecutor(conf: Configuration): CarbonInputFormat[Object] = {
+  protected def prepareInputFormatForExecutor(conf: Configuration): CarbonInputFormat[Object] = {
     CarbonInputFormat.setCarbonReadSupport(conf, readSupportClz)
     val tableInfo1 = getTableInfo
     CarbonInputFormat.setTableInfo(conf, tableInfo1)

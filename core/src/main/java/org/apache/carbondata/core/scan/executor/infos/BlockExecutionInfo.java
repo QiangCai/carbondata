@@ -18,6 +18,7 @@ package org.apache.carbondata.core.scan.executor.infos;
 
 import java.util.Map;
 
+import org.apache.carbondata.ai.model.Model;
 import org.apache.carbondata.core.datastore.DataRefNode;
 import org.apache.carbondata.core.datastore.IndexKey;
 import org.apache.carbondata.core.datastore.block.AbstractIndex;
@@ -215,6 +216,8 @@ public class BlockExecutionInfo {
    * whether it require to output the row id
    */
   private boolean requiredRowId;
+
+  private Model aiModel;
 
   /**
    * model for collecting query stats
@@ -636,6 +639,18 @@ public class BlockExecutionInfo {
 
   public void setRequiredRowId(boolean requiredRowId) {
     this.requiredRowId = requiredRowId;
+  }
+
+  public Model getAiModel() {
+    return aiModel;
+  }
+
+  public void setAiModel(Model aiModel) {
+    this.aiModel = aiModel;
+  }
+
+  public boolean usingAiModel() {
+    return aiModel != null;
   }
 
   public QueryStatisticsModel getQueryStatisticsModel() {

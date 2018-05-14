@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.carbondata.ai.model.Model;
 import org.apache.carbondata.core.cache.dictionary.Dictionary;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.block.TableBlockInfo;
@@ -108,6 +109,8 @@ public class QueryModel {
    * whether it require to output the row id
    */
   private boolean requiredRowId;
+
+  private Model aiModel;
 
   private QueryModel(CarbonTable carbonTable) {
     tableBlockInfos = new ArrayList<TableBlockInfo>();
@@ -368,6 +371,14 @@ public class QueryModel {
 
   public void setRequiredRowId(boolean requiredRowId) {
     this.requiredRowId = requiredRowId;
+  }
+
+  public Model getAiModel() {
+    return aiModel;
+  }
+
+  public void setAiModel(Model aiModel) {
+    this.aiModel = aiModel;
   }
 
   @Override
