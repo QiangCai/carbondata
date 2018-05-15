@@ -23,10 +23,12 @@ public class Model implements Serializable{
 
   private String algorithmName;
   private Feature<float[]> parameter;
+  private int limit;
 
-  public Model(String algorithmName, Feature<float[]> parameter) {
+  public Model(String algorithmName, Feature<float[]> parameter, int limit) {
     this.algorithmName = algorithmName;
     this.parameter = parameter;
+    this.limit = limit;
   }
 
   public String getAlgorithmName() {
@@ -43,5 +45,13 @@ public class Model implements Serializable{
 
   public void setParameter(Feature<float[]> parameter) {
     this.parameter = parameter;
+  }
+
+  public int getLimit() {
+    return limit;
+  }
+
+  public void setLimit(int limit) {
+    this.limit = limit;
   }
 }

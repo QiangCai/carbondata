@@ -24,6 +24,8 @@ import org.apache.carbondata.ai.model.EntitySet;
 import org.apache.carbondata.ai.model.impl.FeatureSetInts;
 import org.apache.carbondata.ai.vision.schedule.EntityRecognition;
 import org.apache.carbondata.common.annotations.InterfaceAudience;
+import org.apache.carbondata.common.logging.LogService;
+import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.scan.executor.infos.BlockExecutionInfo;
 import org.apache.carbondata.core.scan.result.BlockletScannedResult;
 
@@ -33,8 +35,10 @@ import org.apache.carbondata.core.scan.result.BlockletScannedResult;
 @InterfaceAudience.Internal
 public class PushDownUdfResultCollector extends DictionaryBasedResultCollector {
 
+  private static LogService LOGGER =
+      LogServiceFactory.getLogService(PushDownUdfResultCollector.class.getName());
+
   private EntityRecognition entityRecognition;
-  private boolean initialized = false;
 
   public PushDownUdfResultCollector(BlockExecutionInfo blockExecutionInfos) {
     super(blockExecutionInfos);
@@ -46,11 +50,12 @@ public class PushDownUdfResultCollector extends DictionaryBasedResultCollector {
   @Override
   public List<Object[]> collectResultInRow(BlockletScannedResult scannedResult, int batchSize) {
 
-    if (!initialized) {
-      initialized = true;
+    if (entityRecognition != null) {
       entityRecognition.init(batchSize);
     }
+
     // scan the record and add to list
+    long startTime = System.currentTimeMillis();
     List<Object[]> listBasedResult = new ArrayList<>(batchSize);
     int rowCounter = 0;
     int[] surrogateResult;
@@ -79,12 +84,16 @@ public class PushDownUdfResultCollector extends DictionaryBasedResultCollector {
       fillMeasureData(scannedResult, row);
       listBasedResult.add(row);
       rowCounter++;
+
       if (entityRecognition != null) {
         entityRecognition.add(row[columnCount - 1]);
       }
     }
+    long endTime = System.currentTimeMillis();
+    LOGGER.audit("PushDownUdfResultCollector collectResultInRow take " + (endTime - startTime) + " ms");
+
     if (entityRecognition != null) {
-      entityRecognition.recognition(listBasedResult, columnCount);
+      return entityRecognition.recognition(listBasedResult, columnCount);
     }
     return listBasedResult;
   }
