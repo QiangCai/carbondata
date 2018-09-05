@@ -29,7 +29,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 import org.apache.carbondata.streaming.parser.CarbonStreamParser
 
 // scalastyle:off println
-object StructuredStreamingExample {
+object StreamSQLExample {
   def main(args: Array[String]) {
 
     // setup paths
@@ -40,42 +40,26 @@ object StructuredStreamingExample {
     val streamTableName = s"stream_table"
 
     val requireCreateTable = true
-    val useComplexDataType = false
 
     if (requireCreateTable) {
       // drop table if exists previously
-      spark.sql(s"DROP TABLE IF EXISTS ${ streamTableName }")
-      // Create target carbon table and populate with initial data
-      if (useComplexDataType) {
-        spark.sql(
-          s"""
-             | CREATE TABLE ${ streamTableName }(
-             | id INT,
-             | name STRING,
-             | city STRING,
-             | salary FLOAT,
-             | file struct<school:array<string>, age:int>
-             | )
-             | STORED BY 'carbondata'
-             | TBLPROPERTIES(
-             | 'streaming'='true', 'sort_columns'='name', 'dictionary_include'='city')
-             | """.stripMargin)
-      } else {
-        spark.sql(
-          s"""
-             | CREATE TABLE ${ streamTableName }(
-             | id INT,
-             | name STRING,
-             | city STRING,
-             | salary FLOAT
-             | )
-             | STORED BY 'carbondata'
-             | TBLPROPERTIES(
-             | 'streaming'='true', 'sort_columns'='name')
-             | """.stripMargin)
-      }
+      spark.sql(s"DROP TABLE IF EXISTS $streamTableName")
+      spark.sql("DROP TABLE IF EXISTS source")
 
-      val carbonTable = CarbonEnv.getCarbonTable(Some("default"), streamTableName)(spark)
+      // Create target carbon table and populate with initial data
+      spark.sql(
+        s"""
+           | CREATE TABLE $streamTableName(
+           | id INT,
+           | name STRING,
+           | city STRING,
+           | salary FLOAT
+           | )
+           | STORED AS carbondata
+           | TBLPROPERTIES(
+           | 'streaming'='true', 'sort_columns'='name')
+          """.stripMargin)
+
       // batch load
       val path = s"$rootPath/examples/spark2/src/main/resources/streamSample.csv"
       spark.sql(
@@ -84,41 +68,39 @@ object StructuredStreamingExample {
            | INTO TABLE $streamTableName
            | OPTIONS('HEADER'='true')
          """.stripMargin)
-
-      // streaming ingest
-      val serverSocket = new ServerSocket(7071)
-      val thread1 = startStreaming(spark, carbonTable)
-      val thread2 = writeSocket(serverSocket)
-      val thread3 = showTableCount(spark, streamTableName)
-
-      System.out.println("type enter to interrupt streaming")
-      System.in.read()
-      thread1.interrupt()
-      thread2.interrupt()
-      thread3.interrupt()
-      serverSocket.close()
     }
 
-    spark.sql(s"select count(*) from ${ streamTableName }").show(100, truncate = false)
+    spark.sql(
+      """
+        | CREATE TABLE source (
+        | id INT,
+        | name STRING,
+        | city STRING,
+        | salary FLOAT
+        | )
+        | STORED AS carbondata
+        | TBLPROPERTIES(
+        | 'streaming'='source',
+        | 'format'='kafka',
+        | 'kafka.bootstrap.servers'='localhost:9092',
+        | 'subscribe'='test')
+      """.stripMargin)
 
-    spark.sql(s"select * from ${ streamTableName }").show(100, truncate = false)
+    spark.sql(
+      s"""
+        | CREATE STREAM ingest ON TABLE $streamTableName
+        | STMPROPERTIES(
+        | 'trigger' = 'ProcessingTime',
+        | 'interval' = '3 seconds',
+        | 'carbon.stream.parser'='org.apache.carbondata.streaming.parser.CSVStreamParserImp',
+        | 'BAD_RECORDS_ACTION'='force')
+        | AS SELECT * FROM source
+      """.stripMargin)
 
-    // record(id = 100000001) comes from batch segment_0
-    // record(id = 1) comes from stream segment_1
-    spark.sql(s"select * " +
-              s"from ${ streamTableName } " +
-              s"where id = 100000001 or id = 1 limit 100").show(100, truncate = false)
-
-    // not filter
-    spark.sql(s"select * " +
-              s"from ${ streamTableName } " +
-              s"where id < 10 limit 100").show(100, truncate = false)
-
-    if (useComplexDataType) {
-      // complex
-      spark.sql(s"select file.age, file.school " +
-                s"from ${ streamTableName } " +
-                s"where where file.age = 30 ").show(100, truncate = false)
+    (1 to 1000).foreach { i =>
+      spark.sql(s"select * from $streamTableName")
+        .show(100, truncate = false)
+      Thread.sleep(5000)
     }
 
     spark.stop()
@@ -154,11 +136,13 @@ object StructuredStreamingExample {
           qry = df.writeStream
             .format("carbondata")
             .trigger(ProcessingTime("5 seconds"))
-            .option("checkpointLocation",
+            .option(
+              "checkpointLocation",
               CarbonTablePath.getStreamingCheckpointDir(carbonTable.getTablePath))
             .option("dbName", "default")
             .option("tableName", "stream_table")
-            .option(CarbonStreamParser.CARBON_STREAM_PARSER,
+            .option(
+              CarbonStreamParser.CARBON_STREAM_PARSER,
               CarbonStreamParser.CARBON_STREAM_PARSER_CSV)
             .start()
 
@@ -202,4 +186,5 @@ object StructuredStreamingExample {
     thread
   }
 }
+
 // scalastyle:on println

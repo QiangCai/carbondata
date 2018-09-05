@@ -18,6 +18,7 @@
 package org.apache.spark.sql.execution.command.stream
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference}
@@ -31,6 +32,7 @@ import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.spark.StreamingOption
 import org.apache.carbondata.spark.util.Util
 import org.apache.carbondata.stream.StreamJobManager
+import org.apache.carbondata.streaming.parser.CarbonStreamParser
 
 /**
  * This command will start a Spark streaming job to insert rows from source to sink
@@ -74,6 +76,13 @@ case class CarbonCreateStreamCommand(
       throw new MalformedCarbonCommandException("Must specify stream source table in the query")
     }
 
+    // add default row parser
+    val newMap = mutable.Map[String, String]()
+    optionMap.foreach(x => newMap(x._1) = x._2)
+    if (!newMap.contains(CarbonStreamParser.CARBON_STREAM_PARSER)) {
+      newMap(CarbonStreamParser.CARBON_STREAM_PARSER) = CarbonStreamParser.CARBON_STREAM_PARSER_CSV
+    }
+
     // start the streaming job
     val jobId = StreamJobManager.startStream(
       sparkSession = sparkSession,
@@ -83,7 +92,7 @@ case class CarbonCreateStreamCommand(
       sinkTable = CarbonEnv.getCarbonTable(sinkDbName, sinkTableName)(sparkSession),
       query = query,
       streamDf = dataFrame.getOrElse(Dataset.ofRows(sparkSession, df.logicalPlan)),
-      options = new StreamingOption(optionMap)
+      options = new StreamingOption(newMap.toMap)
     )
     Seq(Row(streamName, jobId, "RUNNING"))
   }
