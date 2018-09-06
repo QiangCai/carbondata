@@ -17,16 +17,9 @@
 
 package org.apache.carbondata.examples
 
-import java.io.{File, PrintWriter}
-import java.net.ServerSocket
+import java.io.File
 
-import org.apache.spark.sql.{CarbonEnv, SparkSession}
-import org.apache.spark.sql.streaming.{ProcessingTime, StreamingQuery}
-
-import org.apache.carbondata.core.metadata.schema.table.CarbonTable
-import org.apache.carbondata.core.util.path.CarbonTablePath
 import org.apache.carbondata.examples.util.ExampleUtils
-import org.apache.carbondata.streaming.parser.CarbonStreamParser
 
 // scalastyle:off println
 object StreamSQLExample {
@@ -91,9 +84,7 @@ object StreamSQLExample {
         | CREATE STREAM ingest ON TABLE $streamTableName
         | STMPROPERTIES(
         | 'trigger' = 'ProcessingTime',
-        | 'interval' = '3 seconds',
-        | 'carbon.stream.parser'='org.apache.carbondata.streaming.parser.CSVStreamParserImp',
-        | 'BAD_RECORDS_ACTION'='force')
+        | 'interval' = '3 seconds')
         | AS SELECT * FROM source
       """.stripMargin)
 
@@ -107,84 +98,6 @@ object StreamSQLExample {
     System.out.println("streaming finished")
   }
 
-  def showTableCount(spark: SparkSession, tableName: String): Thread = {
-    val thread = new Thread() {
-      override def run(): Unit = {
-        for (_ <- 0 to 1000) {
-          spark.sql(s"select count(*) from $tableName").show(truncate = false)
-          Thread.sleep(1000 * 3)
-        }
-      }
-    }
-    thread.start()
-    thread
-  }
-
-  def startStreaming(spark: SparkSession, carbonTable: CarbonTable): Thread = {
-    val thread = new Thread() {
-      override def run(): Unit = {
-        var qry: StreamingQuery = null
-        try {
-          val readSocketDF = spark.readStream
-            .format("kafka")
-            .option("kafka.bootstrap.servers", "localhost:9092")
-            .option("subscribe", "test")
-            .load()
-          val df = readSocketDF.selectExpr("CAST(value AS STRING)")
-
-          // Write data from socket stream to carbondata file
-          qry = df.writeStream
-            .format("carbondata")
-            .trigger(ProcessingTime("5 seconds"))
-            .option(
-              "checkpointLocation",
-              CarbonTablePath.getStreamingCheckpointDir(carbonTable.getTablePath))
-            .option("dbName", "default")
-            .option("tableName", "stream_table")
-            .option(
-              CarbonStreamParser.CARBON_STREAM_PARSER,
-              CarbonStreamParser.CARBON_STREAM_PARSER_CSV)
-            .start()
-
-          qry.awaitTermination()
-        } catch {
-          case ex: Exception =>
-            ex.printStackTrace()
-            println("Done reading and writing streaming data")
-        } finally {
-          qry.stop()
-        }
-      }
-    }
-    thread.start()
-    thread
-  }
-
-  def writeSocket(serverSocket: ServerSocket): Thread = {
-    val thread = new Thread() {
-      override def run(): Unit = {
-        // wait for client to connection request and accept
-        val clientSocket = serverSocket.accept()
-        val socketWriter = new PrintWriter(clientSocket.getOutputStream())
-        var index = 0
-        for (_ <- 1 to 1000) {
-          // write 5 records per iteration
-          for (_ <- 0 to 1000) {
-            index = index + 1
-            socketWriter.println(index.toString + ",name_" + index
-                                 + ",city_" + index + "," + (index * 10000.00).toString +
-                                 ",school_" + index + ":school_" + index + index + "$" + index)
-          }
-          socketWriter.flush()
-          Thread.sleep(1000)
-        }
-        socketWriter.close()
-        System.out.println("Socket closed")
-      }
-    }
-    thread.start()
-    thread
-  }
 }
 
 // scalastyle:on println
