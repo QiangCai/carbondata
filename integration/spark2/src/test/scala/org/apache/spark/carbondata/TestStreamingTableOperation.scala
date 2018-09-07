@@ -1718,8 +1718,8 @@ class TestStreamingTableOperation extends QueryTest with BeforeAndAfterAll {
   }
 
   test("StreamSQL: create and drop a stream") {
-    sql("DROP TABLE IF EXISTS source")
-    sql("DROP TABLE IF EXISTS sink")
+    sql("DROP TABLE IF EXISTS source1")
+    sql("DROP TABLE IF EXISTS sink1")
 
     var rows = sql("SHOW STREAMS").collect()
     assertResult(0)(rows.length)
@@ -1730,7 +1730,7 @@ class TestStreamingTableOperation extends QueryTest with BeforeAndAfterAll {
 
     sql(
       s"""
-         |CREATE TABLE source(
+         |CREATE TABLE source1(
          | id INT,
          | name STRING,
          | city STRING,
@@ -1751,7 +1751,7 @@ class TestStreamingTableOperation extends QueryTest with BeforeAndAfterAll {
 
     sql(
       s"""
-         |CREATE TABLE sink(
+         |CREATE TABLE sink1(
          | id INT,
          | name STRING,
          | city STRING,
@@ -1768,36 +1768,38 @@ class TestStreamingTableOperation extends QueryTest with BeforeAndAfterAll {
 
     sql(
       """
-        |CREATE STREAM stream123 ON TABLE sink
+        |CREATE STREAM stream1231 ON TABLE sink1
         |STMPROPERTIES(
         |  'trigger'='ProcessingTime',
         |  'interval'='1 seconds')
         |AS
         |  SELECT *
-        |  FROM source
+        |  FROM source1
         |  WHERE id % 2 = 1
       """.stripMargin).show(false)
+
     sql(
       """
-        |CREATE STREAM IF NOT EXISTS stream123 ON TABLE sink
+        |CREATE STREAM IF NOT EXISTS stream1231 ON TABLE sink1
         |STMPROPERTIES(
         |  'trigger'='ProcessingTime',
         |  'interval'='1 seconds')
         |AS
         |  SELECT *
-        |  FROM source
+        |  FROM source1
         |  WHERE id % 2 = 1
       """.stripMargin).show(false)
+
     Thread.sleep(200)
-    sql("select * from sink").show
 
     generateCSVDataFile(spark, idStart = 30, rowNums = 10, csvDataDir, SaveMode.Append)
     Thread.sleep(5000)
+    sql("select * from sink1 ").show(100, false)
 
     // after 2 minibatch, there should be 10 row added (filter condition: id%2=1)
-    checkAnswer(sql("select count(*) from sink"), Seq(Row(10)))
+    checkAnswer(sql("select count(*) from sink1"), Seq(Row(10)))
 
-    val row = sql("select * from sink order by id").head()
+    val row = sql("select * from sink1 order by id").head()
     val exceptedRow = Row(11, "name_11", "city_11", 110000.0, BigDecimal.valueOf(0.01), 80.01, Date.valueOf("1990-01-01"), Timestamp.valueOf("2010-01-01 10:01:01.0"), Timestamp.valueOf("2010-01-01 10:01:01.0"))
     assertResult(exceptedRow)(row)
 
@@ -1805,26 +1807,26 @@ class TestStreamingTableOperation extends QueryTest with BeforeAndAfterAll {
 
     rows = sql("SHOW STREAMS").collect()
     assertResult(1)(rows.length)
-    assertResult("stream123")(rows.head.getString(0))
+    assertResult("stream1231")(rows.head.getString(0))
     assertResult("RUNNING")(rows.head.getString(2))
-    assertResult("streaming.source")(rows.head.getString(3))
-    assertResult("streaming.sink")(rows.head.getString(4))
+    assertResult("streaming.source1")(rows.head.getString(3))
+    assertResult("streaming.sink1")(rows.head.getString(4))
 
-    rows = sql("SHOW STREAMS ON TABLE sink").collect()
+    rows = sql("SHOW STREAMS ON TABLE sink1").collect()
     assertResult(1)(rows.length)
-    assertResult("stream123")(rows.head.getString(0))
+    assertResult("stream1231")(rows.head.getString(0))
     assertResult("RUNNING")(rows.head.getString(2))
-    assertResult("streaming.source")(rows.head.getString(3))
-    assertResult("streaming.sink")(rows.head.getString(4))
+    assertResult("streaming.source1")(rows.head.getString(3))
+    assertResult("streaming.sink1")(rows.head.getString(4))
 
-    sql("DROP STREAM stream123")
-    sql("DROP STREAM IF EXISTS stream123")
+    sql("DROP STREAM stream1231")
+    sql("DROP STREAM IF EXISTS stream1231")
 
     rows = sql("SHOW STREAMS").collect()
     assertResult(0)(rows.length)
 
-    sql("DROP TABLE IF EXISTS source")
-    sql("DROP TABLE IF EXISTS sink")
+    sql("DROP TABLE IF EXISTS source1")
+    sql("DROP TABLE IF EXISTS sink1")
   }
 
   test("StreamSQL: create and drop a stream with Load options") {

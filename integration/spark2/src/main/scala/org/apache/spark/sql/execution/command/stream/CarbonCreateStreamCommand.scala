@@ -21,15 +21,18 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.apache.spark.sql._
-import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference}
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference, GenericInternalRow, GenericRow, GenericRowWithSchema}
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.command.DataCommand
 import org.apache.spark.sql.execution.datasources.LogicalRelation
+import org.apache.spark.sql.execution.streaming.StreamingRelation
 import org.apache.spark.sql.types.{StringType, StructType}
 
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.spark.StreamingOption
+import org.apache.carbondata.spark.rdd.StringArrayRow
 import org.apache.carbondata.spark.util.Util
 import org.apache.carbondata.stream.StreamJobManager
 import org.apache.carbondata.streaming.parser.CarbonStreamParser
@@ -54,33 +57,24 @@ case class CarbonCreateStreamCommand(
   override def processData(sparkSession: SparkSession): Seq[Row] = {
     val df = sparkSession.sql(query)
     var sourceTable: CarbonTable = null
-    var dataFrame: Option[DataFrame] = None
 
     // Prepare the dataframe from the stream source table
-    df.logicalPlan transform {
+    val streamLp = df.logicalPlan transform {
       case r: LogicalRelation
         if r.relation.isInstanceOf[CarbonDatasourceHadoopRelation] &&
            r.relation.asInstanceOf[CarbonDatasourceHadoopRelation].carbonTable.isStreamingSource =>
-        val (source, resolvedFrame) = prepareDataFrame(sparkSession, r)
+        val (source, streamingRelation) = prepareStreamingRelation(sparkSession, r)
         if (sourceTable != null && sourceTable.getTableName != source.getTableName) {
           throw new MalformedCarbonCommandException(
             "Stream query on more than one stream source table is not supported")
         }
         sourceTable = source
-        dataFrame = Option(resolvedFrame)
-        r
+        streamingRelation
       case plan: LogicalPlan => plan
     }
 
     if (sourceTable == null) {
       throw new MalformedCarbonCommandException("Must specify stream source table in the query")
-    }
-
-    // add default row parser
-    val newMap = mutable.Map[String, String]()
-    optionMap.foreach(x => newMap(x._1) = x._2)
-    if (!newMap.contains(CarbonStreamParser.CARBON_STREAM_PARSER)) {
-      newMap(CarbonStreamParser.CARBON_STREAM_PARSER) = CarbonStreamParser.CARBON_STREAM_PARSER_CSV
     }
 
     // start the streaming job
@@ -91,8 +85,8 @@ case class CarbonCreateStreamCommand(
       sourceTable = sourceTable,
       sinkTable = CarbonEnv.getCarbonTable(sinkDbName, sinkTableName)(sparkSession),
       query = query,
-      streamDf = dataFrame.getOrElse(Dataset.ofRows(sparkSession, df.logicalPlan)),
-      options = new StreamingOption(newMap.toMap)
+      streamDf = Dataset.ofRows(sparkSession, streamLp),
+      options = new StreamingOption(optionMap)
     )
     Seq(Row(streamName, jobId, "RUNNING"))
   }
@@ -103,9 +97,9 @@ case class CarbonCreateStreamCommand(
    * @param logicalRelation
    * @return sourceTable and its stream dataFrame
    */
-  private def prepareDataFrame(
+  private def prepareStreamingRelation(
       sparkSession: SparkSession,
-      logicalRelation: LogicalRelation): (CarbonTable, DataFrame) = {
+      logicalRelation: LogicalRelation): (CarbonTable, StreamingRelation) = {
     val sourceTable = logicalRelation.relation
       .asInstanceOf[CarbonDatasourceHadoopRelation].carbonTable
     val tblProperty = sourceTable.getTableInfo.getFactTable.getTableProperties
@@ -130,11 +124,23 @@ case class CarbonCreateStreamCommand(
         }
         streamReader.load(tblProperty.get("path"))
       case "kafka" | "socket" =>
-        streamReader.options(tblProperty).load()
+        val df = streamReader.options(tblProperty).load()
+        val delimiter = tblProperty.getOrDefault("delimiter", ",")
+        val schema = logicalRelation.relation.schema
+        val value = df.select("CAST(values as string)").rdd
+          .map(row => RowFactory.create(row.getString(0)
+            .split(delimiter)))
+        sparkSession.sqlContext.createDataFrame(value,schema)
       case other =>
         throw new MalformedCarbonCommandException(s"Streaming from $format is not supported")
     }
-    (sourceTable, dataFrame)
+    val streamRelation = dataFrame.logicalPlan.asInstanceOf[StreamingRelation]
+
+    // Since SparkSQL analyzer will match the UUID in attribute,
+    // create a new StreamRelation and re-use the same attribute from LogicalRelation
+    (sourceTable, StreamingRelation(
+      streamRelation.dataSource, streamRelation.sourceName, logicalRelation.output))
+
   }
 
   private def getSparkSchema(sourceTable: CarbonTable): StructType = {
