@@ -43,7 +43,6 @@ import org.apache.carbondata.core.util.path.CarbonTablePath
 import org.apache.carbondata.events.{OperationContext, OperationListenerBus}
 import org.apache.carbondata.hadoop.util.CarbonInputFormatUtil
 import org.apache.carbondata.processing.loading.constants.DataLoadProcessorConstants
-import org.apache.carbondata.processing.loading.csvinput.CSVInputFormat
 import org.apache.carbondata.processing.loading.events.LoadEvents.{LoadTablePostExecutionEvent, LoadTablePreExecutionEvent}
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel
 import org.apache.carbondata.spark.rdd.StreamHandoffRDD
@@ -282,7 +281,7 @@ object CarbonAppendableStreamSink {
         // catch fault of executor side
         case t: Throwable =>
           val segmentDir = CarbonTablePath.getSegmentPath(carbonTable.getTablePath, segmentId)
-          StreamSegment.recoverSegmentIfRequired(segmentDir)
+          StreamSegment.recoverSegmentIfRequired(segmentDir, carbonTable.getTablePath)
           LOGGER.error(t, s"Aborting job ${ job.getJobID }.")
           committer.abortJob(job)
           throw new CarbonStreamException("Job failed to write data file", t)

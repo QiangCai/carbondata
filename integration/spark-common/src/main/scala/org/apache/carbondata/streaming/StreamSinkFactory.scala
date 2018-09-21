@@ -22,7 +22,6 @@ import java.util
 
 import scala.collection.JavaConverters._
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd}
 import org.apache.spark.sql.SparkSession
@@ -175,7 +174,7 @@ object StreamSinkFactory {
     }
     if (FileFactory.isFileExist(segmentDir, fileType)) {
       // recover fault
-      StreamSegment.recoverSegmentIfRequired(segmentDir)
+      StreamSegment.recoverSegmentIfRequired(segmentDir, carbonTable.getTablePath);
     } else {
       FileFactory.mkdirs(segmentDir, fileType)
     }

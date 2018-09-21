@@ -17,6 +17,8 @@
 
 package org.apache.carbondata.streaming.segment;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,6 +60,7 @@ import org.apache.carbondata.processing.loading.model.CarbonLoadModel;
 import org.apache.carbondata.streaming.CarbonStreamRecordWriter;
 import org.apache.carbondata.streaming.index.StreamFileIndex;
 
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
 /**
@@ -319,7 +322,8 @@ public class StreamSegment {
    * 1. at the begin of the streaming (StreamSinkFactory.getStreamSegmentId)
    * 2. after job failed (CarbonAppendableStreamSink.writeDataFileJob)
    */
-  public static void recoverSegmentIfRequired(String segmentDir) throws IOException {
+  public static void recoverSegmentIfRequired(
+      String segmentDir, String tablePath) throws IOException {
     FileFactory.FileType fileType = FileFactory.getFileType(segmentDir);
     if (FileFactory.isFileExist(segmentDir, fileType)) {
       String indexName = CarbonTablePath.getCarbonStreamIndexFileName();
@@ -355,11 +359,42 @@ public class StreamSegment {
         }
       } else {
         if (files.length > 0) {
+          String trashDir = CarbonTablePath.getTrashDir(tablePath);
+          String segmentId = new File(segmentDir).getName();
+          String trashFolder =
+              trashDir + File.separator + System.currentTimeMillis() + File.separator + segmentId;
+          if (!FileFactory.isFileExist(trashFolder, fileType)) {
+            FileFactory.mkdirs(trashFolder, fileType);
+          }
           for (CarbonFile file : files) {
+            copyFileToTrash(file, trashFolder);
             file.delete();
           }
         }
       }
+    }
+  }
+
+  /**
+   * copy file to trash before deleting this file.
+   */
+  private static void copyFileToTrash(CarbonFile file, String trashFolder) throws IOException {
+    if (file == null) {
+      return;
+    }
+
+    String newFilePath = trashFolder + File.separator + file.getName();
+    DataInputStream inputStream = null;
+    DataOutputStream outputStream = null;
+    try {
+      inputStream =
+          FileFactory.getDataInputStream(file.getPath(), FileFactory.getFileType(file.getPath()));
+      outputStream =
+          FileFactory.getDataOutputStream(newFilePath, FileFactory.getFileType(newFilePath));
+      IOUtils.copyBytes(inputStream, outputStream, FileFactory.getConfiguration());
+    } finally {
+      IOUtils.closeStream(outputStream);
+      IOUtils.closeStream(inputStream);
     }
   }
 

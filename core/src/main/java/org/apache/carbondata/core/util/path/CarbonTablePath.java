@@ -53,6 +53,8 @@ public class CarbonTablePath {
   private static final String STREAMING_LOG_DIR = "log";
   private static final String STREAMING_CHECKPOINT_DIR = "checkpoint";
 
+  private static final String TABLE_TRASH = ".Trash";
+
   /**
    * This class provides static utility only.
    */
@@ -339,6 +341,10 @@ public class CarbonTablePath {
 
   public static String getStreamingCheckpointDir(String tablePath) {
     return tablePath + File.separator + STREAMING_DIR + File.separator + STREAMING_CHECKPOINT_DIR;
+  }
+
+  public static String getTrashDir(String tablePath) {
+    return tablePath + File.separator + TABLE_TRASH;
   }
 
   /**
