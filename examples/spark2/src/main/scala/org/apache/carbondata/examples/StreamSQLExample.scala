@@ -27,44 +27,43 @@ object StreamSQLExample {
 
     val spark = ExampleUtils.createCarbonSession("StructuredStreamingExample", 4)
     val requireCreateTable = true
-    val recordFormat = "json" // can be "json" or "csv"
+    val recordFormat = "csv" // can be "json" or "csv"
 
     if (requireCreateTable) {
       // drop table if exists previously
-      spark.sql(s"DROP TABLE IF EXISTS sink")
       spark.sql("DROP TABLE IF EXISTS source")
+      spark.sql(s"DROP TABLE IF EXISTS sink")
+
 
       // Create target carbon table and populate with initial data
       spark.sql(
         s"""
-           | CREATE TABLE sink(
+           | CREATE TABLE source(
            | id INT,
            | name STRING,
-           | salary FLOAT,
-           | file struct<school:array<string>, age:int>
+           | salary FLOAT
            | )
            | STORED AS carbondata
            | TBLPROPERTIES(
-           | 'streaming'='true', 'sort_columns'='')
+           | 'streaming'='source',
+           | 'format'='kafka',
+           | 'kafka.bootstrap.servers'='localhost:9093',
+           | 'subscribe'='example',
+           | 'record_format'='csv',
+           | 'delimiter'=',')
           """.stripMargin)
     }
 
     spark.sql(
       s"""
-        | CREATE TABLE source (
-        | id INT,
-        | name STRING,
-        | salary FLOAT,
-        | file struct<school:array<string>, age:int>
-        | )
-        | STORED AS carbondata
-        | TBLPROPERTIES(
-        | 'streaming'='source',
-        | 'format'='socket',
-        | 'host'='localhost',
-        | 'port'='7071',
-        | 'record_format'='$recordFormat'
-        | )
+         | CREATE TABLE sink(
+         | id INT,
+         | name STRING,
+         | salary FLOAT
+         | )
+         | STORED AS carbondata
+         | TBLPROPERTIES(
+         | 'streaming'='sink')
       """.stripMargin)
 
     val serverSocket = new ServerSocket(7071)
@@ -72,26 +71,26 @@ object StreamSQLExample {
     // start ingest streaming job
     spark.sql(
       s"""
-        | CREATE STREAM ingest ON TABLE sink
-        | STMPROPERTIES(
-        | 'trigger' = 'ProcessingTime',
-        | 'interval' = '3 seconds')
-        | AS SELECT * FROM source
+         | CREATE STREAM ingest ON TABLE sink
+         | STMPROPERTIES(
+         | 'trigger' = 'ProcessingTime',
+         | 'interval' = '3 seconds')
+         | AS SELECT * FROM source
       """.stripMargin)
 
     // start writing data into the socket
-    import StructuredStreamingExample.{showTableCount, writeSocket}
-    val thread1 = writeSocket(serverSocket, recordFormat)
+    import StructuredStreamingExample.showTableCount
     val thread2 = showTableCount(spark, "sink")
 
     System.out.println("type enter to interrupt streaming")
     System.in.read()
-    thread1.interrupt()
     thread2.interrupt()
     serverSocket.close()
 
     // stop streaming job
     spark.sql("DROP STREAM ingest").show
+
+    spark.sql("select * from sink").show(100, false)
 
     spark.stop()
     System.out.println("streaming finished")
