@@ -67,6 +67,7 @@ object Spark2TestQueryExecutor {
     .enableHiveSupport()
     .config("spark.sql.warehouse.dir", warehouse)
     .config("spark.sql.crossJoin.enabled", "true")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreateCarbonSession(null, TestQueryExecutor.metaStoreDB)
   if (warehouse.startsWith("hdfs://")) {
     System.setProperty(CarbonCommonConstants.HDFS_TEMP_LOCATION, warehouse)
