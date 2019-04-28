@@ -185,71 +185,36 @@ object CarbonStore {
     if (load.getFileFormat == FileFormat.ROW_V1) {
       isSorted = "false"
     } else if (tableDataMap != null && load.getVisibility.equalsIgnoreCase("true")) {
-      val segment = new Segment(load.getLoadName(), load.getSegmentFile(), readCommitScope)
-      val dataMapFactory = tableDataMap.getDataMapFactory().asInstanceOf[BlockletDataMapFactory]
-      val indexIdents = dataMapFactory.getTableBlockIndexUniqueIdentifiers(segment)
-      val indexIterator = indexIdents.iterator()
-      if (indexIterator.hasNext) {
-        val indexIdent = indexIterator.next()
-        var indexHeader: IndexHeader = null
-        var indexContent: Array[Byte] = null
-        val indexFilePath = indexIdent.getIndexFilePath + CarbonCommonConstants.FILE_SEPARATOR +
-                        indexIdent.getIndexFileName
-        if (indexIdent.getMergeIndexFileName != null) {
-          val indexFileStore = new SegmentIndexFileStore(hadoopConf)
-          try {
-            indexFileStore.readMergeFile(indexFilePath)
-          } catch {
-            case ex: IOException =>
-              LOGGER.error(ex)
-          }
-          val iterator = indexFileStore.getCarbonIndexMap.entrySet().iterator()
-          if (iterator.hasNext) {
-            indexContent = iterator.next().getValue
-          }
-        }
-        val indexReader = new CarbonIndexFileReader()
-        try {
-          if (indexContent == null) {
-            indexReader.openThriftReader(indexFilePath)
-          } else {
-            indexReader.openThriftReader(indexContent)
-          }
-          // get the index header
-          indexHeader = indexReader.readIndexHeader()
-        } catch {
-          case ex: IOException =>
-            LOGGER.error(ex)
-        } finally {
-          indexReader.closeThriftReader()
-        }
-        if (indexHeader != null && indexHeader.isSetIs_sort) {
-          if (indexHeader.is_sort) {
-            isSorted = "true"
-            val columns = indexHeader.getTable_columns
-            sortColumns = (0 until columns.size())
-              .map { index =>
-                val column = columns.get(index)
-                if (column.isDimension && !column.isInvisible) {
-                  val properties = column.getColumnProperties
-                  if (properties != null) {
-                    if (properties.get(CarbonCommonConstants.SORT_COLUMNS) == null) {
-                      null
-                    } else {
-                      column.column_name
-                    }
-                  } else {
+      val indexHeader = SegmentIndexFileStore
+        .getIndexHeaderOfSegment(load,
+          readCommitScope,
+          tableDataMap.getDataMapFactory.asInstanceOf[BlockletDataMapFactory])
+      if (indexHeader != null && indexHeader.isSetIs_sort) {
+        if (indexHeader.is_sort) {
+          isSorted = "true"
+          val columns = indexHeader.getTable_columns
+          sortColumns = (0 until columns.size())
+            .map { index =>
+              val column = columns.get(index)
+              if (column.isDimension && !column.isInvisible) {
+                val properties = column.getColumnProperties
+                if (properties != null) {
+                  if (properties.get(CarbonCommonConstants.SORT_COLUMNS) == null) {
                     null
+                  } else {
+                    column.column_name
                   }
                 } else {
                   null
                 }
+              } else {
+                null
               }
-              .filter(_ != null)
-              .mkString(",")
-          } else {
-            isSorted = "false"
-          }
+            }
+            .filter(_ != null)
+            .mkString(",")
+        } else {
+          isSorted = "false"
         }
       }
     }

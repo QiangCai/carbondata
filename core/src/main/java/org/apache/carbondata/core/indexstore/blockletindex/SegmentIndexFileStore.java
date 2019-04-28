@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,21 +30,27 @@ import java.util.TreeMap;
 
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
+import org.apache.carbondata.core.datamap.Segment;
 import org.apache.carbondata.core.datastore.block.TableBlockInfo;
 import org.apache.carbondata.core.datastore.filesystem.CarbonFile;
 import org.apache.carbondata.core.datastore.filesystem.CarbonFileFilter;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.indexstore.TableBlockIndexUniqueIdentifier;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
 import org.apache.carbondata.core.metadata.blocklet.BlockletInfo;
 import org.apache.carbondata.core.metadata.blocklet.DataFileFooter;
+import org.apache.carbondata.core.readcommitter.ReadCommittedScope;
 import org.apache.carbondata.core.reader.CarbonIndexFileReader;
 import org.apache.carbondata.core.reader.ThriftReader;
+import org.apache.carbondata.core.statusmanager.FileFormat;
+import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
 import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.util.CarbonMetadataUtil;
 import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.DataFileFooterConverter;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.format.BlockIndex;
+import org.apache.carbondata.format.IndexHeader;
 import org.apache.carbondata.format.MergedBlockIndex;
 import org.apache.carbondata.format.MergedBlockIndexHeader;
 
@@ -515,4 +522,56 @@ public class SegmentIndexFileStore {
   public Map<String, List<String>> getCarbonMergeFileToIndexFilesMap() {
     return carbonMergeFileToIndexFilesMap;
   }
+
+  public static IndexHeader getIndexHeaderOfSegment(LoadMetadataDetails load,
+      ReadCommittedScope readCommitScope, BlockletDataMapFactory dataMapFactory) {
+    IndexHeader indexHeader = null;
+    Segment segment = new Segment(load.getLoadName(), load.getSegmentFile(), readCommitScope);
+    Set<TableBlockIndexUniqueIdentifier> indexIdents = new HashSet<>();
+    if (FileFormat.COLUMNAR_V3 == load.getFileFormat()) {
+      try {
+        indexIdents = dataMapFactory.getTableBlockIndexUniqueIdentifiers(segment);
+      } catch (IOException ex) {
+        indexIdents = new HashSet<>();
+        LOGGER.error(ex);
+      }
+    }
+    Iterator<TableBlockIndexUniqueIdentifier> indexIterator = indexIdents.iterator();
+    if (indexIterator.hasNext()) {
+      TableBlockIndexUniqueIdentifier indexIdent = indexIterator.next();
+      byte[] indexContent = null;
+      String indexFilePath =
+          indexIdent.getIndexFilePath() + CarbonCommonConstants.FILE_SEPARATOR + indexIdent
+              .getIndexFileName();
+      if (indexIdent.getMergeIndexFileName() != null) {
+        SegmentIndexFileStore indexFileStore =
+            new SegmentIndexFileStore(readCommitScope.getConfiguration());
+        try {
+          indexFileStore.readMergeFile(indexFilePath);
+        } catch (IOException ex) {
+          LOGGER.error(ex);
+        }
+        Iterator<Map.Entry<String, byte[]>> iterator =
+            indexFileStore.getCarbonIndexMap().entrySet().iterator();
+        if (iterator.hasNext()) {
+          indexContent = iterator.next().getValue();
+        }
+      }
+      CarbonIndexFileReader indexReader = new CarbonIndexFileReader();
+      try {
+        if (indexContent == null) {
+          indexReader.openThriftReader(indexFilePath);
+        } else {
+          indexReader.openThriftReader(indexContent);
+        }
+        // get the index header
+        indexHeader = indexReader.readIndexHeader();
+      } catch (IOException ex) {
+        LOGGER.error(ex);
+      } finally {
+        indexReader.closeThriftReader();
+      }
+    } return indexHeader;
+  }
+
 }
