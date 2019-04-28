@@ -17,10 +17,12 @@
 
 package org.apache.carbondata.api
 
+import java.io.IOException
 import java.lang.Long
 
 import scala.collection.JavaConverters._
 
+import org.apache.hadoop.conf.Configuration
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.catalyst.util.DateTimeUtils
 import org.apache.spark.sql.util.CarbonException
@@ -30,15 +32,20 @@ import org.apache.carbondata.common.Strings
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.constants.CarbonCommonConstants
+import org.apache.carbondata.core.datamap.{DataMapStoreManager, Segment, TableDataMap}
 import org.apache.carbondata.core.datastore.filesystem.CarbonFile
 import org.apache.carbondata.core.datastore.impl.FileFactory
 import org.apache.carbondata.core.indexstore.PartitionSpec
+import org.apache.carbondata.core.indexstore.blockletindex.{BlockletDataMapFactory, SegmentIndexFileStore}
 import org.apache.carbondata.core.locks.{CarbonLockUtil, ICarbonLock, LockUsage}
 import org.apache.carbondata.core.metadata.{AbsoluteTableIdentifier, SegmentFileStore}
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.mutate.CarbonUpdateUtil
-import org.apache.carbondata.core.statusmanager.{FileFormat, SegmentStatus, SegmentStatusManager}
+import org.apache.carbondata.core.readcommitter.{ReadCommittedScope, TableStatusReadCommittedScope}
+import org.apache.carbondata.core.reader.CarbonIndexFileReader
+import org.apache.carbondata.core.statusmanager.{FileFormat, LoadMetadataDetails, SegmentStatus, SegmentStatusManager}
 import org.apache.carbondata.core.util.path.CarbonTablePath
+import org.apache.carbondata.format.IndexHeader
 import org.apache.carbondata.streaming.segment.StreamSegment
 
 object CarbonStore {
@@ -47,8 +54,10 @@ object CarbonStore {
   def showSegments(
       limit: Option[String],
       tablePath: String,
-      showHistory: Boolean): Seq[Row] = {
-    val metaFolder = CarbonTablePath.getMetadataPath(tablePath)
+      showHistory: Boolean,
+      carbonTable: CarbonTable = null,
+      hadoopConf: Configuration = null): Seq[Row] = {
+    val metaFolder = CarbonTablePath.getMetadataPath(carbonTable.getTablePath)
     val loadMetadataDetailsArray = if (showHistory) {
       SegmentStatusManager.readLoadMetadata(metaFolder) ++
       SegmentStatusManager.readLoadHistoryMetadata(metaFolder)
@@ -74,7 +83,16 @@ object CarbonStore {
             CarbonException.analysisException("Entered limit is not a valid Number")
         }
       }
-
+      val (tableDataMap: TableDataMap, readCommitScope: ReadCommittedScope) =
+        if (carbonTable == null) {
+          (null, null)
+        } else {
+          (DataMapStoreManager.getInstance.getDefaultDataMap(carbonTable),
+            new TableStatusReadCommittedScope(
+              carbonTable.getAbsoluteTableIdentifier,
+              loadMetadataDetailsSortedArray.filter(_.getVisibility.equalsIgnoreCase("true")),
+              hadoopConf))
+        }
       loadMetadataDetailsSortedArray
         .map { load =>
           val mergedTo =
@@ -117,6 +135,11 @@ object CarbonStore {
               if (load.getIndexSize == null) -1L else load.getIndexSize.toLong)
           }
 
+          val (isSorted, sortColumns) = getSortColumnsOfSegment(
+            load,
+            readCommitScope,
+            tableDataMap,
+            hadoopConf)
           if (showHistory) {
             Row(
               load.getLoadName,
@@ -127,7 +150,9 @@ object CarbonStore {
               load.getFileFormat.toString,
               load.getVisibility,
               Strings.formatSize(dataSize.toFloat),
-              Strings.formatSize(indexSize.toFloat))
+              Strings.formatSize(indexSize.toFloat),
+              isSorted,
+              sortColumns)
           } else {
             Row(
               load.getLoadName,
@@ -137,12 +162,98 @@ object CarbonStore {
               mergedTo,
               load.getFileFormat.toString,
               Strings.formatSize(dataSize.toFloat),
-              Strings.formatSize(indexSize.toFloat))
+              Strings.formatSize(indexSize.toFloat),
+              isSorted,
+              sortColumns)
           }
         }.toSeq
     } else {
       Seq.empty
     }
+  }
+
+  private def getSortColumnsOfSegment(
+      load: LoadMetadataDetails,
+      readCommitScope: ReadCommittedScope,
+      tableDataMap: TableDataMap,
+      hadoopConf: Configuration
+  ): (String, String) = {
+    // isSorted has 3 options: true, false, ""(for legacy store, before version 1.5.1)
+    var isSorted = ""
+    // when isSorted is true, need show sort_columns
+    var sortColumns = ""
+    if (load.getFileFormat == FileFormat.ROW_V1) {
+      isSorted = "false"
+    } else if (tableDataMap != null && load.getVisibility.equalsIgnoreCase("true")) {
+      val segment = new Segment(load.getLoadName(), load.getSegmentFile(), readCommitScope)
+      val dataMapFactory = tableDataMap.getDataMapFactory().asInstanceOf[BlockletDataMapFactory]
+      val indexIdents = dataMapFactory.getTableBlockIndexUniqueIdentifiers(segment)
+      val indexIterator = indexIdents.iterator()
+      if (indexIterator.hasNext) {
+        val indexIdent = indexIterator.next()
+        var indexHeader: IndexHeader = null
+        var indexContent: Array[Byte] = null
+        val indexFilePath = indexIdent.getIndexFilePath + CarbonCommonConstants.FILE_SEPARATOR +
+                        indexIdent.getIndexFileName
+        if (indexIdent.getMergeIndexFileName != null) {
+          val indexFileStore = new SegmentIndexFileStore(hadoopConf)
+          try {
+            indexFileStore.readMergeFile(indexFilePath)
+          } catch {
+            case ex: IOException =>
+              LOGGER.error(ex)
+          }
+          val iterator = indexFileStore.getCarbonIndexMap.entrySet().iterator()
+          if (iterator.hasNext) {
+            indexContent = iterator.next().getValue
+          }
+        }
+        val indexReader = new CarbonIndexFileReader()
+        try {
+          if (indexContent == null) {
+            indexReader.openThriftReader(indexFilePath)
+          } else {
+            indexReader.openThriftReader(indexContent)
+          }
+          // get the index header
+          indexHeader = indexReader.readIndexHeader()
+        } catch {
+          case ex: IOException =>
+            LOGGER.error(ex)
+        } finally {
+          indexReader.closeThriftReader()
+        }
+        if (indexHeader != null && indexHeader.isSetIs_sort) {
+          if (indexHeader.is_sort) {
+            isSorted = "true"
+            val columns = indexHeader.getTable_columns
+            sortColumns = (0 until columns.size())
+              .map { index =>
+                val column = columns.get(index)
+                if (column.isDimension && !column.isInvisible) {
+                  val properties = column.getColumnProperties
+                  if (properties != null) {
+                    if (properties.get(CarbonCommonConstants.SORT_COLUMNS) == null) {
+                      null
+                    } else {
+                      column.column_name
+                    }
+                  } else {
+                    null
+                  }
+                } else {
+                  null
+                }
+              }
+              .filter(_ != null)
+              .mkString(",")
+          } else {
+            isSorted = "false"
+          }
+        }
+      }
+    }
+    (isSorted, sortColumns)
   }
 
   /**

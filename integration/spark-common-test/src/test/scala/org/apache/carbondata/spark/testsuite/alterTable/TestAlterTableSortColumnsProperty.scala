@@ -134,6 +134,10 @@ class TestAlterTableSortColumnsProperty extends QueryTest with BeforeAndAfterAll
       Map("sort_scope"->"local_sort", "sort_columns"->"intField")
     )
     createAggDataMap("alter_sc_agg_base", "alter_sc_agg_base_dm1")
+    createTable(
+      "alter_sc_show_segments",
+      Map("sort_scope"->"local_sort", "sort_columns"->"intField")
+    )
   }
 
   private def dropTable(): Unit = {
@@ -153,6 +157,7 @@ class TestAlterTableSortColumnsProperty extends QueryTest with BeforeAndAfterAll
     sql(s"drop table if exists alter_sc_bloom_base")
     sql(s"drop table if exists alter_sc_agg")
     sql(s"drop table if exists alter_sc_agg_base")
+    sql(s"drop table if exists alter_sc_show_segments")
   }
 
   private def createTable(
@@ -537,5 +542,37 @@ class TestAlterTableSortColumnsProperty extends QueryTest with BeforeAndAfterAll
     sql(s"EXPLAIN select stringField,max(intField) as sum from $tableName where stringField = 'abc2' group by stringField").show(100, false)
     checkExistence(sql(s"EXPLAIN select stringField,max(intField) as sum from $tableName where stringField = 'abc2' group by stringField"), true, "preaggregate", dataMapName)
     checkAnswer(sql(s"select stringField,max(intField) as sum from $tableName where stringField = 'abc2' group by stringField"), sql(s"select stringField,max(intField) as sum from $baseTableName where stringField = 'abc2' group by stringField"))
+  }
+
+  test("show segments") {
+    val tableName = "alter_sc_show_segments"
+    sql(s"alter table $tableName set tblproperties('sort_scope'='local_sort', 'sort_columns'='timestampField, intField, stringField')")
+    loadData(tableName)
+    sql(s"alter table $tableName set tblproperties('sort_scope'='no_sort', 'sort_columns'='timestampField, intField, stringField')")
+    loadData(tableName)
+    sql(s"alter table $tableName set tblproperties('sort_scope'='local_sort', 'sort_columns'='intField, stringField')")
+    loadData(tableName)
+    sql(s"alter table $tableName set tblproperties('sort_scope'='local_sort', 'sort_columns'='timestampField, intField, stringField')")
+    loadData(tableName)
+
+    // compaction
+    checkAnswer(sql(s"show segments for table $tableName").select("SegmentSequenceId", "Is Sorted", "Sort Columns"),
+      Seq(
+        Row("3","true","timestampfield,intfield,stringfield"),
+        Row("2","true","intfield,stringfield"),
+        Row("1","false",""),
+        Row("0","true","timestampfield,intfield,stringfield")
+      )
+    )
+    sql(s"alter table $tableName compact 'minor'")
+    checkAnswer(sql(s"show segments for table $tableName").select("SegmentSequenceId", "Is Sorted", "Sort Columns"),
+      Seq(
+        Row("3","true","timestampfield,intfield,stringfield"),
+        Row("2","true","intfield,stringfield"),
+        Row("1","false",""),
+        Row("0.1","true","timestampfield,intfield,stringfield"),
+        Row("0","true","timestampfield,intfield,stringfield")
+      )
+    )
   }
 }
