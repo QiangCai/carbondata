@@ -17,7 +17,6 @@
 
 package org.apache.carbondata.api
 
-import java.io.IOException
 import java.lang.Long
 
 import scala.collection.JavaConverters._
@@ -32,7 +31,7 @@ import org.apache.carbondata.common.Strings
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.constants.CarbonCommonConstants
-import org.apache.carbondata.core.datamap.{DataMapStoreManager, Segment, TableDataMap}
+import org.apache.carbondata.core.datamap.{DataMapStoreManager, TableDataMap}
 import org.apache.carbondata.core.datastore.filesystem.CarbonFile
 import org.apache.carbondata.core.datastore.impl.FileFactory
 import org.apache.carbondata.core.indexstore.PartitionSpec
@@ -42,10 +41,8 @@ import org.apache.carbondata.core.metadata.{AbsoluteTableIdentifier, SegmentFile
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.mutate.CarbonUpdateUtil
 import org.apache.carbondata.core.readcommitter.{ReadCommittedScope, TableStatusReadCommittedScope}
-import org.apache.carbondata.core.reader.CarbonIndexFileReader
 import org.apache.carbondata.core.statusmanager.{FileFormat, LoadMetadataDetails, SegmentStatus, SegmentStatusManager}
 import org.apache.carbondata.core.util.path.CarbonTablePath
-import org.apache.carbondata.format.IndexHeader
 import org.apache.carbondata.streaming.segment.StreamSegment
 
 object CarbonStore {
