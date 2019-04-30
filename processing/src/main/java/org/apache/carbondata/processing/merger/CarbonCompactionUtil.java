@@ -24,22 +24,34 @@ import java.util.Map;
 
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
+import org.apache.carbondata.core.datamap.DataMapStoreManager;
+import org.apache.carbondata.core.datamap.Segment;
+import org.apache.carbondata.core.datamap.TableDataMap;
 import org.apache.carbondata.core.datastore.block.TableBlockInfo;
 import org.apache.carbondata.core.datastore.block.TaskBlockInfo;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.indexstore.blockletindex.BlockletDataMapFactory;
+import org.apache.carbondata.core.indexstore.blockletindex.SegmentIndexFileStore;
 import org.apache.carbondata.core.metadata.CarbonTableIdentifier;
 import org.apache.carbondata.core.metadata.blocklet.BlockletInfo;
 import org.apache.carbondata.core.metadata.blocklet.DataFileFooter;
+import org.apache.carbondata.core.metadata.converter.ThriftWrapperSchemaConverterImpl;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonMeasure;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
+import org.apache.carbondata.core.readcommitter.ReadCommittedScope;
+import org.apache.carbondata.core.readcommitter.TableStatusReadCommittedScope;
+import org.apache.carbondata.core.reader.CarbonIndexFileReader;
 import org.apache.carbondata.core.scan.executor.util.RestructureUtil;
+import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
 import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
+import org.apache.carbondata.format.IndexHeader;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 
 /**
@@ -461,6 +473,38 @@ public class CarbonCompactionUtil {
     return false;
   }
 
+  private static boolean compareSortColumns(CarbonTable table, List<ColumnSchema> fileColumns) {
+    // When sort_columns is modified, it will be consider as no_sort also.
+    List<CarbonDimension> sortColumnsOfSegment = new ArrayList<>();
+    for (ColumnSchema column : fileColumns) {
+      if (column.isDimensionColumn() && column.isSortColumn()) {
+        sortColumnsOfSegment.add(new CarbonDimension(column, -1, -1, -1));
+      }
+    }
+    if (sortColumnsOfSegment.size() < table.getNumberOfSortColumns()) {
+      return false;
+    }
+    List<CarbonDimension> sortColumnsOfTable = new ArrayList<>();
+    for (CarbonDimension dimension : table.getDimensions()) {
+      if (dimension.isSortColumn()) {
+        sortColumnsOfTable.add(dimension);
+      }
+    }
+    int sortColumnNums = sortColumnsOfTable.size();
+    if (sortColumnsOfSegment.size() < sortColumnNums) {
+      return false;
+    }
+    // compare sort_columns
+    for (int i = 0; i < sortColumnNums; i++) {
+      if (!RestructureUtil
+          .isColumnMatches(table.isTransactionalTable(), sortColumnsOfTable.get(i),
+              sortColumnsOfSegment.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Returns if the DataFileFooter containing carbondata file contains
    * sorted data or not.
@@ -471,38 +515,38 @@ public class CarbonCompactionUtil {
    */
   public static boolean isSortedByCurrentSortColumns(CarbonTable table, DataFileFooter footer) {
     if (footer.isSorted()) {
-      // When sort_columns is modified, it will be consider as no_sort also.
-      List<CarbonDimension> sortColumnsOfSegment = new ArrayList<>();
-      for (ColumnSchema column : footer.getColumnInTable()) {
-        if (column.isDimensionColumn() && column.isSortColumn()) {
-          sortColumnsOfSegment.add(new CarbonDimension(column, -1, -1, -1));
-        }
-      }
-      if (sortColumnsOfSegment.size() < table.getNumberOfSortColumns()) {
-        return false;
-      }
-      List<CarbonDimension> sortColumnsOfTable = new ArrayList<>();
-      for (CarbonDimension dimension : table.getDimensions()) {
-        if (dimension.isSortColumn()) {
-          sortColumnsOfTable.add(dimension);
-        }
-      }
-      int sortColumnNums = sortColumnsOfTable.size();
-      if (sortColumnsOfSegment.size() < sortColumnNums) {
-        return false;
-      }
-      // compare sort_columns
-      for (int i = 0; i < sortColumnNums; i++) {
-        if (!RestructureUtil
-            .isColumnMatches(table.isTransactionalTable(), sortColumnsOfTable.get(i),
-                sortColumnsOfSegment.get(i))) {
-          return false;
-        }
-      }
-      return true;
+      return compareSortColumns(table, footer.getColumnInTable());
     } else {
       return false;
     }
   }
 
+  public static boolean isSortedByCurrentSortColumns(CarbonTable table,
+      LoadMetadataDetails load, Configuration hadoopConf) {
+    ReadCommittedScope readCommitScope =
+        new TableStatusReadCommittedScope(table.getAbsoluteTableIdentifier(),
+            new LoadMetadataDetails[] { load }, hadoopConf);
+    BlockletDataMapFactory dataMapFactory =
+        (BlockletDataMapFactory) DataMapStoreManager.getInstance().getDefaultDataMap(table)
+            .getDataMapFactory();
+    IndexHeader indexHeader =
+        SegmentIndexFileStore.getIndexHeaderOfSegment(load, readCommitScope, dataMapFactory);
+    if (indexHeader.is_sort) {
+      ThriftWrapperSchemaConverterImpl schemaConverter = new ThriftWrapperSchemaConverterImpl();
+      List<ColumnSchema> columns = new ArrayList<>(indexHeader.getTable_columns().size());
+      for (org.apache.carbondata.format.ColumnSchema column: indexHeader.getTable_columns()) {
+        if (column.isDimension()) {
+          Map<String,String> properties = column.getColumnProperties();
+          if (properties != null) {
+            if (properties.get(CarbonCommonConstants.SORT_COLUMNS) != null) {
+              columns.add(schemaConverter.fromExternalToWrapperColumnSchema(column));
+            }
+          }
+        }
+      }
+      return compareSortColumns(table, columns);
+    } else {
+      return false;
+    }
+  }
 }

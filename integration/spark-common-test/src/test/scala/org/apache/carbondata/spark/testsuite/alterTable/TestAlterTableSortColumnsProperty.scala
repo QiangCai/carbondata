@@ -138,6 +138,10 @@ class TestAlterTableSortColumnsProperty extends QueryTest with BeforeAndAfterAll
       "alter_sc_show_segments",
       Map("sort_scope"->"local_sort", "sort_columns"->"intField")
     )
+    createTable(
+      "alter_sc_compaction",
+      Map("sort_scope"->"local_sort", "sort_columns"->"stringField")
+    )
   }
 
   private def dropTable(): Unit = {
@@ -158,6 +162,7 @@ class TestAlterTableSortColumnsProperty extends QueryTest with BeforeAndAfterAll
     sql(s"drop table if exists alter_sc_agg")
     sql(s"drop table if exists alter_sc_agg_base")
     sql(s"drop table if exists alter_sc_show_segments")
+    sql(s"drop table if exists alter_sc_compaction")
   }
 
   private def createTable(
@@ -574,5 +579,52 @@ class TestAlterTableSortColumnsProperty extends QueryTest with BeforeAndAfterAll
         Row("0","true","timestampfield,intfield,stringfield")
       )
     )
+  }
+
+  test("compaction for column drift") {
+    val tableName = "test1"
+    sql("drop table if exists test1")
+    sql(
+      s"""create table test1(
+         | c1 string,
+         | c2 string,
+         | c3 string,
+         | c4 string,
+         | c5 string,
+         | c6 int,
+         | c7 int
+         | )
+         | stored as carbondata
+      """.stripMargin)
+
+    sql(
+      s"""load data local inpath '$resourcesPath/test1.csv'
+         | into table test1
+         | options ('global_sort_partitions'='2', 'COMPLEX_DELIMITER_LEVEL_1'='$$', 'COMPLEX_DELIMITER_LEVEL_2'=':')
+      """.stripMargin)
+
+    sql(s"alter table $tableName set tblproperties('sort_scope'='local_sort', 'sort_columns'='c5, c1')")
+    sql(
+      s"""load data local inpath '$resourcesPath/test1.csv'
+         | into table test1
+         | options ('global_sort_partitions'='2', 'COMPLEX_DELIMITER_LEVEL_1'='$$', 'COMPLEX_DELIMITER_LEVEL_2'=':')
+      """.stripMargin)
+
+    sql(s"alter table $tableName set tblproperties('sort_scope'='no_sort', 'sort_columns'='c6')")
+    sql(
+      s"""load data local inpath '$resourcesPath/test1.csv'
+         | into table test1
+         | options ('global_sort_partitions'='2', 'COMPLEX_DELIMITER_LEVEL_1'='$$', 'COMPLEX_DELIMITER_LEVEL_2'=':')
+      """.stripMargin)
+
+    sql(s"alter table $tableName set tblproperties('sort_scope'='global_sort', 'sort_columns'='c7')")
+    sql(
+      s"""load data local inpath '$resourcesPath/test1.csv'
+         | into table test1
+         | options ('global_sort_partitions'='2', 'COMPLEX_DELIMITER_LEVEL_1'='$$', 'COMPLEX_DELIMITER_LEVEL_2'=':')
+      """.stripMargin)
+    sql(s"alter table $tableName set tblproperties('sort_scope'='global_sort', 'sort_columns'='c5')")
+
+    sql(s"alter table $tableName compact 'minor'")
   }
 }

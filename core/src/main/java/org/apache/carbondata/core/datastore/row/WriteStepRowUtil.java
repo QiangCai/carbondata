@@ -95,7 +95,7 @@ public class WriteStepRowUtil {
     converted[NO_DICTIONARY_AND_COMPLEX] = noDictAndComplexKeys;
 
     // measure
-    int measureCount = row.length - 1;
+    int measureCount = segmentProperties.getMeasures().size();
     Object[] measures = new Object[measureCount];
     System.arraycopy(row, 1, measures, 0, measureCount);
     converted[MEASURE] = measures;

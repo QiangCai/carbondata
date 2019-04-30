@@ -34,7 +34,7 @@ import org.apache.carbondata.core.statusmanager.{LoadMetadataDetails, SegmentSta
 import org.apache.carbondata.core.util.path.CarbonTablePath
 import org.apache.carbondata.events._
 import org.apache.carbondata.processing.loading.model.CarbonLoadModel
-import org.apache.carbondata.processing.merger.{CarbonDataMergerUtil, CompactionType}
+import org.apache.carbondata.processing.merger.{CarbonCompactionUtil, CarbonDataMergerUtil, CompactionType}
 import org.apache.carbondata.spark.MergeResultImpl
 
 /**
@@ -49,6 +49,19 @@ class CarbonTableCompactor(carbonLoadModel: CarbonLoadModel,
     operationContext: OperationContext)
   extends Compactor(carbonLoadModel, compactionModel, executor, sqlContext, storeLocation) {
 
+  private def needSortSingleSegment(
+      loadsToMerge: java.util.List[LoadMetadataDetails]): Boolean = {
+    if (CompactionType.CUSTOM == compactionModel.compactionType &&
+        loadsToMerge.size() == 1) {
+      !CarbonCompactionUtil.isSortedByCurrentSortColumns(
+        carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable,
+        loadsToMerge.get(0),
+        sqlContext.sparkSession.sessionState.newHadoopConf())
+    } else {
+      false
+    }
+  }
+
   override def executeCompaction(): Unit = {
     val sortedSegments: util.List[LoadMetadataDetails] = new util.ArrayList[LoadMetadataDetails](
       carbonLoadModel.getLoadMetadataDetails
@@ -57,7 +70,7 @@ class CarbonTableCompactor(carbonLoadModel: CarbonLoadModel,
 
     var loadsToMerge = identifySegmentsToBeMerged()
 
-    while (loadsToMerge.size() > 1 ||
+    while (loadsToMerge.size() > 1 || needSortSingleSegment(loadsToMerge) ||
            (CompactionType.IUD_UPDDEL_DELTA == compactionModel.compactionType &&
             loadsToMerge.size() > 0)) {
       val lastSegment = sortedSegments.get(sortedSegments.size() - 1)
