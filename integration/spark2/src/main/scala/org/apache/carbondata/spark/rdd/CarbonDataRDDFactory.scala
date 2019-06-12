@@ -78,6 +78,7 @@ import org.apache.carbondata.processing.util.{Auditor, CarbonDataProcessorUtil, 
 import org.apache.carbondata.spark.{DataLoadResultImpl, PartitionFactory, _}
 import org.apache.carbondata.spark.load._
 import org.apache.carbondata.spark.util.{CarbonScalaUtil, CommonUtil, Util}
+import org.apache.carbondata.vector.VectorTableHelper
 
 /**
  * This is the factory class which can create different RDD depends on user needs.
@@ -375,7 +376,11 @@ object CarbonDataRDDFactory {
             DataLoadProcessBuilderOnSpark.loadDataUsingGlobalSort(sqlContext.sparkSession,
               dataFrame, carbonLoadModel, hadoopConf)
           } else if (dataFrame.isDefined) {
-            loadDataFrame(sqlContext, dataFrame, carbonLoadModel)
+            if (carbonTable.isVectorTable) {
+              VectorTableHelper.loadDataFrameForVector(sqlContext, dataFrame, carbonLoadModel)
+            } else {
+              loadDataFrame(sqlContext, dataFrame, carbonLoadModel)
+            }
           } else {
             loadDataFile(sqlContext, carbonLoadModel, hadoopConf)
           }
@@ -515,6 +520,7 @@ object CarbonDataRDDFactory {
       // as no record loaded in new segment, new segment should be deleted
       val newEntryLoadStatus =
         if (carbonLoadModel.isCarbonTransactionalTable &&
+            !carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable.isVectorTable &&
             !carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable.isChildDataMap &&
             !CarbonLoaderUtil.isValidSegment(carbonLoadModel, carbonLoadModel.getSegmentId.toInt)) {
           LOGGER.warn("Cannot write load metadata file as there is no data to load")

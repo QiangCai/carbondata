@@ -106,9 +106,12 @@
     <module>store/sdk</module>
     <module>assembly</module>
     <module>tools/cli</module>
+    <!--
     <module>fleet/router</module>
     <module>fleet/core</module>
     <module>fleet/zeppelin</module>
+    -->
+    <module>fleet/vector</module>
     <module>integration/hbase</module>
   </modules>
 
@@ -579,9 +582,6 @@
     </profile>
     <profile>
       <id>spark-2.2</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
       <properties>
         <spark.version>2.2.1</spark.version>
         <scala.binary.version>2.11</scala.binary.version>
@@ -641,6 +641,9 @@
     </profile>
     <profile>
       <id>spark-2.3</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <properties>
         <spark.version>2.3.2</spark.version>
         <scala.binary.version>2.11</scala.binary.version>

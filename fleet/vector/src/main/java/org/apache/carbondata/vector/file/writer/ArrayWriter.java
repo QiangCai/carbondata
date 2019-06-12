@@ -15,35 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file.writer;
+
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
 
 /**
- * The data file format supported in carbondata project
+ * interface to write array data to file
  */
-public enum FileFormat {
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
+public interface ArrayWriter extends AutoCloseable {
 
-  // carbondata row file format, optimized for write
-  ROW_V1,
+  /**
+   * open the writer and init the configuration
+   * @param segmentFolder
+   * @param configuration
+   */
+  void open(String segmentFolder, Configuration configuration) throws IOException;
 
-  VECTOR_V1;
+  /**
+   * appendObject a value to the end of the file
+   * @param value
+   */
+  void appendObject(Object value) throws IOException;
 
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
+  /**
+   * close the writer and release resources
+   */
+  void close() throws IOException;
 
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
-  }
 }

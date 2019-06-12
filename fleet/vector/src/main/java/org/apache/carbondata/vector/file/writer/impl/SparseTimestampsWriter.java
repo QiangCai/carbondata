@@ -15,35 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file.writer.impl;
 
-/**
- * The data file format supported in carbondata project
- */
-public enum FileFormat {
+import java.sql.Timestamp;
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
+import org.apache.carbondata.core.util.ByteUtil;
 
-  // carbondata row file format, optimized for write
-  ROW_V1,
+public class SparseTimestampsWriter extends SparseWriter {
 
-  VECTOR_V1;
+  public SparseTimestampsWriter(CarbonTable table, CarbonColumn column) {
+    super(table, column);
+  }
 
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
+  @Override
+  protected byte[] toBytes(Object value) {
+    long time = ((Timestamp) value).getTime();
+    return ByteUtil.toBytes(time);
   }
 }

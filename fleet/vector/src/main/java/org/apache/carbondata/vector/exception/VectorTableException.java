@@ -15,35 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.exception;
 
 /**
- * The data file format supported in carbondata project
+ * package exception of vector module
  */
-public enum FileFormat {
+public class VectorTableException extends Exception {
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
+  public VectorTableException() {
+    super();
+  }
 
-  // carbondata row file format, optimized for write
-  ROW_V1,
+  public VectorTableException(String message) {
+    super(message);
+  }
 
-  VECTOR_V1;
+  public VectorTableException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
+  public VectorTableException(Throwable cause) {
+    super(cause);
   }
 }
