@@ -118,7 +118,7 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
     val updateDeltaMetadata = segmentUpdateStatusManager.readLoadMetadata()
     if (updateDeltaMetadata != null && updateDeltaMetadata.nonEmpty) {
       false
-    } else if (relation.carbonTable.isStreamingSink) {
+    } else if (relation.carbonTable.isStreamingSink || relation.carbonTable.isVectorTable) {
       false
     } else {
       true
@@ -247,8 +247,17 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
       }
     }
 
-    val (unhandledPredicates, pushedFilters, handledFilters ) =
+    val isVectorTable = relation
+      .relation
+      .asInstanceOf[CarbonDatasourceHadoopRelation]
+      .carbonTable
+      .isVectorTable
+    // vetctor table not support to push down filter
+    val (unhandledPredicates, pushedFilters, handledFilters) = if (isVectorTable) {
+      (candidatePredicates, Seq.empty[Filter], Seq.empty[Filter])
+    } else {
       selectFilters(relation.relation, candidatePredicates)
+    }
 
     // A set of column attributes that are only referenced by pushed down filters.  We can eliminate
     // them from requested columns.

@@ -17,6 +17,8 @@
 
 package org.apache.carbondata.vector.table;
 
+import org.apache.carbondata.common.annotations.InterfaceAudience;
+import org.apache.carbondata.common.annotations.InterfaceStability;
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
@@ -38,12 +40,14 @@ import java.util.List;
 /**
  * writer API for vector table
  */
+@InterfaceAudience.User
+@InterfaceStability.Stable
 public class VectorTableWriter {
 
   private static final Logger LOGGER =
       LogServiceFactory.getLogService(VectorTableWriter.class.getCanonicalName());
 
-  private final Configuration configuration;
+  private final Configuration hadoopConf;
   private final CarbonTable table;
   private final String segmentPath;
   private ArrayWriter[] arrayWriters;
@@ -51,8 +55,8 @@ public class VectorTableWriter {
   private int numColumns;
   private boolean isFirstRow = true;
 
-  public VectorTableWriter(final CarbonLoadModel loadModel, final Configuration configuration) {
-    this.configuration = configuration;
+  public VectorTableWriter(final CarbonLoadModel loadModel, final Configuration hadoopConf) {
+    this.hadoopConf = hadoopConf;
     table = loadModel.getCarbonDataLoadSchema().getCarbonTable();
     segmentPath = CarbonTablePath.getSegmentPath(table.getTablePath(), loadModel.getSegmentId());
   }
@@ -69,7 +73,7 @@ public class VectorTableWriter {
       try {
         for (int index = 0; index < numColumns; index++) {
           arrayWriters[index] = ArrayWriterFactory.getArrayWriter(table, columns.get(index));
-          arrayWriters[index].open(segmentPath, configuration);
+          arrayWriters[index].open(segmentPath, hadoopConf);
         }
       } catch (IOException e) {
         String message = "Failed to init array writer";
@@ -131,7 +135,7 @@ public class VectorTableWriter {
           }
         } catch (Exception e) {
           // catch exception to continue close next writer
-          LOGGER.error("Failed to close file writer", e);
+          LOGGER.error("Failed to close array file writer", e);
         }
       }
     }

@@ -17,9 +17,10 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
+
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
-import org.apache.carbondata.core.util.ByteUtil;
 
 /**
  * writer for sparse long array
@@ -30,7 +31,8 @@ public class SparseLongsWriter extends SparseWriter {
   }
 
   @Override
-  protected byte[] toBytes(Object value) {
-    return ByteUtil.toBytes((long) value);
+  protected int writeData(Object value) throws IOException {
+    dataOutput.writeLong((long) value);
+    return 8;
   }
 }

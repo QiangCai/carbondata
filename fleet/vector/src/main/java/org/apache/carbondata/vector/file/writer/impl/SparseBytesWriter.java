@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.vector.file;
+package org.apache.carbondata.vector.file.writer.impl;
+
+import java.io.IOException;
+
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 
 /**
- * constants in vector file
+ * writer for sparse byte array
  */
-public class FileConstants {
+public class SparseBytesWriter extends SparseWriter {
+  public SparseBytesWriter(CarbonTable table, CarbonColumn column) {
+    super(table, column);
+  }
 
-  /**
-   * the data size of load batch, unit: byte
-   */
-  public static final long TABLE_LOAD_BATCH_SIZE = 256L * 1024 * 1024;
+  @Override
+  protected int writeData(Object value) throws IOException {
+    dataOutput.write((byte) value);
+    return 1;
+  }
 
-  /**
-   * the number of rows in read batch , unit: row
-   */
-  public static final int FILE_READ_BACTH_ROWS = 100;
-
-  /**
-   * the minimum size of reading data file
-   */
-  public static final int FILE_READ_MIN_SIZE = 4 * 1024;
 }

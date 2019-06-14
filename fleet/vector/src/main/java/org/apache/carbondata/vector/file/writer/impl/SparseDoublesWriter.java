@@ -17,9 +17,10 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
+
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
-import org.apache.carbondata.core.util.ByteUtil;
 
 /**
  * writer for sparse double array
@@ -30,10 +31,12 @@ public class SparseDoublesWriter extends SparseWriter {
   }
 
   @Override
-  protected byte[] toBytes(Object value) {
+  protected int writeData(Object value) throws IOException {
     if (value instanceof Float) {
-      return ByteUtil.toBytes((float) value);
+      dataOutput.writeDouble((float) value);
+    } else {
+      dataOutput.writeDouble((double) value);
     }
-    return ByteUtil.toBytes((double) value);
+    return 8;
   }
 }

@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.vector.file;
+package org.apache.carbondata.vector.file.vector.impl;
+
+import org.apache.spark.sql.types.DataType;
 
 /**
- * constants in vector file
+ * sparse primitive data type vector
  */
-public class FileConstants {
-
+public class SparseTimestampVector extends SparsePrimitiveVector {
   /**
-   * the data size of load batch, unit: byte
+   * Sets up the data type of this column vector.
+   *
+   * @param type
    */
-  public static final long TABLE_LOAD_BATCH_SIZE = 256L * 1024 * 1024;
+  public SparseTimestampVector(DataType type) {
+    super(type);
+  }
 
-  /**
-   * the number of rows in read batch , unit: row
-   */
-  public static final int FILE_READ_BACTH_ROWS = 100;
-
-  /**
-   * the minimum size of reading data file
-   */
-  public static final int FILE_READ_MIN_SIZE = 4 * 1024;
+  @Override
+  public long getLong(int rowId) {
+    return super.getLong(rowId) * 1000L;
+  }
 }

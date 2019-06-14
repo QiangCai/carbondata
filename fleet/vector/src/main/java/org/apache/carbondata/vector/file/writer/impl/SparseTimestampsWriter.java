@@ -17,11 +17,11 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
-import org.apache.carbondata.core.util.ByteUtil;
 
 public class SparseTimestampsWriter extends SparseWriter {
 
@@ -30,8 +30,8 @@ public class SparseTimestampsWriter extends SparseWriter {
   }
 
   @Override
-  protected byte[] toBytes(Object value) {
-    long time = ((Timestamp) value).getTime();
-    return ByteUtil.toBytes(time);
+  protected int writeData(Object value) throws IOException {
+    dataOutput.writeLong(((Timestamp) value).getTime());
+    return 8;
   }
 }

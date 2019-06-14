@@ -36,20 +36,20 @@ import scala.collection.immutable.Map;
 /**
  * writer for sparse map array
  */
-public class SparseMapWriter extends SparseWriter {
+public class SparseMapsWriter extends SparseWriter {
 
   private CarbonDimension dimension;
   private ArrayWriter keyWriter;
   private ArrayWriter valueWriter;
 
-  public SparseMapWriter(CarbonTable table, CarbonColumn column) {
+  public SparseMapsWriter(CarbonTable table, CarbonColumn column) {
     super(table, column);
   }
 
   @Override
-  public void open(String folderPath, Configuration configuration) throws IOException {
-    String columnFolder = VectorTablePath.getComplexFolderPath(folderPath, column);
-    FileFactory.mkdirs(columnFolder, configuration);
+  public void open(String outputFolder, Configuration hadoopConf) throws IOException {
+    String columnFolder = VectorTablePath.getComplexFolderPath(outputFolder, column);
+    FileFactory.mkdirs(columnFolder, hadoopConf);
     String offsetFilePath = VectorTablePath.getOffsetFilePath(columnFolder, column);
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
@@ -58,9 +58,9 @@ public class SparseMapWriter extends SparseWriter {
     List<CarbonDimension> childDimensions =
         dimension.getListOfChildDimensions().get(0).getListOfChildDimensions();
     keyWriter = ArrayWriterFactory.getArrayWriter(table, childDimensions.get(0));
-    keyWriter.open(columnFolder, configuration);
+    keyWriter.open(columnFolder, hadoopConf);
     valueWriter = ArrayWriterFactory.getArrayWriter(table, childDimensions.get(1));
-    valueWriter.open(columnFolder, configuration);
+    valueWriter.open(columnFolder, hadoopConf);
   }
 
   @Override
@@ -91,6 +91,7 @@ public class SparseMapWriter extends SparseWriter {
     if (keyWriter != null) {
       try {
         keyWriter.close();
+        keyWriter = null;
       } catch (IOException e) {
         ex = e;
       }
@@ -98,6 +99,7 @@ public class SparseMapWriter extends SparseWriter {
     if (valueWriter != null) {
       try {
         valueWriter.close();
+        keyWriter = null;
       } catch (IOException e) {
         ex = e;
       }

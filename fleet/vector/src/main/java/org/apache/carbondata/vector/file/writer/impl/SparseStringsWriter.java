@@ -17,6 +17,8 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
+
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 import org.apache.carbondata.core.util.ByteUtil;
@@ -31,7 +33,9 @@ public class SparseStringsWriter extends SparseWriter {
   }
 
   @Override
-  public byte[] toBytes(Object value) {
-    return ByteUtil.toBytes((String) value);
+  protected int writeData(Object value) throws IOException {
+    byte[] bytes = ByteUtil.toBytes((String) value);
+    dataOutput.write(bytes, 0, bytes.length);
+    return bytes.length;
   }
 }

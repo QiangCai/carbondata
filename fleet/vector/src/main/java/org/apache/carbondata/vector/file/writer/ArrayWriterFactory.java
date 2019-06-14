@@ -24,13 +24,14 @@ import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 import org.apache.carbondata.vector.file.writer.impl.SparseArraysWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseBinaryWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseBooleansWriter;
+import org.apache.carbondata.vector.file.writer.impl.SparseBytesWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseDatesWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseDecimalsWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseDoublesWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseFloatsWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseIntsWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseLongsWriter;
-import org.apache.carbondata.vector.file.writer.impl.SparseMapWriter;
+import org.apache.carbondata.vector.file.writer.impl.SparseMapsWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseShortsWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseStringsWriter;
 import org.apache.carbondata.vector.file.writer.impl.SparseStructsWriter;
@@ -61,6 +62,8 @@ public class ArrayWriterFactory {
       return new SparseTimestampsWriter(table, column);
     } else if (id == DataTypes.BOOLEAN.getId()) {
       return new SparseBooleansWriter(table, column);
+    } else if (id == DataTypes.BYTE.getId()) {
+      return new SparseBytesWriter(table, column);
     } else if (id == DataTypes.SHORT.getId()) {
       return new SparseShortsWriter(table, column);
     } else if (id == DataTypes.INT.getId()) {
@@ -80,7 +83,7 @@ public class ArrayWriterFactory {
     } else if (id == DataTypes.STRUCT_TYPE_ID) {
       return new SparseStructsWriter(table, column);
     } else if (id == DataTypes.MAP_TYPE_ID) {
-      return new SparseMapWriter(table, column);
+      return new SparseMapsWriter(table, column);
     } else if (id == DataTypes.VARCHAR.getId()) {
       return new SparseStringsWriter(table, column);
     } else {

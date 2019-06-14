@@ -53,9 +53,9 @@ public class SparseStructsWriter extends SparseWriter {
   }
 
   @Override
-  public void open(String folderPath, Configuration configuration) throws IOException {
-    String columnFolder = VectorTablePath.getComplexFolderPath(folderPath, column);
-    FileFactory.mkdirs(columnFolder, configuration);
+  public void open(String outputFolder, Configuration hadoopConf) throws IOException {
+    String columnFolder = VectorTablePath.getComplexFolderPath(outputFolder, column);
+    FileFactory.mkdirs(columnFolder, hadoopConf);
     String offsetFilePath = VectorTablePath.getOffsetFilePath(columnFolder, column);
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
@@ -66,7 +66,7 @@ public class SparseStructsWriter extends SparseWriter {
     childWriters = new ArrayWriter[numColumns];
     for (int index = 0; index < numColumns; index++) {
       childWriters[index] = ArrayWriterFactory.getArrayWriter(table, childDimensions.get(index));
-      childWriters[index].open(columnFolder, configuration);
+      childWriters[index].open(columnFolder, hadoopConf);
     }
     // init default value
     defaultValues = new Object[numColumns];
@@ -105,14 +105,16 @@ public class SparseStructsWriter extends SparseWriter {
       ex = e;
     }
     if (childWriters != null) {
-      for (ArrayWriter arrayWriter : childWriters) {
+      for (int index = 0; index < numColumns; index++) {
         try {
-          arrayWriter.close();
+          childWriters[index].close();
+          childWriters[index] = null;
         } catch (IOException e) {
           ex = e;
         }
       }
     }
+    childWriters = null;
     if (ex != null) {
       throw ex;
     }

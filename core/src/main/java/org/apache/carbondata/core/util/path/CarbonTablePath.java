@@ -38,7 +38,7 @@ public class CarbonTablePath {
   private static final String SORT_INDEX_EXT = ".sortindex";
   public static final String SCHEMA_FILE = "schema";
   private static final String FACT_DIR = "Fact";
-  private static final String SEGMENT_PREFIX = "Segment_";
+  public static final String SEGMENT_PREFIX = "Segment_";
   private static final String PARTITION_PREFIX = "Part";
   private static final String DATA_PART_PREFIX = "part-";
   private static final String BATCH_PREFIX = "_batchno";

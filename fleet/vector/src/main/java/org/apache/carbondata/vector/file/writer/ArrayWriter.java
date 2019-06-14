@@ -19,20 +19,24 @@ package org.apache.carbondata.vector.file.writer;
 
 import java.io.IOException;
 
+import org.apache.carbondata.common.annotations.InterfaceAudience;
+import org.apache.carbondata.common.annotations.InterfaceStability;
+
 import org.apache.hadoop.conf.Configuration;
 
 /**
  * interface to write array data to file
  */
-
+@InterfaceAudience.Internal
+@InterfaceStability.Evolving
 public interface ArrayWriter extends AutoCloseable {
 
   /**
    * open the writer and init the configuration
-   * @param segmentFolder
-   * @param configuration
+   * @param outputFolder
+   * @param hadoopConf
    */
-  void open(String segmentFolder, Configuration configuration) throws IOException;
+  void open(String outputFolder, Configuration hadoopConf) throws IOException;
 
   /**
    * appendObject a value to the end of the file

@@ -17,9 +17,10 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
+
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
-import org.apache.carbondata.core.util.ByteUtil;
 
 /**
  * writer for sparse boolean array
@@ -30,7 +31,8 @@ public class SparseBooleansWriter extends SparseWriter {
   }
 
   @Override
-  protected byte[] toBytes(Object value) {
-    return ByteUtil.toBytes((boolean) value);
+  protected int writeData(Object value) throws IOException {
+    dataOutput.write((boolean) value ? 1 : 0);
+    return 1;
   }
 }

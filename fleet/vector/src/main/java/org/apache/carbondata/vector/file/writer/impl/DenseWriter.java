@@ -17,11 +17,15 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import org.apache.carbondata.common.annotations.InterfaceAudience;
+import org.apache.carbondata.common.annotations.InterfaceStability;
 import org.apache.carbondata.vector.file.writer.ArrayWriter;
 
 /**
  * write dense array data to file.
  * dense array data means it doesn't exist null value.
  */
+@InterfaceAudience.Internal
+@InterfaceStability.Evolving
 public abstract class DenseWriter implements ArrayWriter {
 }

@@ -29,7 +29,6 @@ import org.apache.carbondata.vector.table.VectorTablePath;
 
 import org.apache.hadoop.conf.Configuration;
 import scala.collection.Iterator;
-import scala.collection.immutable.Seq;
 import scala.collection.mutable.WrappedArray;
 
 /**
@@ -44,9 +43,9 @@ public class SparseArraysWriter extends SparseWriter {
     super(table, column);
   }
 
-  @Override public void open(String folderPath, Configuration configuration) throws IOException {
-    String columnFolder = VectorTablePath.getComplexFolderPath(folderPath, column);
-    FileFactory.mkdirs(columnFolder, configuration);
+  @Override public void open(String outputFolder, Configuration hadoopConf) throws IOException {
+    String columnFolder = VectorTablePath.getComplexFolderPath(outputFolder, column);
+    FileFactory.mkdirs(columnFolder, hadoopConf);
     String offsetFilePath = VectorTablePath.getOffsetFilePath(columnFolder, column);
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
@@ -55,7 +54,7 @@ public class SparseArraysWriter extends SparseWriter {
     CarbonDimension childDimensions = dimension.getListOfChildDimensions().get(0);
     // init child writers
     childWriter = ArrayWriterFactory.getArrayWriter(table, childDimensions);
-    childWriter.open(columnFolder, configuration);
+    childWriter.open(columnFolder, hadoopConf);
   }
 
   @Override public void appendObject(Object value) throws IOException {
@@ -83,6 +82,7 @@ public class SparseArraysWriter extends SparseWriter {
     if (childWriter != null) {
       try {
         childWriter.close();
+        childWriter = null;
       } catch (IOException e) {
         ex = e;
       }

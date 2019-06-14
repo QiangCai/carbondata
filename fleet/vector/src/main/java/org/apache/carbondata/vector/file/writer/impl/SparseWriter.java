@@ -20,6 +20,8 @@ package org.apache.carbondata.vector.file.writer.impl;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import org.apache.carbondata.common.annotations.InterfaceAudience;
+import org.apache.carbondata.common.annotations.InterfaceStability;
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -34,6 +36,8 @@ import org.apache.log4j.Logger;
  * write sparse array data to file.
  * sparse array data means it exists null value.
  */
+@InterfaceAudience.Internal
+@InterfaceStability.Evolving
 public abstract class SparseWriter implements ArrayWriter {
 
   private static final Logger LOGGER =
@@ -51,11 +55,11 @@ public abstract class SparseWriter implements ArrayWriter {
   }
 
   @Override
-  public void open(final String folderPath, final Configuration configuration) throws IOException {
-    String columnFilePath = VectorTablePath.getColumnFilePath(folderPath, column);
+  public void open(final String outputFolder, final Configuration hadoopConf) throws IOException {
+    String columnFilePath = VectorTablePath.getColumnFilePath(outputFolder, column);
     dataOutput =
         FileFactory.getDataOutputStream(columnFilePath, FileFactory.getFileType(columnFilePath));
-    String offsetFilePath = VectorTablePath.getOffsetFilePath(folderPath, column);
+    String offsetFilePath = VectorTablePath.getOffsetFilePath(outputFolder, column);
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
   }
@@ -65,20 +69,20 @@ public abstract class SparseWriter implements ArrayWriter {
     if (value == null) {
       offsetOutput.writeLong(offset ^ Long.MIN_VALUE);
     } else {
-      byte[] bytes = toBytes(value);
-      dataOutput.write(bytes, 0, bytes.length);
-      offset += bytes.length;
+      offset += writeData(value);
+      // write offset
       offsetOutput.writeLong(offset);
     }
   }
 
   /**
-   * convert a not null value to byte array
+   * write not null data into data file
    * @param value
+   * @return the length of write bytes
    * @throws IOException
    */
-  protected byte[] toBytes(Object value) {
-    return new byte[0];
+  protected int writeData(Object value) throws IOException {
+    throw new RuntimeException("unsupported operation");
   }
 
   @Override
@@ -87,6 +91,7 @@ public abstract class SparseWriter implements ArrayWriter {
     if (dataOutput != null) {
       try {
         dataOutput.close();
+        dataOutput = null;
       } catch (IOException e) {
         ex = e;
         LOGGER.error("Failed to close data output stream", e);
@@ -95,6 +100,7 @@ public abstract class SparseWriter implements ArrayWriter {
     if (offsetOutput != null) {
       try {
         offsetOutput.close();
+        offsetOutput = null;
       } catch (IOException e) {
         ex = e;
         LOGGER.error("Failed to close offset output stream", e);

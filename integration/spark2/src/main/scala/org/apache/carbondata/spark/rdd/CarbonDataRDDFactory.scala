@@ -78,7 +78,7 @@ import org.apache.carbondata.processing.util.{Auditor, CarbonDataProcessorUtil, 
 import org.apache.carbondata.spark.{DataLoadResultImpl, PartitionFactory, _}
 import org.apache.carbondata.spark.load._
 import org.apache.carbondata.spark.util.{CarbonScalaUtil, CommonUtil, Util}
-import org.apache.carbondata.vector.VectorTableHelper
+import org.apache.carbondata.vector.VectorTableLoadHelper
 
 /**
  * This is the factory class which can create different RDD depends on user needs.
@@ -377,7 +377,11 @@ object CarbonDataRDDFactory {
               dataFrame, carbonLoadModel, hadoopConf)
           } else if (dataFrame.isDefined) {
             if (carbonTable.isVectorTable) {
-              VectorTableHelper.loadDataFrameForVector(sqlContext, dataFrame, carbonLoadModel)
+              VectorTableLoadHelper.loadDataFrameForVector(
+                sqlContext,
+                dataFrame,
+                carbonLoadModel,
+                hadoopConf)
             } else {
               loadDataFrame(sqlContext, dataFrame, carbonLoadModel)
             }

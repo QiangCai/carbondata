@@ -17,6 +17,7 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -32,7 +33,9 @@ public class SparseDecimalsWriter extends SparseWriter {
   }
 
   @Override
-  protected byte[] toBytes(Object value) {
-    return DataTypeUtil.bigDecimalToByte((BigDecimal)value);
+  protected int writeData(Object value) throws IOException {
+    byte[] bytes = DataTypeUtil.bigDecimalToByte((BigDecimal)value);
+    dataOutput.write(bytes, 0, bytes.length);
+    return bytes.length;
   }
 }

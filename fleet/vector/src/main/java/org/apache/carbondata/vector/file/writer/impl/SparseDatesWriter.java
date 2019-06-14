@@ -17,11 +17,12 @@
 
 package org.apache.carbondata.vector.file.writer.impl;
 
+import java.io.IOException;
 import java.sql.Date;
 
+import org.apache.carbondata.core.keygenerator.directdictionary.timestamp.DateDirectDictionaryGenerator;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
-import org.apache.carbondata.core.util.ByteUtil;
 
 /**
  * writer for sparse string array
@@ -33,9 +34,11 @@ public class SparseDatesWriter extends SparseWriter {
   }
 
   @Override
-  protected byte[] toBytes(Object value) {
-    long time = ((Date) value).getTime();
-    return ByteUtil.toBytes(time);
+  protected int writeData(Object value) throws IOException {
+    double days = Math.floor(
+        (double) ((Date) value).getTime() / DateDirectDictionaryGenerator.MILLIS_PER_DAY);
+    dataOutput.writeInt((int) days);
+    return 4;
   }
 
 }

@@ -15,25 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.vector.file;
+package org.apache.carbondata.vector.file.reader.impl;
+
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 
 /**
- * constants in vector file
+ * reader for primitive data type array
  */
-public class FileConstants {
+public class SparseMapsReader extends SparseReader {
 
-  /**
-   * the data size of load batch, unit: byte
-   */
-  public static final long TABLE_LOAD_BATCH_SIZE = 256L * 1024 * 1024;
-
-  /**
-   * the number of rows in read batch , unit: row
-   */
-  public static final int FILE_READ_BACTH_ROWS = 100;
-
-  /**
-   * the minimum size of reading data file
-   */
-  public static final int FILE_READ_MIN_SIZE = 4 * 1024;
+  public SparseMapsReader(CarbonTable table, CarbonColumn column) {
+    super(table, column);
+  }
 }
