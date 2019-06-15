@@ -73,6 +73,13 @@ public class CarbonMultiBlockSplit extends InputSplit implements Serializable, W
     calculateLength();
   }
 
+  public CarbonMultiBlockSplit(CarbonInputSplit split) {
+    splitList = new ArrayList<>(1);
+    splitList.add(split);
+    locations = null;
+    length = 0;
+  }
+
   public CarbonMultiBlockSplit(List<CarbonInputSplit> splitList,
       String[] locations, FileFormat fileFormat) {
     this.splitList = splitList;

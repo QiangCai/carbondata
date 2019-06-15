@@ -15,35 +15,30 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file.writer.impl;
+
+import java.io.IOException;
+import java.sql.Date;
+
+import org.apache.carbondata.core.keygenerator.directdictionary.timestamp.DateDirectDictionaryGenerator;
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 
 /**
- * The data file format supported in carbondata project
+ * writer for sparse string array
  */
-public enum FileFormat {
+public class SparseDatesWriter extends SparseWriter {
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
-
-  // carbondata row file format, optimized for write
-  ROW_V1,
-
-  VECTOR_V1;
-
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
+  public SparseDatesWriter(CarbonTable table, CarbonColumn column) {
+    super(table, column);
   }
+
+  @Override
+  protected int writeData(Object value) throws IOException {
+    double days = Math.floor(
+        (double) ((Date) value).getTime() / DateDirectDictionaryGenerator.MILLIS_PER_DAY);
+    dataOutput.writeInt((int) days);
+    return 4;
+  }
+
 }

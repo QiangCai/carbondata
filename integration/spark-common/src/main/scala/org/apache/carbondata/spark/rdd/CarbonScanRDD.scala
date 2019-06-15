@@ -66,6 +66,7 @@ import org.apache.carbondata.hadoop.util.CarbonInputFormatUtil
 import org.apache.carbondata.processing.util.CarbonLoaderUtil
 import org.apache.carbondata.spark.InitInputMetrics
 import org.apache.carbondata.spark.util.Util
+import org.apache.carbondata.vector.VectorTableInputFormat
 
 /**
  * This RDD is used to perform query on CarbonData file. Before sending tasks to scan
@@ -139,19 +140,33 @@ class CarbonScanRDD[T: ClassTag](
       numStreamSegments = format.getNumStreamSegments
       numBlocks = format.getNumBlocks
 
-      splits.asScala.foreach { split =>
-        val carbonInputSplit = split.asInstanceOf[CarbonInputSplit]
-        if (FileFormat.ROW_V1 == carbonInputSplit.getFileFormat) {
-          carbonInputSplit.setVersion(ColumnarFormatVersion.R1)
+      val vectorTable = tableInfo.getFactTable().getTableProperties().get("vector")
+      if (vectorTable != null && vectorTable.equalsIgnoreCase("true")) {
+        splits
+          .asScala
+          .zipWithIndex
+          .map { case (split, index) =>
+            val carbonInputSplit = new CarbonMultiBlockSplit(split.asInstanceOf[CarbonInputSplit])
+            carbonInputSplit.setFileFormat(FileFormat.VECTOR_V1)
+            new CarbonSparkPartition(this.id, index, carbonInputSplit)
+              .asInstanceOf[Partition]
+          }
+          .toArray
+      } else {
+        splits.asScala.foreach { split =>
+          val carbonInputSplit = split.asInstanceOf[CarbonInputSplit]
+          if (FileFormat.ROW_V1 == carbonInputSplit.getFileFormat) {
+            carbonInputSplit.setVersion(ColumnarFormatVersion.R1)
+          }
         }
+        distributeStartTime = System.currentTimeMillis()
+        val batchPartitions = distributeColumnarSplits(splits)
+        distributeEndTime = System.currentTimeMillis()
+        // check and remove InExpression from filterExpression
+        checkAndRemoveInExpressinFromFilterExpression(batchPartitions)
+        partitions = batchPartitions.toArray
+        partitions
       }
-      distributeStartTime = System.currentTimeMillis()
-      val batchPartitions = distributeColumnarSplits(splits)
-      distributeEndTime = System.currentTimeMillis()
-      // check and remove InExpression from filterExpression
-      checkAndRemoveInExpressinFromFilterExpression(batchPartitions)
-      partitions = batchPartitions.toArray
-      partitions
     } finally {
       Profiler.invokeIfEnable {
         val endTime = System.currentTimeMillis()
@@ -469,6 +484,8 @@ class CarbonScanRDD[T: ClassTag](
 //          val streamReader = inputFormat.createRecordReader(inputSplit, attemptContext)
 //            .asInstanceOf[RecordReader[Void, Object]]
 //          streamReader
+        case FileFormat.VECTOR_V1 =>
+          VectorTableInputFormat.createRecordReader(model, attemptContext.getConfiguration, vectorReader)
         case _ =>
           // create record reader for CarbonData file format
           if (vectorReader) {

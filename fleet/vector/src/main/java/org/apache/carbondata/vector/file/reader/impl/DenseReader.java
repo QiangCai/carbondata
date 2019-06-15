@@ -15,35 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file.reader.impl;
+
+import org.apache.carbondata.common.annotations.InterfaceAudience;
+import org.apache.carbondata.common.annotations.InterfaceStability;
+import org.apache.carbondata.vector.file.reader.ArrayReader;
 
 /**
- * The data file format supported in carbondata project
+ * read dense array data file
  */
-public enum FileFormat {
-
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
-
-  // carbondata row file format, optimized for write
-  ROW_V1,
-
-  VECTOR_V1;
-
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
-  }
+@InterfaceAudience.Internal
+@InterfaceStability.Evolving
+public abstract class DenseReader implements ArrayReader {
 }

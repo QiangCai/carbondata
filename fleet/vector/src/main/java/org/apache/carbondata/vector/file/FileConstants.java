@@ -15,35 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file;
 
 /**
- * The data file format supported in carbondata project
+ * constants in vector file
  */
-public enum FileFormat {
+public class FileConstants {
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
+  /**
+   * the data size of load batch, unit: byte
+   */
+  public static final long TABLE_LOAD_BATCH_SIZE = 256L * 1024 * 1024;
 
-  // carbondata row file format, optimized for write
-  ROW_V1,
+  /**
+   * the number of rows in read batch , unit: row
+   */
+  public static final int FILE_READ_BACTH_ROWS = 100;
 
-  VECTOR_V1;
-
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
-  }
+  /**
+   * the minimum size of reading data file
+   */
+  public static final int FILE_READ_MIN_SIZE = 4 * 1024;
 }

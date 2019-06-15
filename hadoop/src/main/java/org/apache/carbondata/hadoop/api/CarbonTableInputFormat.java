@@ -59,6 +59,7 @@ import org.apache.carbondata.core.stream.StreamPruner;
 import org.apache.carbondata.core.util.CarbonProperties;
 import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.hadoop.CarbonInputSplit;
+import org.apache.carbondata.vector.VectorTableInputFormat;
 
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
@@ -125,6 +126,11 @@ public class CarbonTableInputFormat<T> extends CarbonInputFormat<T> {
         readCommittedScope.getConfiguration());
     SegmentStatusManager.ValidAndInvalidSegmentsInfo segments = segmentStatusManager
         .getValidAndInvalidSegments(loadMetadataDetails, this.readCommittedScope);
+
+    // vector table
+    if (carbonTable.isVectorTable()) {
+      return VectorTableInputFormat.getSplit(segments.getValidSegments());
+    }
 
     // to check whether only streaming segments access is enabled or not,
     // if access streaming segment is true then data will be read from streaming segments

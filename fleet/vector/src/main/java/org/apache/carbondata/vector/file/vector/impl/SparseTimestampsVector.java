@@ -15,35 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file.vector.impl;
+
+import org.apache.spark.sql.types.DataType;
 
 /**
- * The data file format supported in carbondata project
+ * sparse primitive data type vector
  */
-public enum FileFormat {
+public class SparseTimestampsVector extends SparsePrimitiveVector {
+  /**
+   * Sets up the data type of this column vector.
+   *
+   * @param type
+   */
+  public SparseTimestampsVector(DataType type) {
+    super(type);
+  }
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
-
-  // carbondata row file format, optimized for write
-  ROW_V1,
-
-  VECTOR_V1;
-
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
+  @Override
+  public long getLong(int rowId) {
+    return super.getLong(rowId) * 1000L;
   }
 }

@@ -15,35 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.core.statusmanager;
+package org.apache.carbondata.vector.file.writer.impl;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
+import org.apache.carbondata.core.util.DataTypeUtil;
 
 /**
- * The data file format supported in carbondata project
+ * writer for sparse decimal array
  */
-public enum FileFormat {
+public class SparseDecimalsWriter extends SparseWriter {
+  public SparseDecimalsWriter(CarbonTable table, CarbonColumn column) {
+    super(table, column);
+  }
 
-  // carbondata columnar file format, optimized for read
-  COLUMNAR_V3,
-
-  // carbondata row file format, optimized for write
-  ROW_V1,
-
-  VECTOR_V1;
-
-  public static FileFormat getByOrdinal(int ordinal) {
-    if (ordinal < 0 || ordinal >= FileFormat.values().length) {
-      return COLUMNAR_V3;
-    }
-
-    switch (ordinal) {
-      case 0:
-        return COLUMNAR_V3;
-      case 1:
-        return ROW_V1;
-      case 2:
-        return VECTOR_V1;
-    }
-
-    return COLUMNAR_V3;
+  @Override
+  protected int writeData(Object value) throws IOException {
+    byte[] bytes = DataTypeUtil.bigDecimalToByte((BigDecimal)value);
+    dataOutput.write(bytes, 0, bytes.length);
+    return bytes.length;
   }
 }

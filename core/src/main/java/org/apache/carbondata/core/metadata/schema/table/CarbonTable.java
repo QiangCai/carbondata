@@ -971,6 +971,11 @@ public class CarbonTable implements Serializable, Writable {
     return streaming != null && streaming.equalsIgnoreCase("source");
   }
 
+  public boolean isVectorTable() {
+    String vector = getTableInfo().getFactTable().getTableProperties().get("vector");
+    return vector != null && vector.equalsIgnoreCase("true");
+  }
+
   /**
    * Return true if 'autoRefreshDataMap' is enabled, by default it is enabled
    */
