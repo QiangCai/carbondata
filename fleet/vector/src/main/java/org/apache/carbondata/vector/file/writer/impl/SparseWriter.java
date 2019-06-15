@@ -27,6 +27,7 @@ import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 import org.apache.carbondata.vector.file.writer.ArrayWriter;
+import org.apache.carbondata.vector.file.writer.ArrayWriterFactory;
 import org.apache.carbondata.vector.table.VectorTablePath;
 
 import org.apache.hadoop.conf.Configuration;
@@ -87,25 +88,12 @@ public abstract class SparseWriter implements ArrayWriter {
 
   @Override
   public void close() throws IOException {
-    IOException ex = null;
-    if (dataOutput != null) {
-      try {
-        dataOutput.close();
-        dataOutput = null;
-      } catch (IOException e) {
-        ex = e;
-        LOGGER.error("Failed to close data output stream", e);
-      }
-    }
-    if (offsetOutput != null) {
-      try {
-        offsetOutput.close();
-        offsetOutput = null;
-      } catch (IOException e) {
-        ex = e;
-        LOGGER.error("Failed to close offset output stream", e);
-      }
-    }
+    IOException ex = ArrayWriterFactory.destroyOutputStream(
+        "Failed to close output stream",
+        offsetOutput,
+        dataOutput);
+    offsetOutput = null;
+    dataOutput = null;
     if (ex != null) {
       throw ex;
     }

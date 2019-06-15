@@ -72,13 +72,13 @@ public class VectorTableWriter {
       arrayWriters = new ArrayWriter[numColumns];
       try {
         for (int index = 0; index < numColumns; index++) {
-          arrayWriters[index] = ArrayWriterFactory.getArrayWriter(table, columns.get(index));
+          arrayWriters[index] = ArrayWriterFactory.createArrayWriter(table, columns.get(index));
           arrayWriters[index].open(segmentPath, hadoopConf);
         }
       } catch (IOException e) {
         String message = "Failed to init array writer";
         LOGGER.error(message, e);
-        throw new VectorTableException(message, e);
+        throw new VectorTableException(message);
       }
       // init default value
       defaultValues = new Object[numColumns];
@@ -119,26 +119,25 @@ public class VectorTableWriter {
     } catch (IOException e) {
       String message = "Failed to write row";
       LOGGER.error(message, e);
-      throw new VectorTableException(message, e);
+      throw new VectorTableException(message);
     }
   }
 
   /**
    * finally release resource
    */
-  public void close() {
+  public void close() throws VectorTableException {
+    IOException ex = ArrayWriterFactory.destroyArrayWriter(
+        "Failed to close array file writer",
+        arrayWriters);
     if (arrayWriters != null) {
-      for (ArrayWriter arrayWriter : arrayWriters) {
-        try {
-          if (arrayWriter != null) {
-            arrayWriter.close();
-          }
-        } catch (Exception e) {
-          // catch exception to continue close next writer
-          LOGGER.error("Failed to close array file writer", e);
-        }
+      for (int index = 0; index < numColumns; index++) {
+        arrayWriters[index] = null;
       }
+      arrayWriters = null;
+    }
+    if (ex != null) {
+      throw new VectorTableException("Failed to close table writer");
     }
   }
-
 }

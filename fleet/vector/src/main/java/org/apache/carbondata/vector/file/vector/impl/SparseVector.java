@@ -17,12 +17,13 @@
 
 package org.apache.carbondata.vector.file.vector.impl;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 import org.apache.carbondata.common.annotations.InterfaceAudience;
 import org.apache.carbondata.common.annotations.InterfaceStability;
 import org.apache.carbondata.vector.file.FileConstants;
+import org.apache.carbondata.vector.file.reader.ArrayReader;
+import org.apache.carbondata.vector.file.reader.impl.SparseReader;
 import org.apache.carbondata.vector.file.vector.ArrayVector;
 
 import org.apache.spark.sql.types.DataType;
@@ -62,8 +63,7 @@ public abstract class SparseVector extends ArrayVector {
     super(type);
   }
 
-  public int fillVector(DataInputStream offsetInput, DataInputStream dataInput,
-      int rowCount) throws IOException {
+  public int fillVector(ArrayReader reader, int rows) throws IOException {
     // reset
     start = end;
     numRows = 0;
@@ -71,15 +71,15 @@ public abstract class SparseVector extends ArrayVector {
     offsetLen = 0;
 
     // fill offset and data
-    fillOffset(offsetInput, rowCount);
-    fillData(dataInput);
+    fillOffset((SparseReader) reader, rows);
+    fillData((SparseReader) reader);
     return numRows;
   }
 
-  protected void fillOffset(DataInputStream offsetInput, int rowCount) throws IOException {
+  protected void fillOffset(SparseReader reader, int rowCount) throws IOException {
     int capacity = rowCount * stepLen;
     allocateOffset(capacity);
-    offsetLen = read(offsetInput, offset, capacity);
+    offsetLen = reader.readOffset(offset, capacity);
     if (offsetLen == -1) {
       numRows = -1;
     }
@@ -94,7 +94,7 @@ public abstract class SparseVector extends ArrayVector {
     }
   }
 
-  protected void fillData(DataInputStream dataInput) throws IOException {
+  protected void fillData(SparseReader reader) throws IOException {
     if (numRows > numNulls) {
       long length = end - start;
       if (length > 0) {
@@ -102,7 +102,7 @@ public abstract class SparseVector extends ArrayVector {
           throw new IOException("not support large data, length is " + length);
         }
         allocateData((int) length);
-        read(dataInput, data, (int) length);
+        reader.readData(data, (int) length);
       }
     }
   }
@@ -135,7 +135,7 @@ public abstract class SparseVector extends ArrayVector {
     }
   }
 
-  protected int dataLength(int rowId) {
+  protected int dataLengthAt(int rowId) {
     if (rowId == 0) {
       return (int) (bytesToLong(offset, 0) - start);
     } else {
@@ -175,24 +175,4 @@ public abstract class SparseVector extends ArrayVector {
         ((bytes[start + 6] & 255) <<  8) +
         ((bytes[start + 7] & 255) <<  0);
   }
-
-  protected static int read(final DataInputStream input, final byte[] bytes, final int length)
-      throws IOException {
-    int readLength = input.read(bytes, 0, length);
-    if (readLength == -1) {
-      return -1;
-    }
-    int remaining;
-    while ((remaining = length - readLength) > 0) {
-      int len = input.read(bytes, readLength, remaining);
-      if (len == -1) {
-        break;
-      }
-      readLength += len;
-    }
-    return readLength;
-  }
-
-
-
 }

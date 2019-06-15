@@ -87,17 +87,17 @@ public class SparsePrimitiveVector extends SparseVector {
 
   @Override
   public Decimal getDecimal(int rowId, int precision, int scale) {
-    return Decimal.apply(DataTypeUtil.byteToBigDecimal(data, offsetAt(rowId), dataLength(rowId)));
+    return Decimal.apply(DataTypeUtil.byteToBigDecimal(data, offsetAt(rowId), dataLengthAt(rowId)));
   }
 
   @Override
   public UTF8String getUTF8String(int rowId) {
-    return UTF8String.fromBytes(data, offsetAt(rowId), dataLength(rowId));
+    return UTF8String.fromBytes(data, offsetAt(rowId), dataLengthAt(rowId));
   }
 
   @Override
   public byte[] getBinary(int rowId) {
-    byte[] bytes = new byte[dataLength(rowId)];
+    byte[] bytes = new byte[dataLengthAt(rowId)];
     System.arraycopy(data, offsetAt(rowId), bytes, 0, bytes.length);
     return bytes;
   }

@@ -27,8 +27,7 @@ import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 import org.apache.carbondata.vector.file.reader.ArrayReader;
-import org.apache.carbondata.vector.file.vector.ArrayVector;
-import org.apache.carbondata.vector.file.vector.impl.SparseVector;
+import org.apache.carbondata.vector.file.reader.ArrayReaderFactory;
 import org.apache.carbondata.vector.table.VectorTablePath;
 
 import org.apache.hadoop.conf.Configuration;
@@ -61,36 +60,40 @@ public abstract class SparseReader implements ArrayReader {
         FileFactory.getDataInputStream(columnFilePath, FileFactory.getFileType(columnFilePath));
     String offsetFilePath = VectorTablePath.getOffsetFilePath(inputFolder, column);
     offsetInput =
-        FileFactory.getDataInputStream(offsetFilePath, FileFactory.getFileType(columnFilePath));
+        FileFactory.getDataInputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
   }
 
-  /**
-   * read data file and fill data into vector
-   * @param vector
-   * @param rowCount
-   * @return read row count, -1 if end
-   * @throws IOException
-   */
-  @Override
-  public int read(ArrayVector vector, int rowCount) throws IOException {
-    return ((SparseVector) vector).fillVector(offsetInput, dataInput, rowCount);
+  public int readOffset(final byte[] bytes, final int length) throws IOException {
+    return read(offsetInput, bytes, length);
+  }
+
+  public int readData(final byte[] bytes, final int length) throws IOException {
+    return read(dataInput, bytes, length);
+  }
+
+  private static int read(final DataInputStream input, final byte[] bytes, final int length)
+      throws IOException {
+    int readLength = input.read(bytes, 0, length);
+    if (readLength == -1) {
+      return -1;
+    }
+    int remaining;
+    while ((remaining = length - readLength) > 0) {
+      int len = input.read(bytes, readLength, remaining);
+      if (len == -1) {
+        break;
+      }
+      readLength += len;
+    }
+    return readLength;
   }
 
   @Override
   public void close() throws IOException {
-    IOException ex = null;
-    try {
-      offsetInput.close();
-    } catch (IOException e) {
-      LOGGER.error("Failed to close offset input stream", e);
-      ex = e;
-    }
-    try {
-      dataInput.close();
-    } catch (IOException e) {
-      LOGGER.error("Failed to close data input stream", e);
-      ex = e;
-    }
+    IOException ex = ArrayReaderFactory.destroyInputStream(
+        "Failed to close input stream", offsetInput, dataInput);
+    offsetInput = null;
+    dataInput = null;
     if (ex != null) {
       throw ex;
     }

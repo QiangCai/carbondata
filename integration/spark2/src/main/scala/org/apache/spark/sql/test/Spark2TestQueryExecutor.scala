@@ -73,7 +73,7 @@ object Spark2TestQueryExecutor {
     .config("spark.sql.warehouse.dir", warehouse)
     .config("spark.sql.crossJoin.enabled", "true")
     .config("spark.network.timeout", 3600)
-    .config("spark.sql.codegen.wholeStage", false)
+    // .config("spark.sql.codegen.wholeStage", false)
     .getOrCreateCarbonSession(null, TestQueryExecutor.metaStoreDB)
   if (warehouse.startsWith("hdfs://")) {
     System.setProperty(CarbonCommonConstants.HDFS_TEMP_LOCATION, warehouse)

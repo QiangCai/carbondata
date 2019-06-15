@@ -22,13 +22,13 @@ import org.apache.spark.sql.types.DataType;
 /**
  * sparse primitive data type vector
  */
-public class SparseTimestampVector extends SparsePrimitiveVector {
+public class SparseTimestampsVector extends SparsePrimitiveVector {
   /**
    * Sets up the data type of this column vector.
    *
    * @param type
    */
-  public SparseTimestampVector(DataType type) {
+  public SparseTimestampsVector(DataType type) {
     super(type);
   }
 

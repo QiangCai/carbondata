@@ -36,7 +36,6 @@ import scala.collection.mutable.WrappedArray;
  */
 public class SparseArraysWriter extends SparseWriter {
 
-  private CarbonDimension dimension;
   private ArrayWriter childWriter;
 
   public SparseArraysWriter(CarbonTable table, CarbonColumn column) {
@@ -50,10 +49,9 @@ public class SparseArraysWriter extends SparseWriter {
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
 
-    dimension = (CarbonDimension) column;
-    CarbonDimension childDimensions = dimension.getListOfChildDimensions().get(0);
     // init child writers
-    childWriter = ArrayWriterFactory.getArrayWriter(table, childDimensions);
+    CarbonDimension childDimension = ((CarbonDimension) column).getListOfChildDimensions().get(0);
+    childWriter = ArrayWriterFactory.createArrayWriter(table, childDimension);
     childWriter.open(columnFolder, hadoopConf);
   }
 
@@ -73,19 +71,14 @@ public class SparseArraysWriter extends SparseWriter {
 
   @Override
   public void close() throws IOException {
-    IOException ex = null;
+    IOException ex = ArrayWriterFactory.destroyArrayWriter(
+        "Failed to close child writer of array writer",
+        childWriter);
+    childWriter = null;
     try {
       super.close();
     } catch (IOException e) {
       ex = e;
-    }
-    if (childWriter != null) {
-      try {
-        childWriter.close();
-        childWriter = null;
-      } catch (IOException e) {
-        ex = e;
-      }
     }
     if (ex != null) {
       throw ex;

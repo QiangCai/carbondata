@@ -23,16 +23,6 @@ public interface ArrayReader extends AutoCloseable {
   void open(String inputFolder, Configuration hadoopConf) throws IOException;
 
   /**
-   *
-   * @param vector
-   * @param rowCount
-   * @return
-   * @throws IOException
-   */
-  int read(ArrayVector vector, int rowCount) throws IOException;
-
-
-  /**
    * close the reader and release resources
    */
   void close() throws IOException;

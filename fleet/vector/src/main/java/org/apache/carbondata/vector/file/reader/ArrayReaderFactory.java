@@ -17,6 +17,9 @@
 
 package org.apache.carbondata.vector.file.reader;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -36,7 +39,13 @@ public class ArrayReaderFactory {
   private static final Logger LOGGER =
       LogServiceFactory.getLogService(ArrayReaderFactory.class.getCanonicalName());
 
-  public static ArrayReader getArrayReader(CarbonTable table, CarbonColumn column) {
+  /**
+   * create ArrayReader for a column
+   * @param table
+   * @param column
+   * @return
+   */
+  public static ArrayReader createArrayReader(CarbonTable table, CarbonColumn column) {
     int id = column.getDataType().getId();
     if (id == DataTypes.STRING.getId()) {
       return new SparsePrimitiveReader(table, column);
@@ -69,9 +78,68 @@ public class ArrayReaderFactory {
     } else if (id == DataTypes.VARCHAR.getId()) {
       return new SparsePrimitiveReader(table, column);
     } else {
-      throw new RuntimeException(
-          "vector table not support data type: " + column.getDataType().getName());
+      String message = String.format(
+          "vector table %s column %s not support reader data type: %s",
+          table.getTableUniqueName(),
+          column.getColName());
+      LOGGER.error(message);
+      throw new RuntimeException(message);
     }
   }
 
+  /**
+   * destroy ArrayReader to release reader resource
+   * @param errorMessage
+   * @param readers
+   * @return
+   */
+  public static IOException destroyArrayReader(String errorMessage, ArrayReader... readers) {
+    if (readers == null) {
+      return null;
+    }
+    IOException ex = null;
+    for (ArrayReader reader : readers) {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          if (errorMessage == null) {
+            LOGGER.error(e);
+          } else {
+            LOGGER.error(errorMessage, e);
+          }
+          ex = e;
+        }
+      }
+    }
+    return ex;
+  }
+
+  /**
+   * destroy InputStream to release input resource
+   * @param errorMessage
+   * @param inputs
+   * @return
+   */
+  public static IOException destroyInputStream(String errorMessage, DataInputStream... inputs) {
+    if (inputs == null) {
+      return null;
+    }
+    IOException ex = null;
+    for (DataInputStream input : inputs) {
+      if (input != null) {
+        try {
+          input.close();
+        } catch (IOException e) {
+          if (errorMessage == null) {
+            LOGGER.error(e);
+          } else {
+            LOGGER.error(errorMessage, e);
+          }
+          ex = e;
+        }
+      }
+    }
+    return ex;
+  }
 }

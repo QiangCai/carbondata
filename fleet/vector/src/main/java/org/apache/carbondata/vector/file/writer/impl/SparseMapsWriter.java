@@ -38,7 +38,6 @@ import scala.collection.immutable.Map;
  */
 public class SparseMapsWriter extends SparseWriter {
 
-  private CarbonDimension dimension;
   private ArrayWriter keyWriter;
   private ArrayWriter valueWriter;
 
@@ -53,13 +52,12 @@ public class SparseMapsWriter extends SparseWriter {
     String offsetFilePath = VectorTablePath.getOffsetFilePath(columnFolder, column);
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
-    dimension = (CarbonDimension) column;
     // init child writers
     List<CarbonDimension> childDimensions =
-        dimension.getListOfChildDimensions().get(0).getListOfChildDimensions();
-    keyWriter = ArrayWriterFactory.getArrayWriter(table, childDimensions.get(0));
+        ((CarbonDimension) column).getListOfChildDimensions().get(0).getListOfChildDimensions();
+    keyWriter = ArrayWriterFactory.createArrayWriter(table, childDimensions.get(0));
     keyWriter.open(columnFolder, hadoopConf);
-    valueWriter = ArrayWriterFactory.getArrayWriter(table, childDimensions.get(1));
+    valueWriter = ArrayWriterFactory.createArrayWriter(table, childDimensions.get(1));
     valueWriter.open(columnFolder, hadoopConf);
   }
 
@@ -73,7 +71,7 @@ public class SparseMapsWriter extends SparseWriter {
       while (iterator.hasNext()) {
         Tuple2 tuple2 = (Tuple2) iterator.next();
         keyWriter.appendObject(tuple2._1);
-        keyWriter.appendObject(tuple2._2);
+        valueWriter.appendObject(tuple2._2);
       }
       offset += 1;
       offsetOutput.writeLong(offset);
@@ -82,27 +80,16 @@ public class SparseMapsWriter extends SparseWriter {
 
   @Override
   public void close() throws IOException {
-    IOException ex = null;
+    IOException ex = ArrayWriterFactory.destroyArrayWriter(
+        "Failed to close child writers of map writer",
+        keyWriter,
+        valueWriter);
+    keyWriter = null;
+    valueWriter = null;
     try {
       super.close();
     } catch (IOException e) {
       ex = e;
-    }
-    if (keyWriter != null) {
-      try {
-        keyWriter.close();
-        keyWriter = null;
-      } catch (IOException e) {
-        ex = e;
-      }
-    }
-    if (valueWriter != null) {
-      try {
-        valueWriter.close();
-        keyWriter = null;
-      } catch (IOException e) {
-        ex = e;
-      }
     }
     if (ex != null) {
       throw ex;

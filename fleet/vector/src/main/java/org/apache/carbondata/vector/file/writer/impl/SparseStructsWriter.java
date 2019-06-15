@@ -40,10 +40,6 @@ import org.apache.spark.sql.Row;
  */
 public class SparseStructsWriter extends SparseWriter {
 
-  private static final Logger LOGGER =
-      LogServiceFactory.getLogService(SparseStructsWriter.class.getCanonicalName());
-
-  private CarbonDimension dimension;
   private ArrayWriter[] childWriters;
   private Object[] defaultValues;
   private int numColumns;
@@ -59,13 +55,12 @@ public class SparseStructsWriter extends SparseWriter {
     String offsetFilePath = VectorTablePath.getOffsetFilePath(columnFolder, column);
     offsetOutput =
         FileFactory.getDataOutputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
-    dimension = (CarbonDimension) column;
     // init child writers
-    List<CarbonDimension> childDimensions = dimension.getListOfChildDimensions();
+    List<CarbonDimension> childDimensions = ((CarbonDimension) column).getListOfChildDimensions();
     numColumns = childDimensions.size();
     childWriters = new ArrayWriter[numColumns];
     for (int index = 0; index < numColumns; index++) {
-      childWriters[index] = ArrayWriterFactory.getArrayWriter(table, childDimensions.get(index));
+      childWriters[index] = ArrayWriterFactory.createArrayWriter(table, childDimensions.get(index));
       childWriters[index].open(columnFolder, hadoopConf);
     }
     // init default value
@@ -98,23 +93,20 @@ public class SparseStructsWriter extends SparseWriter {
 
   @Override
   public void close() throws IOException {
-    IOException ex = null;
+    IOException ex = ArrayWriterFactory.destroyArrayWriter(
+        "Failed to close child writers of struct writer",
+        childWriters);
+    if (childWriters != null) {
+      for (int index = 0; index < numColumns; index++) {
+        childWriters[index] = null;
+      }
+      childWriters = null;
+    }
     try {
       super.close();
     } catch (IOException e) {
       ex = e;
     }
-    if (childWriters != null) {
-      for (int index = 0; index < numColumns; index++) {
-        try {
-          childWriters[index].close();
-          childWriters[index] = null;
-        } catch (IOException e) {
-          ex = e;
-        }
-      }
-    }
-    childWriters = null;
     if (ex != null) {
       throw ex;
     }

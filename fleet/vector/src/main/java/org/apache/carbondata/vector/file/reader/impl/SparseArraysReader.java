@@ -17,15 +17,58 @@
 
 package org.apache.carbondata.vector.file.reader.impl;
 
+import java.io.IOException;
+
+import org.apache.carbondata.core.datastore.impl.FileFactory;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
+import org.apache.carbondata.vector.file.reader.ArrayReader;
+import org.apache.carbondata.vector.file.reader.ArrayReaderFactory;
+import org.apache.carbondata.vector.table.VectorTablePath;
+
+import org.apache.hadoop.conf.Configuration;
 
 /**
  * reader for array data type array
  */
 public class SparseArraysReader extends SparseReader {
 
+  private ArrayReader childReader;
+
   public SparseArraysReader(CarbonTable table, CarbonColumn column) {
     super(table, column);
+  }
+
+  @Override
+  public void open(String inputFolder, Configuration hadoopConf) throws IOException {
+    String columnFolder = VectorTablePath.getComplexFolderPath(inputFolder, column);
+    String offsetFilePath = VectorTablePath.getOffsetFilePath(columnFolder, column);
+    offsetInput =
+        FileFactory.getDataInputStream(offsetFilePath, FileFactory.getFileType(offsetFilePath));
+    // init child readers
+    CarbonDimension childDimension = ((CarbonDimension) column).getListOfChildDimensions().get(0);
+    childReader = ArrayReaderFactory.createArrayReader(table, childDimension);
+    childReader.open(columnFolder, hadoopConf);
+  }
+
+  public ArrayReader getChildReader() {
+    return childReader;
+  }
+
+  @Override
+  public void close() throws IOException {
+    IOException ex = ArrayReaderFactory.destroyArrayReader(
+        "Failed to close child reader of array reader",
+        childReader);
+    childReader = null;
+    try {
+      super.close();
+    } catch (IOException e) {
+      ex = e;
+    }
+    if (ex != null) {
+      throw ex;
+    }
   }
 }

@@ -217,8 +217,14 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
       scanRdd.setVectorReaderSupport(false)
       getDecoderRDD(relation, needDecode, rdd, output)
     } else {
-      scanRdd
-        .setVectorReaderSupport(supportBatchedDataSource(relation.relation.sqlContext, output))
+      val isVectorTable =
+        relation
+          .relation
+          .asInstanceOf[CarbonDatasourceHadoopRelation]
+          .carbonTable
+          .isVectorTable
+      scanRdd.setVectorReaderSupport(
+        supportBatchedDataSource(relation.relation.sqlContext, output, isVectorTable))
       rdd
     }
   }
@@ -319,7 +325,11 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
     // In case of more dictionary columns spark code gen needs generate lot of code and that slows
     // down the query, so we limit the direct fill in case of more dictionary columns.
     val hasMoreDictionaryCols = hasMoreDictionaryColumnsOnProjection(projectSet, table)
-    val vectorPushRowFilters = CarbonProperties.getInstance().isPushRowFiltersForVector
+    val vectorPushRowFilters = if (isVectorTable) {
+      false
+    } else {
+      CarbonProperties.getInstance().isPushRowFiltersForVector
+    }
     if (projects.map(_.toAttribute) == projects &&
         projectSet.size == projects.size &&
         filterSet.subsetOf(projectSet)) {
@@ -419,7 +429,7 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
       }
       val supportBatch =
         supportBatchedDataSource(relation.relation.sqlContext,
-          updateRequestedColumns.asInstanceOf[Seq[Attribute]]) &&
+          updateRequestedColumns.asInstanceOf[Seq[Attribute]], isVectorTable) &&
         needDecoder.isEmpty
       if (!vectorPushRowFilters && !supportBatch && !implicitExisted && !hasDictionaryFilterCols
           && !hasMoreDictionaryCols) {
@@ -482,8 +492,8 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
       needDecoder: ArrayBuffer[AttributeReference],
       updateRequestedColumns: Seq[Attribute]): DataSourceScanExec = {
     val table = relation.relation.asInstanceOf[CarbonDatasourceHadoopRelation]
-    if (supportBatchedDataSource(relation.relation.sqlContext, updateRequestedColumns) &&
-        needDecoder.isEmpty) {
+    if (supportBatchedDataSource(relation.relation.sqlContext, updateRequestedColumns,
+      table.carbonTable.isVectorTable) && needDecoder.isEmpty) {
       new CarbonDataSourceScan(
         output,
         scanBuilder(updateRequestedColumns,
@@ -790,7 +800,9 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
     }
   }
 
-  def supportBatchedDataSource(sqlContext: SQLContext, cols: Seq[Attribute]): Boolean = {
+  def supportBatchedDataSource(sqlContext: SQLContext,
+      cols: Seq[Attribute],
+      isVectorTable: Boolean = false): Boolean = {
     val vectorizedReader = {
       if (sqlContext.sparkSession.conf.contains(CarbonCommonConstants.ENABLE_VECTOR_READER)) {
         sqlContext.sparkSession.conf.get(CarbonCommonConstants.ENABLE_VECTOR_READER)
@@ -804,7 +816,7 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
     val supportCodegen =
       sqlContext.conf.wholeStageEnabled && sqlContext.conf.wholeStageMaxNumFields >= cols.size
     supportCodegen && vectorizedReader.toBoolean &&
-    cols.forall(_.dataType.isInstanceOf[AtomicType])
+    (isVectorTable || cols.forall(_.dataType.isInstanceOf[AtomicType]))
   }
 
   private def createHadoopFSRelation(relation: LogicalRelation): HadoopFsRelation = {

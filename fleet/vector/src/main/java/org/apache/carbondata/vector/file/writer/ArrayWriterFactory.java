@@ -17,6 +17,9 @@
 
 package org.apache.carbondata.vector.file.writer;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.metadata.datatype.DataTypes;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
@@ -52,7 +55,7 @@ public class ArrayWriterFactory {
    * @param column
    * @return
    */
-  public static ArrayWriter getArrayWriter(CarbonTable table, CarbonColumn column) {
+  public static ArrayWriter createArrayWriter(CarbonTable table, CarbonColumn column) {
     int id = column.getDataType().getId();
     if (id == DataTypes.STRING.getId()) {
       return new SparseStringsWriter(table, column);
@@ -87,9 +90,69 @@ public class ArrayWriterFactory {
     } else if (id == DataTypes.VARCHAR.getId()) {
       return new SparseStringsWriter(table, column);
     } else {
-      throw new RuntimeException(
-          "vector table not support data type: " + column.getDataType().getName());
+      String message = String.format(
+          "vector table %s column %s not support write data type: %s",
+          table.getTableUniqueName(),
+          column.getColName());
+      LOGGER.error(message);
+      throw new RuntimeException(message);
     }
   }
 
+  /**
+   * destroy ArrayWriter to release writer resource
+   * @param errorMessage
+   * @param writers
+   * @return
+   */
+  public static IOException destroyArrayWriter(String errorMessage, ArrayWriter... writers) {
+    if (writers == null) {
+      return null;
+    }
+    IOException ex = null;
+    for (ArrayWriter writer : writers) {
+      if (writer != null) {
+        try {
+          writer.close();
+        } catch (IOException e) {
+          if (errorMessage == null) {
+            LOGGER.error(e);
+          } else {
+            LOGGER.error(errorMessage, e);
+          }
+          ex = e;
+        }
+      }
+    }
+    return ex;
+  }
+
+  /**
+   * destroy OutputStream to release output resource
+   * @param errorMessage
+   * @param outputs
+   * @return
+   */
+  public static IOException destroyOutputStream(
+      String errorMessage, DataOutputStream... outputs) {
+    if (outputs == null) {
+      return null;
+    }
+    IOException ex = null;
+    for (DataOutputStream output : outputs) {
+      if (output != null) {
+        try {
+          output.close();
+        } catch (IOException e) {
+          if (errorMessage == null) {
+            LOGGER.error(e);
+          } else {
+            LOGGER.error(errorMessage, e);
+          }
+          ex = e;
+        }
+      }
+    }
+    return ex;
+  }
 }

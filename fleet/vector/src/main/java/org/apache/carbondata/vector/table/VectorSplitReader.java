@@ -75,6 +75,13 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
     numColumns = projectionColumns.length;
   }
 
+  /**
+   *
+   * @param inputSplit
+   * @param taskAttemptContext
+   * @throws IOException
+   * @throws InterruptedException
+   */
   @Override
   public void initialize(InputSplit inputSplit, TaskAttemptContext taskAttemptContext)
       throws IOException, InterruptedException {
@@ -82,14 +89,15 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
         ((CarbonMultiBlockSplit) inputSplit).getAllSplits().get(0);
     columnData = new ArrayVector[numColumns];
     for (int index = 0; index < numColumns; index++) {
-      columnData[index] = ArrayVectorFactory.getArrayVector(projectionColumns[index].getDataType());
+      columnData[index] =
+          ArrayVectorFactory.createArrayVector(projectionColumns[index]);
     }
     columnarBatch = new ColumnarBatch(columnData);
     readers = new ArrayReader[numColumns];
     segmentPath = CarbonTablePath.getSegmentPath(
         table.getTablePath(), carbonInputSplit.getSegment().getSegmentNo());
     for (int index = 0; index < numColumns; index++) {
-      readers[index] = ArrayReaderFactory.getArrayReader(table, projectionColumns[index]);
+      readers[index] = ArrayReaderFactory.createArrayReader(table, projectionColumns[index]);
       readers[index].open(segmentPath, hadoopConf);
     }
   }
@@ -97,17 +105,22 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
   @Override
   public boolean nextKeyValue() throws IOException, InterruptedException {
     if (enableBatch) {
-      return nextBactch();
+      return nextBatch();
     }
     batchIndex++;
     if (batchIndex >= batchSize) {
-      if (!nextBactch()) return false;
+      if (!nextBatch()) return false;
     }
     return true;
   }
 
-  private boolean nextBactch() throws IOException {
-    int rowCount = 0;
+  /**
+   * fill next batch
+   * @return
+   * @throws IOException
+   */
+  private boolean nextBatch() throws IOException {
+    int rowCount;
     if (numColumns == 0) {
       rowCount = countSplit();
     } else {
@@ -124,7 +137,8 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
     do {
       int valueCount = 0;
       for (int index = 0; index < numColumns; index++) {
-        valueCount = readers[index].read(columnData[index], FileConstants.FILE_READ_BACTH_ROWS);
+        valueCount =
+            columnData[index].fillVector(readers[index], FileConstants.FILE_READ_BACTH_ROWS);
         if (index == 0) {
           rowCount = valueCount;
           // reach the end of data file
@@ -135,10 +149,11 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
           }
         } else {
           if (rowCount != valueCount) {
-            String message = "Internal error happened during reading table " + table.getTableUniqueName();
-            LOGGER.error(
-                message + ", " + projectionColumns[index - 1].getColName() + " get " + rowCount + ", but "
-                    + projectionColumns[index].getColName() + " get " + valueCount);
+            String message =
+                "Internal error happened during reading table " + table.getTableUniqueName();
+            LOGGER.error(message + ", " +
+                projectionColumns[index - 1].getColName() + " get " + rowCount + ", but " +
+                projectionColumns[index].getColName() + " get " + valueCount);
             throw new IOException(message);
           }
         }
@@ -171,23 +186,15 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
    * @throws IOException
    */
   private void closeReader() throws IOException {
-    if (readers == null) {
-      return;
-    }
-    IOException ex = null;
-    for (int index = 0; index < numColumns; index++) {
-      try {
-        if (readers[index] != null) {
-          ArrayReader temp = readers[index];
-          readers[index] = null;
-          temp.close();
-        }
-      } catch (IOException e) {
-        ex = e;
-        LOGGER.error("Failed to close array file reader", e);
+    IOException ex = ArrayReaderFactory.destroyArrayReader(
+        "Failed to close array file reader",
+        readers);
+    if (readers != null) {
+      for (int index = 0; index < numColumns; index++) {
+        readers[index] = null;
       }
+      readers = null;
     }
-    readers = null;
     if (ex != null) {
       throw ex;
     }
@@ -215,6 +222,11 @@ public class VectorSplitReader extends AbstractRecordReader<Object> {
     closeReader();
   }
 
+  /**
+   * count the number of rows
+   * @return
+   * @throws IOException
+   */
   private int countSplit() throws IOException {
     if (hasCount) {
       return -1;

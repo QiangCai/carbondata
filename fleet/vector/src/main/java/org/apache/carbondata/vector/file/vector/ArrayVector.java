@@ -17,8 +17,11 @@
 
 package org.apache.carbondata.vector.file.vector;
 
+import java.io.IOException;
+
 import org.apache.carbondata.common.annotations.InterfaceAudience;
 import org.apache.carbondata.common.annotations.InterfaceStability;
+import org.apache.carbondata.vector.file.reader.ArrayReader;
 
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.Decimal;
@@ -35,6 +38,14 @@ import org.apache.spark.unsafe.types.UTF8String;
 public abstract class ArrayVector extends ColumnVector {
 
   /**
+   * read data from reader and fill vector
+   * @param reader
+   * @param rows
+   * @return
+   */
+  public abstract int fillVector(ArrayReader reader, int rows) throws IOException;
+
+  /**
    * Sets up the data type of this column vector.
    *
    * @param type
@@ -45,66 +56,66 @@ public abstract class ArrayVector extends ColumnVector {
 
   @Override
   public boolean getBoolean(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public byte getByte(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public short getShort(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int getInt(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public long getLong(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public float getFloat(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public double getDouble(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public ColumnarArray getArray(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public ColumnarMap getMap(int ordinal) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Decimal getDecimal(int rowId, int precision, int scale) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public UTF8String getUTF8String(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public byte[] getBinary(int rowId) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   protected ColumnVector getChild(int ordinal) {
-    throw new RuntimeException("unsupported operation");
+    throw new UnsupportedOperationException();
   }
 }

@@ -19,7 +19,6 @@ package org.apache.carbondata.vector
 
 import java.sql.{Date, Timestamp}
 
-import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.test.util.QueryTest
 import org.scalatest.BeforeAndAfterAll
 
@@ -103,7 +102,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
 
     sql(s"insert into $tableName select * from base_table")
 
-    // sql(s"insert into $tableName select * from base_table")
+    sql(s"insert into $tableName select * from base_table")
 
     sql(s"show segments for table $tableName").show(100, false)
 
@@ -155,13 +154,15 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
 
     sql(s"select * from $tableName").show(100, false)
 
+    sql(s"select smallIntField, stringField from $tableName").show(100, false)
+
     sql(s"select count(*) from $tableName").show(100, false)
 
     sql(s"select smallIntField, stringField from $tableName where smallIntField = 1").show(100, false)
 
-    sql(s"insert column(newcol1 int) into $tableName select smallIntField + 100 from $tableName").show(100, false)
+    // sql(s"insert column(newcol1 int) into $tableName select smallIntField + 100 from $tableName").show(100, false)
 
-    sql(s"insert column(newcol2 int) into $tableName select smallIntField + 100 from $tableName where smallIntField > 1").show(100, false)
+    // sql(s"insert column(newcol2 int) into $tableName select smallIntField + 100 from $tableName where smallIntField > 1").show(100, false)
 
   }
 
