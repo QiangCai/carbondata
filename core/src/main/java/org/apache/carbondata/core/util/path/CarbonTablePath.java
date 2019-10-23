@@ -55,6 +55,10 @@ public class CarbonTablePath {
   private static final String STREAMING_LOG_DIR = "log";
   private static final String STREAMING_CHECKPOINT_DIR = "checkpoint";
 
+  private static final String LOAD_DETAILS_DIR = "load_details";
+  private static final String LOAD_DETAILS_DIR_HISTORY = "load_details_history";
+  public static final String LOAD_DETAILS_SUBFIX = ".success";
+
   /**
    * This class provides static utility only.
    */
@@ -388,6 +392,14 @@ public class CarbonTablePath {
         .append(File.separator)
         .append(segmentId)
         .toString();
+  }
+
+  public static String getLoadDetailsDir(String tablePath) {
+    return tablePath + CarbonCommonConstants.FILE_SEPARATOR + LOAD_DETAILS_DIR;
+  }
+
+  public static String getLoadDetailsHistoryDir(String tablePath) {
+    return tablePath + CarbonCommonConstants.FILE_SEPARATOR + LOAD_DETAILS_DIR_HISTORY;
   }
 
   /**
