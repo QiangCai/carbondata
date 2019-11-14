@@ -17,7 +17,7 @@
 
 package org.apache.spark.sql.optimizer
 
-import java.util
+import java.util.ArrayList
 
 import scala.collection.JavaConverters._
 import scala.util.Try
@@ -48,8 +48,6 @@ import org.apache.carbondata.core.util.CarbonProperties
 import org.apache.carbondata.core.util.ThreadLocalSessionInfo
 import org.apache.carbondata.datamap.{TextMatch, TextMatchLimit}
 import org.apache.carbondata.spark.CarbonAliasDecoderRelation
-
-
 
 /**
  * All filter conversions are done here.
@@ -547,7 +545,7 @@ object CarbonFilters {
     }
     Some(partitions.map { partition =>
       new PartitionSpec(
-        new util.ArrayList[String]( partition.spec.seq.map{case (column, value) =>
+        new ArrayList[String]( partition.spec.seq.map{case (column, value) =>
           column + "=" + value}.toList.asJava), partition.location)
     })
   }

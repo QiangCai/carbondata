@@ -266,12 +266,11 @@ object CarbonScalaUtil {
         if (value.equals(hiveDefaultPartition)) {
           (col, value)
         } else {
-          val convertedString =
-            CarbonScalaUtil.convertToCarbonFormat(
-              value,
-              carbonColumn,
-              forwardDictionaryCache,
-              table)
+          val convertedString = CarbonScalaUtil.convertToCarbonFormat(
+            value,
+            carbonColumn,
+            forwardDictionaryCache,
+            table)
           if (convertedString == null) {
             (col, hiveDefaultPartition)
           } else {
