@@ -30,8 +30,6 @@ import org.apache.carbondata.core.util.NonDictionaryUtil;
 public class TablePageKey {
   private int pageSize;
 
-  private byte[][] currentNoDictionaryKey;
-
   // MDK start key
   private byte[] startKey;
 
@@ -64,16 +62,17 @@ public class TablePageKey {
 
   /** update all keys based on the input row */
   public void update(int rowId, CarbonRow row, byte[] mdk) throws KeyGenException {
-    if (hasNoDictionary) {
-      currentNoDictionaryKey = WriteStepRowUtil.getNoDictAndComplexDimension(row);
-    }
     if (rowId == 0) {
       startKey = WriteStepRowUtil.getMdk(row, mdkGenerator);
-      noDictStartKey = currentNoDictionaryKey;
+      if (hasNoDictionary) {
+        noDictStartKey = WriteStepRowUtil.getNoDictAndComplexDimension(row);
+      }
     }
-    noDictEndKey = currentNoDictionaryKey;
     if (rowId == pageSize - 1) {
       endKey = WriteStepRowUtil.getMdk(row, mdkGenerator);
+      if (hasNoDictionary) {
+        noDictEndKey = WriteStepRowUtil.getNoDictAndComplexDimension(row);
+      }
       finalizeKeys();
     }
   }
