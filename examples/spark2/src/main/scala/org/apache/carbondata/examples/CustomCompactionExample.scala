@@ -33,7 +33,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 object CustomCompactionExample {
 
   def main(args: Array[String]): Unit = {
-    val spark = ExampleUtils.createCarbonSession("CustomCompactionExample")
+    val spark = ExampleUtils.createSparkSession("CustomCompactionExample")
     exampleBody(spark)
     spark.close()
   }
@@ -55,7 +55,7 @@ object CustomCompactionExample {
          | serialname String,
          | salary Int,
          | floatField float
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
        """.stripMargin)
 
     val rootPath = new File(this.getClass.getResource("/").getPath

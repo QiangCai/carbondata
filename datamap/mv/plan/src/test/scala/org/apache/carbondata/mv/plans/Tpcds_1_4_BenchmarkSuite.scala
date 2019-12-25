@@ -46,7 +46,7 @@ class Tpcds_1_4_BenchmarkSuite extends ModularPlanTest with BeforeAndAfter {
 //
 //    tpcds1_4Queries.foreach { query =>
 //      if (query._1 == dest) {  // this line is for development, comment it out once done
-//        val analyzed = testHive.sql(query._2).queryExecution.analyzed
+//        val analyzed = testHive.sql(query._2).queryExecution.optimizedPlan
 //        println(s"""\n\n===== Analyzed Logical Plan for ${query._1} =====\n\n$analyzed \n""")
 //
 ////        val cnonicalizedPlan = new SQLBuilder(analyzed).Canonicalizer.execute(analyzed)

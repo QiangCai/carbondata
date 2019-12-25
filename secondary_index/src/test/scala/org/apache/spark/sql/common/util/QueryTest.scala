@@ -94,6 +94,7 @@ class QueryTest extends PlanTest {
   val sqlContext: SQLContext = TestQueryExecutor.INSTANCE.sqlContext
 
   val storeLocation = TestQueryExecutor.storeLocation.replaceAll("\\\\", "/")
+  val warehouse = TestQueryExecutor.warehouse.replaceAll("\\\\", "/")
   val resourcesPath = TestQueryExecutor.resourcesPath.replaceAll("\\\\", "/")
   val pluginResourcesPath = TestQueryExecutor.pluginResourcesPath.replaceAll("\\\\", "/")
   val integrationPath = TestQueryExecutor.integrationPath.replaceAll("\\\\", "/")

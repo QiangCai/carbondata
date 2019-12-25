@@ -40,7 +40,7 @@ class CastColumnTestCase extends QueryTest with BeforeAndAfterAll {
         "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
         "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
         "projectenddate Timestamp, designation String,attendance Int,utilization " +
-        "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+        "Int,salary Int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='empname,workgroupcategory, designation')"
     )
     sql(
@@ -68,7 +68,7 @@ class CastColumnTestCase extends QueryTest with BeforeAndAfterAll {
         "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
         "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
         "projectenddate Timestamp, designation String,attendance Int,utilization " +
-        "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+        "Int,salary Int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='workgroupcategory', 'DICTIONARY_EXCLUDE'='empno, designation')"
     )
     sql(

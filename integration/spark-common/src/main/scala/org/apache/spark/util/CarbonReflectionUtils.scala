@@ -40,7 +40,7 @@ import org.apache.spark.sql.sources.{BaseRelation, Filter}
 import org.apache.spark.sql.types.StructField
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
-import org.apache.carbondata.hive.{CarbonHiveSerDe, MapredCarbonInputFormat, MapredCarbonOutputFormat}
+import org.apache.carbondata.hive.{CarbonFileHiveSerDe, CarbonHiveSerDe, MapredCarbonInputFormat, MapredCarbonOutputFormat}
 
 /**
  * Reflection APIs
@@ -205,8 +205,8 @@ object CarbonReflectionUtils {
   }
 
   def getSessionState(sparkContext: SparkContext,
-      carbonSession: Object,
-      useHiveMetaStore: Boolean): Any = {
+                      carbonSession: Object,
+                      useHiveMetaStore: Boolean): Any = {
     if (SparkUtil.isSparkVersionEqualTo("2.1")) {
       val className = sparkContext.conf.get(
         CarbonCommonConstants.CARBON_SESSIONSTATE_CLASSNAME,
@@ -382,7 +382,7 @@ object CarbonReflectionUtils {
             ("carbon", HiveSerDe(Some(
               classOf[MapredCarbonInputFormat].getName),
               Some(classOf[MapredCarbonOutputFormat[_]].getName),
-              Some(classOf[CarbonHiveSerDe].getName))),
+              Some(classOf[CarbonFileHiveSerDe].getName))),
             ("carbondata", HiveSerDe(Some(
               classOf[MapredCarbonInputFormat].getName),
               Some(classOf[MapredCarbonOutputFormat[_]].getName),
@@ -400,6 +400,15 @@ object CarbonReflectionUtils {
    */
   def setFieldToCaseClass(caseObj: Object, fieldName: String, objToSet: Object): Unit = {
     val nameField = caseObj.getClass.getDeclaredField(fieldName)
+    nameField.setAccessible(true)
+    nameField.set(caseObj, objToSet)
+  }
+
+  /**
+   * This method updates the field of case class through reflection.
+   */
+  def setSuperFieldToClass(caseObj: Object, fieldName: String, objToSet: Object): Unit = {
+    val nameField = caseObj.getClass.getSuperclass.getDeclaredField(fieldName)
     nameField.setAccessible(true)
     nameField.set(caseObj, objToSet)
   }

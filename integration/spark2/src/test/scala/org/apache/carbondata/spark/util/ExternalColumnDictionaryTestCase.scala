@@ -78,7 +78,7 @@ class ExternalColumnDictionaryTestCase extends Spark2QueryTest with BeforeAndAft
      ActiveProvince:string, Activecity:string, ActiveDistrict:string, ActiveStreet:string>>,
      proddate struct<productionDate:string,activeDeactivedate:array<string>>,
      gamePointId double,contractNumber double)
-     STORED BY 'org.apache.carbondata.format'
+     STORED AS carbondata
      TBLPROPERTIES('DICTIONARY_INCLUDE' = 'deviceInformationId, channelsId')
         """)
     } catch {
@@ -89,7 +89,7 @@ class ExternalColumnDictionaryTestCase extends Spark2QueryTest with BeforeAndAft
       sql(
         """CREATE TABLE verticalDelimitedTable (deviceInformationId int,
      channelsId string,contractNumber double)
-     STORED BY 'org.apache.carbondata.format'
+     STORED AS carbondata
      TBLPROPERTIES('DICTIONARY_INCLUDE' = 'deviceInformationId, channelsId')
         """)
     } catch {
@@ -105,7 +105,7 @@ class ExternalColumnDictionaryTestCase extends Spark2QueryTest with BeforeAndAft
      ActiveProvince:string, Activecity:string, ActiveDistrict:string, ActiveStreet:string>>,
      proddate struct<productionDate:string,activeDeactivedate:array<string>>,
      gamePointId double,contractNumber double)
-     STORED BY 'org.apache.carbondata.format'
+     STORED AS carbondata
      TBLPROPERTIES('DICTIONARY_INCLUDE' = 'deviceInformationId')
         """)
     } catch {
@@ -121,7 +121,6 @@ class ExternalColumnDictionaryTestCase extends Spark2QueryTest with BeforeAndAft
       .addProperty("carbon.custom.distribution", "true")
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_BAD_RECORDS_ACTION,"FORCE")
-    import org.apache.spark.sql.CarbonSession._
 
     val spark = SparkSession
       .builder()
@@ -131,7 +130,8 @@ class ExternalColumnDictionaryTestCase extends Spark2QueryTest with BeforeAndAft
       .config("spark.network.timeout", "600s")
       .config("spark.executor.heartbeatInterval", "600s")
       .config("carbon.enable.vector.reader","false")
-      .getOrCreateCarbonSession(storeLocation, metaStoreDB)
+      .config("spark.sql.extensions", "org.apache.spark.sql.CarbonExtensions")
+      .getOrCreate()
     val catalog = CarbonEnv.getInstance(spark).carbonMetaStore
     extComplexRelation = catalog
       .lookupRelation(Option(CarbonCommonConstants.DATABASE_DEFAULT_NAME),

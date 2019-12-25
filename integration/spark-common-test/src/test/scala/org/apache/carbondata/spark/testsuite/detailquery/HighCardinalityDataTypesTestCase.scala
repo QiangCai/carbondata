@@ -53,7 +53,7 @@ class NO_DICTIONARY_COL_TestCase extends QueryTest with BeforeAndAfterAll {
       "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
       "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
       "projectenddate Timestamp, designation String,attendance Int,utilization " +
-      "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+      "Int,salary Int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_EXCLUDE'='empname,designation')"
     )
     sql(
@@ -65,7 +65,7 @@ class NO_DICTIONARY_COL_TestCase extends QueryTest with BeforeAndAfterAll {
       "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
       "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
       "projectenddate Timestamp, designation String,attendance Int,utilization " +
-      "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+      "Int,salary Int) STORED AS carbondata " +
       "TBLPROPERTIES('DICTIONARY_EXCLUDE'='empno,empname,designation')"
     )
     sql(
@@ -74,7 +74,7 @@ class NO_DICTIONARY_COL_TestCase extends QueryTest with BeforeAndAfterAll {
     )
     sql("CREATE TABLE filtertestTable (ID string,date Timestamp, country String, " +
       "name String, phonetype String, serialname String, salary Int) " +
-        "STORED BY 'org.apache.carbondata.format' " +  "TBLPROPERTIES('DICTIONARY_EXCLUDE'='ID')"
+        "STORED AS carbondata " +  "TBLPROPERTIES('DICTIONARY_EXCLUDE'='ID')"
     )
         CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy-MM-dd HH:mm:ss")

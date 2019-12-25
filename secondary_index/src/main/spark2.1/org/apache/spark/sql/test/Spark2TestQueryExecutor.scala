@@ -63,9 +63,8 @@ object Spark2TestQueryExecutor {
     .enableHiveSupport()
     .config("spark.sql.warehouse.dir", warehouse)
     .config("spark.sql.crossJoin.enabled", "true")
-    .config("spark.carbon.sessionstate.classname",
-      "org.apache.spark.sql.hive.CarbonInternalSessionState")
-    .getOrCreateCarbonSession(null, TestQueryExecutor.metaStoreDB)
+    .config("spark.sql.extensions", "org.apache.spark.sql.CarbonInternalExtensions")
+    .getOrCreate()
   if (warehouse.startsWith("hdfs://")) {
     System.setProperty(CarbonCommonConstants.HDFS_TEMP_LOCATION, warehouse)
     CarbonProperties.getInstance().addProperty(CarbonCommonConstants.LOCK_TYPE,

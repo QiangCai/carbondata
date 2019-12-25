@@ -41,7 +41,7 @@ class CompactionSupportGlobalSortFunctionTest extends QueryTest with BeforeAndAf
     sql(
       """
         | CREATE TABLE compaction_globalsort(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
 
@@ -49,7 +49,7 @@ class CompactionSupportGlobalSortFunctionTest extends QueryTest with BeforeAndAf
     sql(
       """
         | CREATE TABLE carbon_localsort(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
   }
 
@@ -468,7 +468,7 @@ class CompactionSupportGlobalSortFunctionTest extends QueryTest with BeforeAndAf
     sql(
       """
         | CREATE TABLE compaction_globalsort2(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         |  TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file1' INTO TABLE compaction_globalsort2")
@@ -502,7 +502,7 @@ class CompactionSupportGlobalSortFunctionTest extends QueryTest with BeforeAndAf
     sql(
       """
         | CREATE TABLE compaction_globalsort2(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         |  TBLPROPERTIES('SORT_COLUMNS'='id','SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file1' INTO TABLE compaction_globalsort2")

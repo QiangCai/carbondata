@@ -41,7 +41,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='3')
       """.stripMargin)
 
@@ -63,7 +63,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (doj Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='2017-06-11 00:00:02, 2017-06-13 23:59:59','DICTIONARY_INCLUDE'='doj')
       """.stripMargin)
@@ -90,7 +90,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
         |  projectcode int, projectjoindate Timestamp, attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (projectenddate Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='2017-06-11 00:00:02, 2017-06-13 23:59:59',
         |  'DICTIONARY_INCLUDE'='projectenddate')
@@ -122,7 +122,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
         |  projectcode int, projectjoindate Timestamp, attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (projectenddate date)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='2017-06-11 , 2017-06-13')
       """.stripMargin)
@@ -148,7 +148,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
       sql(
         """
           | CREATE TABLE test_list_int(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 INT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 INT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='1,2,(abc,efg)')
         """.stripMargin)
     }
@@ -165,7 +165,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
           |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
           |  utilization int,salary int)
           | PARTITIONED BY (doj Timestamp)
-          | STORED BY 'org.apache.carbondata.format'
+          | STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
           |  'RANGE_INFO'='2017-06-11 00:00:02, (2017-06-13 23:59:59, 2017-09-13 23:45:59)')
         """.stripMargin)
@@ -183,7 +183,7 @@ class TestDDLForPartitionTableWithDefaultProperties  extends QueryTest with Befo
           |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
           |  utilization int,salary int)
           | PARTITIONED BY (doj Timestamp)
-          | STORED BY 'org.apache.carbondata.format'
+          | STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
           |  'RANGE_INFO'='2017-06-11 00:00:02, abc, 2017-09-13 23:45:59')
         """.stripMargin)

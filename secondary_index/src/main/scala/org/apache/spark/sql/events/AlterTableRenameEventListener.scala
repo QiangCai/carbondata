@@ -51,8 +51,7 @@ class AlterTableRenameEventListener extends OperationEventListener with Logging 
         CarbonInternalScalaUtil.getIndexesMap(table)
           .asScala.map {
           entry =>
-            sparkSession.sessionState.catalog.asInstanceOf[CarbonSessionCatalog]
-              .getClient().runSqlHive(
+            CarbonSessionCatalogUtil.getClient(sparkSession).runSqlHive(
               s"ALTER TABLE $oldDatabaseName.${
                 entry
                   ._1

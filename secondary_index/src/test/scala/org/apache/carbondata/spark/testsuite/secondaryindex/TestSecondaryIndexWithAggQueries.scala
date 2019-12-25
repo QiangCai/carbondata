@@ -27,21 +27,20 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
   }
 
   test("test agg queries with secondary index") {
-    sql("create table source (c1 string,c2 string,c3 string,c5 string) STORED BY 'org.apache" +
-        ".carbondata.format'")
+    sql("create table source (c1 string,c2 string,c3 string,c5 string) STORED AS CARBONDATA")
     sql(s"""LOAD DATA LOCAL INPATH '$pluginResourcesPath/secindex/dest.csv' INTO table source""")
-   /* sql("create index index_source1 on table source (c2) AS 'org.apache.carbondata.format'")
+   /* sql("create index index_source1 on table source (c2) AS 'carbondata'")
     checkAnswer(
       sql("select count(*) from source where c2='1' and c3 = 'aa' and c5 = 'aaa' "),
       Seq(Row(1))
     )
-   sql("create index index_source2 on table source (c3) AS 'org.apache.carbondata.format'")
+   sql("create index index_source2 on table source (c3) AS 'carbondata'")
 
     checkAnswer(
       sql("select count(*) from source where c2='zc' and c3 = 'gf' and c5 = 'fd' "),
       Seq(Row(0))
     )
-       sql("create index index_source3 on table source (c5) AS 'org.apache.carbondata.format'")
+       sql("create index index_source3 on table source (c5) AS 'carbondata'")
       checkAnswer(
         sql("select count(*) from source where c2='2' and c3 = 'bb' and c5 = 'bbb' "),
         Seq(Row(1))
@@ -60,7 +59,7 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
         "cr_return_quantity int,cr_return_amount double,cr_return_tax double," +
         "cr_return_amt_inc_tax double,cr_fee double,cr_return_ship_cost double," +
         "cr_refunded_cash double,cr_reversed_charge double,cr_store_credit double," +
-        "cr_net_loss double) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES ( " +
+        "cr_net_loss double) STORED AS carbondata TBLPROPERTIES ( " +
         "'table_blocksize'='64')")
     sql(
       "create table date_dim ( d_date_sk int, d_date_id string, d_date date, d_month_seq int, " +
@@ -69,7 +68,7 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
       "d_quarter_name string, d_holiday string, d_weekend string, d_following_holiday string, " +
       "d_first_dom int, d_last_dom  int, d_same_day_ly int, d_same_day_lq int, d_current_day " +
       "string, d_current_week string, d_current_month string, d_current_quarter   string, " +
-      "d_current_year string ) STORED BY 'org.apache.carbondata.format'  TBLPROPERTIES ( " +
+      "d_current_year string ) STORED AS carbondata  TBLPROPERTIES ( " +
       "'table_blocksize'='64')")
     sql(
       "insert into catalog_returns select 2450926,45816,9112,18601,79799,6189,57583,18601,797995," +
@@ -88,11 +87,11 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
     sql("drop table if exists catalog_return")
     sql("drop table if exists date_dims")
     sql("create table catalog_return(cr_returned_date_sk int,cr_return_amount double," +
-        "cr_net_loss double) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES ( " +
+        "cr_net_loss double) STORED AS carbondata TBLPROPERTIES ( " +
         "'table_blocksize'='64')")
     sql(
-      "create table date_dims ( d_date_sk int, c1 string,d_date int ) STORED BY 'org.apache" +
-      ".carbondata.format'  TBLPROPERTIES ( 'table_blocksize'='64')")
+      "create table date_dims ( d_date_sk int, c1 string,d_date int ) STORED AS carbondata" +
+      "  TBLPROPERTIES ( 'table_blocksize'='64')")
     sql("insert into catalog_return select 2450,458.16,91.12")
     sql("insert into date_dims select 2450,'AAAAAAAAAAAAFCAA',5")
     checkAnswer(sql(
@@ -106,14 +105,14 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
   test("test datamap on SI table") {
     sql("drop table if exists test_si_1")
     sql(
-      "CREATE TABLE test_si_1 (id int,name string,salary float,dob date,address string)STORED BY " +
-      "'carbondata'  tblproperties('dictionary_include'='address')")
+      "CREATE TABLE test_si_1 (id int,name string,salary float,dob date,address string)STORED AS " +
+      "carbondata  tblproperties('dictionary_include'='address')")
     sql("insert into test_si_1 select 1,'aa',23423.334,'2009-09-09','df'")
     sql("insert into test_si_1 select 2,'bb',4454.454,'2009-09-09','bang'")
     sql(
       "CREATE DATAMAP dm_test_si_11 ON TABLE test_si_1 USING 'bloomfilter' DMPROPERTIES " +
       "('INDEX_COLUMNS' = 'address', 'BLOOM_SIZE'='640000', 'BLOOM_FPP'='0.00001')")
-    sql("create index si_test_si_1 on table test_si_1(address) as 'carbondata'")
+    sql("create index si_test_si_1 on table test_si_1(address) AS 'carbondata'")
     val exceptionMessage = intercept[ErrorMessage] {
       sql(
         "CREATE DATAMAP dm_on_si ON TABLE si_test_si_1  USING 'bloomfilter' DMPROPERTIES " +
@@ -126,16 +125,16 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
   test("test datamap on pre-agg table") {
     sql("drop table if exists test_pre_agg")
     sql(
-      "CREATE TABLE test_pre_agg (id int,name string,salary float,dob date,address string)STORED BY " +
-      "'carbondata'  tblproperties('dictionary_include'='address')")
+      "CREATE TABLE test_pre_agg (id int,name string,salary float,dob date,address string)STORED AS " +
+      "carbondata  tblproperties('dictionary_include'='address')")
     sql("insert into test_pre_agg select 1,'aa',23423.334,'2009-09-09','df'")
     sql("insert into test_pre_agg select 2,'bb',4454.454,'2009-09-09','bang'")
     sql(
       "CREATE DATAMAP dm_test_pre_agg1 ON TABLE test_pre_agg USING 'bloomfilter' DMPROPERTIES " +
       "('INDEX_COLUMNS' = 'address', 'BLOOM_SIZE'='640000', 'BLOOM_FPP'='0.00001')")
     sql(
-      "create index index5 on table test_pre_agg(address) as 'org.apache.carbondata" +
-      ".format' tblproperties('table_blocksize' = '256')")
+      "create index index5 on table test_pre_agg(address) AS 'carbondata'" +
+      " tblproperties('table_blocksize' = '256')")
     val exceptionMessage = intercept[ErrorMessage] {
       sql("create datamap datamap_test_pre_agg  ON TABLE index5 USING 'preaggregate' as select " +
           "name from index5 group by name")
@@ -146,9 +145,9 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
   test("test CTAS when use cast in select with SI table present on main table") {
     sql("drop table if exists cast_si")
     sql("drop index if exists index5 on cast_si")
-    sql("create table if not exists cast_si (RECORD_ID bigint,CDR_ID string,LOCATION_CODE int,USER_NUM string) STORED BY 'org.apache.carbondata.format' " +
+    sql("create table if not exists cast_si (RECORD_ID bigint,CDR_ID string,LOCATION_CODE int,USER_NUM string) STORED AS carbondata " +
         "TBLPROPERTIES('table_blocksize'='256','dictionary_exclude'='CDR_ID','SORT_SCOPE'='NO_SORT')")
-    sql("create index index5 on table cast_si(USER_NUM) as 'org.apache.carbondata.format' tblproperties('table_blocksize' = '256')")
+    sql("create index index5 on table cast_si(USER_NUM) AS 'carbondata' tblproperties('table_blocksize' = '256')")
     sql("insert into cast_si select  1, 'gb3e5135-5533-4ee7-51b3-F61F1355b471', 2, '26557544541'")
     sql("create table ctas_cast select cast(location_code as string) as location_code from cast_si where ((user_num in ('26557544541')))")
     checkAnswer(sql("select count(*) from cast_si where ((user_num in ('26557544541')))"), sql("select count(*) from ctas_cast"))
@@ -156,8 +155,8 @@ class TestSecondaryIndexWithAggQueries extends QueryTest with BeforeAndAfterAll 
 
   test("test clean files for index for marked for delete segments") {
     sql("drop table if exists clean")
-    sql("create table clean(name string, age int, add string) stored by 'carbondata'")
-    sql("create index clean_index on table clean(add) as 'carbondata'")
+    sql("create table clean(name string, age int, add string) STORED AS carbondata")
+    sql("create index clean_index on table clean(add) AS 'carbondata'")
     sql("insert into clean select 'ca',5,'de'")
     sql("insert into clean select 'ca',5,'de'")
     sql("delete from table clean where segment.id in (0)")

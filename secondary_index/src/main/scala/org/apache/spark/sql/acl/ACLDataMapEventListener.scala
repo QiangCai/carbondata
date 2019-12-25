@@ -96,6 +96,30 @@ object ACLDataMapEventListener {
     }
   }
 
+  class PreDataMapEventListener extends OperationEventListener {
+
+    override def onEvent(event: Event, operationContext: OperationContext): Unit = {
+      event match {
+        case createDataMapPreExecutionEvent: CreateDataMapPreExecutionEvent =>
+          val sparkSession: SparkSession = createDataMapPreExecutionEvent.sparkSession
+          val systemDirectoryPath: String = createDataMapPreExecutionEvent.storePath
+          val tableIdentifier = createDataMapPreExecutionEvent.tableIdentifier
+          var carbonTableIdentifier: CarbonTableIdentifier = null
+          if (null != tableIdentifier) {
+            val dbName: String = tableIdentifier.database
+              .getOrElse(sparkSession.catalog.currentDatabase)
+            carbonTableIdentifier = new CarbonTableIdentifier(dbName, tableIdentifier.table, "")
+            val carbonTable = CarbonEnv
+              .getCarbonTable(Some(dbName), tableIdentifier.table)(sparkSession)
+            if (CarbonInternalScalaUtil.isIndexTable(carbonTable)) {
+              throw new ErrorMessage(
+                "Datamap creation on Pre-aggregate table or Secondary Index table is not supported")
+            }
+          }
+      }
+    }
+  }
+
   class ACLPostDataMapEventListener extends OperationEventListener {
 
     override def onEvent(event: Event, operationContext: OperationContext): Unit = {

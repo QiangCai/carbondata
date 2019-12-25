@@ -92,6 +92,6 @@ public class CarbonTableIdentifierTest {
   @Test public void toStringTest() {
     String res = carbonTableIdentifier.toString();
     System.out.printf("sfdsdf " + res);
-    Assert.assertTrue(res.equals("DatabseName_tableName"));
+    Assert.assertTrue(res.equals("databsename_tablename"));
   }
 }

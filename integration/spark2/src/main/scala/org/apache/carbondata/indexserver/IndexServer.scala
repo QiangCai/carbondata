@@ -29,7 +29,7 @@ import org.apache.hadoop.net.NetUtils
 import org.apache.hadoop.security.{KerberosInfo, SecurityUtil, UserGroupInformation}
 import org.apache.spark.SparkConf
 import org.apache.spark.scheduler.{SparkListener, SparkListenerApplicationEnd}
-import org.apache.spark.sql.{CarbonSession, SparkSession}
+import org.apache.spark.sql.{CarbonEnv, SparkSession}
 import org.apache.spark.sql.util.SparkSQLUtil
 
 import org.apache.carbondata.common.logging.LogServiceFactory
@@ -90,13 +90,6 @@ object IndexServer extends ServerInterface {
     CarbonProperties.getInstance
       .getProperty(CarbonCommonConstants.CARBON_MAX_EXECUTOR_LRU_CACHE_SIZE) != null
 
-  /**
-   * Getting sparkSession from ActiveSession because in case of embedded mode the session would
-   * have already been created whereas in case of distributed mode the session would be
-   * created by the main method after some validations.
-   */
-  private lazy val sparkSession: SparkSession = SparkSQLUtil.getSparkSession
-
   private def doAs[T](f: => T): T = {
     UserGroupInformation.getLoginUser.doAs(new PrivilegedAction[T] {
       override def run(): T = {
@@ -107,6 +100,7 @@ object IndexServer extends ServerInterface {
 
   def getCount(request: DistributableDataMapFormat): LongWritable = {
     doAs {
+      val sparkSession = SparkSQLUtil.getSparkSession
       if (!request.isFallbackJob) {
         sparkSession.sparkContext.setLocalProperty("spark.jobGroup.id", request.getTaskGroupId)
         sparkSession.sparkContext
@@ -122,6 +116,7 @@ object IndexServer extends ServerInterface {
 
   def getSplits(request: DistributableDataMapFormat): ExtendedBlockletWrapperContainer = {
     doAs {
+      val sparkSession = SparkSQLUtil.getSparkSession
       if (!request.isFallbackJob) {
         sparkSession.sparkContext.setLocalProperty("spark.jobGroup.id", request.getTaskGroupId)
         sparkSession.sparkContext
@@ -146,6 +141,7 @@ object IndexServer extends ServerInterface {
 
   override def invalidateSegmentCache(carbonTable: CarbonTable,
       segmentIds: Array[String], jobGroupId: String = ""): Unit = doAs {
+    val sparkSession = SparkSQLUtil.getSparkSession
     val databaseName = carbonTable.getDatabaseName
     val tableName = carbonTable.getTableName
     val jobgroup: String = " Invalided Segment Cache for " + databaseName + "." + tableName
@@ -161,6 +157,7 @@ object IndexServer extends ServerInterface {
   }
 
   override def showCache(tableName: String = ""): Array[String] = doAs {
+    val sparkSession = SparkSQLUtil.getSparkSession
     val jobgroup: String = "Show Cache for " + (tableName match {
       case "" => "for all tables"
       case table => s"for $table"
@@ -186,7 +183,8 @@ object IndexServer extends ServerInterface {
         .setNumHandlers(numHandlers)
         .setProtocol(classOf[ServerInterface]).build
       server.start()
-      SecurityUtil.login(sparkSession.asInstanceOf[CarbonSession].sessionState.newHadoopConf(),
+      val sparkSession = SparkSQLUtil.getSparkSession
+      SecurityUtil.login(sparkSession.sessionState.newHadoopConf(),
         "spark.carbon.indexserver.keytab", "spark.carbon.indexserver.principal")
       sparkSession.sparkContext.addSparkListener(new SparkListener {
         override def onApplicationEnd(applicationEnd: SparkListenerApplicationEnd): Unit = {
@@ -201,12 +199,14 @@ object IndexServer extends ServerInterface {
   }
 
   private def createCarbonSession(): SparkSession = {
-    import org.apache.spark.sql.CarbonSession._
     val spark = SparkSession
       .builder().config(new SparkConf())
       .appName("DistributedIndexServer")
       .enableHiveSupport()
-      .getOrCreateCarbonSession(CarbonProperties.getStorePath)
+      .config("spark.sql.extensions", "org.apache.spark.sql.CarbonExtensions")
+      .getOrCreate()
+    CarbonEnv.getInstance(spark)
+
     SparkSession.setActiveSession(spark)
     SparkSession.setDefaultSession(spark)
     spark
@@ -216,6 +216,7 @@ object IndexServer extends ServerInterface {
    * @return Return a new Client to communicate with the Index Server.
    */
   def getClient: ServerInterface = {
+    val sparkSession = SparkSQLUtil.getSparkSession
     val configuration = SparkSQLUtil.sessionState(sparkSession).newHadoopConf()
     import org.apache.hadoop.ipc.RPC
     val indexServerUser = sparkSession.sparkContext.getConf
@@ -233,6 +234,7 @@ object IndexServer extends ServerInterface {
 
   override def getPrunedSegments(request: DistributableDataMapFormat): SegmentWrapperContainer =
     doAs {
+      val sparkSession = SparkSQLUtil.getSparkSession
       sparkSession.sparkContext.setLocalProperty("spark.jobGroup.id", request.getTaskGroupId)
       sparkSession.sparkContext.setLocalProperty("spark.job.description", request.getTaskGroupDesc)
       val splits = new SegmentPruneRDD(sparkSession, request).collect()

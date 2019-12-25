@@ -24,12 +24,13 @@ import scala.util.control.Breaks._
 import org.apache.spark.CarbonInputMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference, GetArrayItem, GetMapValue, GetStructField, NamedExpression}
+import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference, GetArrayItem, GetMapValue, GetStructField, Literal, NamedExpression}
 import org.apache.spark.sql.execution.command.management.CarbonInsertIntoCommand
+import org.apache.spark.sql.execution.strategy.PushDownHelper
 import org.apache.spark.sql.hive.CarbonRelation
 import org.apache.spark.sql.optimizer.CarbonFilters
 import org.apache.spark.sql.sources.{BaseRelation, Filter, InsertableRelation}
-import org.apache.spark.sql.types.{ArrayType, StructType}
+import org.apache.spark.sql.types.{ArrayType, DataType, MapType, StructType}
 import org.apache.spark.sql.util.CarbonException
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
@@ -55,7 +56,7 @@ case class CarbonDatasourceHadoopRelation(
     paths.head,
     CarbonEnv.getDatabaseName(caseInsensitiveMap.get("dbname"))(sparkSession),
     caseInsensitiveMap("tablename"))
-  CarbonSession.updateSessionInfoToCurrentThread(sparkSession)
+  CarbonUtils.updateSessionInfoToCurrentThread(sparkSession)
 
   // Incase of RowDataSourceScanExec,
   // logical relation will not be present, so use needPriv from this base relation extension class
@@ -100,90 +101,12 @@ case class CarbonDatasourceHadoopRelation(
       col.map(_.isInstanceOf[GetStructField]))
 
     if (!carbonTable.isVectorTable && !complexFilterExists.exists(f => f.contains(true))) {
-      var parentColumn = new ListBuffer[String]
-      // In case of Struct or StructofStruct Complex type, get the project column for given
-      // parent/child field and pushdown the corresponding project column. In case of Array, Map,
-      // ArrayofStruct, StructofArray, MapOfStruct or StructOfMap, pushdown parent column
-      var reqColumns = projects.map {
-        case a@Alias(s: GetStructField, name) =>
-          var arrayOrMapTypeExists = false
-          var ifGetArrayOrMapItemExists = s
-          breakable({
-            while (ifGetArrayOrMapItemExists.containsChild != null) {
-              if (ifGetArrayOrMapItemExists.childSchema.toString().contains("ArrayType") ||
-                  ifGetArrayOrMapItemExists.childSchema.toString().contains("MapType")) {
-                arrayOrMapTypeExists = true
-                break
-              }
-              if (ifGetArrayOrMapItemExists.child.isInstanceOf[AttributeReference]) {
-                arrayOrMapTypeExists = s.childSchema.toString().contains("ArrayType") ||
-                                       s.childSchema.toString().contains("MapType")
-                break
-              } else {
-                if (ifGetArrayOrMapItemExists.child.isInstanceOf[GetArrayItem] ||
-                    ifGetArrayOrMapItemExists.child.isInstanceOf[GetMapValue]) {
-                  arrayOrMapTypeExists = true
-                  break
-                } else {
-                  if (ifGetArrayOrMapItemExists.child.isInstanceOf[GetStructField]) {
-                    ifGetArrayOrMapItemExists = ifGetArrayOrMapItemExists.child
-                      .asInstanceOf[GetStructField]
-                  } else {
-                    arrayOrMapTypeExists = true
-                    break
-                  }
-                }
-              }
-            }
-          })
-          if (!arrayOrMapTypeExists) {
-            parentColumn += s.toString().split("\\.")(0).replaceAll("#.*", "").toLowerCase
-            parentColumn = parentColumn.distinct
-            s.toString().replaceAll("#[0-9]*", "").toLowerCase
-          } else {
-            s.toString().split("\\.")(0).replaceAll("#.*", "").toLowerCase
-          }
-        case a@Alias(s: GetArrayItem, name) =>
-          s.toString().split("\\.")(0).replaceAll("#.*", "").toLowerCase
-        case attributeReference: AttributeReference =>
-          var columnName: String = attributeReference.name
-          requiredColumns.foreach(colName =>
-            if (colName.equalsIgnoreCase(attributeReference.name)) {
-              columnName = colName
-            })
-          columnName
-        case other =>
-          None
-      }
-
-      reqColumns = reqColumns.filter(col => !col.equals(None))
-      var output = new ListBuffer[String]
-
-      if (null != requiredColumns && requiredColumns.nonEmpty) {
-        requiredColumns.foreach(col => {
-
-          if (null != reqColumns && reqColumns.nonEmpty) {
-            reqColumns.foreach(reqCol => {
-              if (!reqCol.toString.equalsIgnoreCase(col) &&
-                  !reqCol.toString.startsWith(col.toLowerCase + ".") &&
-                  !parentColumn.contains(col.toLowerCase)) {
-                output += col
-              } else {
-                output += reqCol.toString
-              }
-            })
-          } else {
-            output += col
-          }
-          output = output.map(_.toLowerCase).distinct
-        })
-      }
-      output.toArray.foreach(projection.addColumn)
+      PushDownHelper.pushDownProjection(requiredColumns, projects, projection)
     } else {
       requiredColumns.foreach(projection.addColumn)
     }
 
-    CarbonSession.threadUnset(CarbonCommonConstants.SUPPORT_DIRECT_QUERY_ON_DATAMAP)
+    CarbonUtils.threadUnset(CarbonCommonConstants.SUPPORT_DIRECT_QUERY_ON_DATAMAP)
     val inputMetricsStats: CarbonInputMetrics = new CarbonInputMetrics
     new CarbonScanRDD(
       sparkSession,

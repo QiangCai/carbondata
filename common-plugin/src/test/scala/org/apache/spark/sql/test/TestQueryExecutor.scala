@@ -25,17 +25,6 @@ import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.datastore.impl.FileFactory
 import org.apache.carbondata.core.util.CarbonProperties
 
-/**
- * the sql executor of common-plugin
- */
-trait TestQueryExecutorRegister {
-  def sql(sqlText: String): DataFrame
-
-  def stop()
-
-  def sqlContext: SQLContext
-}
-
 object TestQueryExecutor {
 
   private val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)

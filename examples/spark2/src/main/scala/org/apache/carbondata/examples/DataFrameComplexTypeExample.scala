@@ -40,7 +40,7 @@ object DataFrameComplexTypeExample {
 
   def main(args: Array[String]) {
 
-    val spark = ExampleUtils.createCarbonSession("DataFrameComplexTypeExample", 4)
+    val spark = ExampleUtils.createSparkSession("DataFrameComplexTypeExample", 4)
     exampleBody(spark)
     spark.close()
   }
@@ -66,7 +66,7 @@ object DataFrameComplexTypeExample {
          | salary FLOAT,
          | file struct<school:array<string>, age:int>
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES(
          | 'sort_columns'='name',
          | 'dictionary_include'='city')
@@ -81,7 +81,7 @@ object DataFrameComplexTypeExample {
          | salary FLOAT,
          | file array<string>
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES(
          | 'sort_columns'='name',
          | 'dictionary_include'='city')
@@ -97,7 +97,7 @@ object DataFrameComplexTypeExample {
          | salary FLOAT,
          | file struct<school:array<string>, school1:array<string>, age:int>
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES(
          | 'sort_columns'='name')
          | """.stripMargin)

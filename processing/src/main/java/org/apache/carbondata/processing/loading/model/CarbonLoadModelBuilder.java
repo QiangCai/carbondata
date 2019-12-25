@@ -198,8 +198,8 @@ public class CarbonLoadModelBuilder {
     // if there isn't file header in csv file and load sql doesn't provide FILEHEADER option,
     // we should use table schema to generate file header.
     String fileHeader = optionsFinal.get("fileheader");
-    String headerOption = options.get("header");
-    if (headerOption != null) {
+    String headerOption = optionsFinal.get("header");
+    if (StringUtils.isNotEmpty(headerOption)) {
       if (!headerOption.equalsIgnoreCase("true") &&
           !headerOption.equalsIgnoreCase("false")) {
         throw new InvalidLoadOptionException(
@@ -262,6 +262,9 @@ public class CarbonLoadModelBuilder {
 
     carbonLoadModel.setSortScope(sort_scope);
     carbonLoadModel.setBatchSortSizeInMb(optionsFinal.get("batch_sort_size_inmb"));
+    if (global_sort_partitions == null) {
+      global_sort_partitions = table.getGlobalSortPartitions();
+    }
     carbonLoadModel.setGlobalSortPartitions(global_sort_partitions);
     carbonLoadModel.setUseOnePass(Boolean.parseBoolean(single_pass));
 
@@ -311,6 +314,8 @@ public class CarbonLoadModelBuilder {
     validateAndSetBinaryDecoder(carbonLoadModel);
 
     validateRangeColumn(optionsFinal, carbonLoadModel);
+
+    carbonLoadModel.initLoadStats();
   }
 
   private void validateRangeColumn(Map<String, String> optionsFinal,

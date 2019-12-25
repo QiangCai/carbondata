@@ -97,7 +97,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new1 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -119,7 +119,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new2 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -146,7 +146,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new3 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -168,7 +168,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new4 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -195,7 +195,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new5 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -222,7 +222,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new6 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -251,7 +251,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new7 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -278,7 +278,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new8 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -307,7 +307,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new9 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME, ACTIVE_EMUI_VERSION,BIGINT_COLUMN1,Double_COLUMN1, " +
         "Double_COLUMN2')")
 
@@ -334,7 +334,7 @@ class DictionaryLRUCacheTestCase extends Spark2QueryTest with BeforeAndAfterAll 
         "CREATE TABLE carbon_new10 (CUST_ID INT,CUST_NAME STRING,ACTIVE_EMUI_VERSION STRING, DOB " +
         "TIMESTAMP, DOJ TIMESTAMP, BIGINT_COLUMN1 BIGINT,BIGINT_COLUMN2 BIGINT,DECIMAL_COLUMN1 " +
         "decimal(30,10), DECIMAL_COLUMN2 DECIMAL(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-        "double,INTEGER_COLUMN1 INT) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+        "double,INTEGER_COLUMN1 INT) STORED AS carbondata TBLPROPERTIES " +
         "('dictionary_include'='CUST_NAME')")
 
     sql("insert into carbon_new10 select * from carbon_new9")

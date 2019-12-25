@@ -55,7 +55,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata_Compare (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format'")
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata")
 
     sql(s"LOAD DATA INPATH '${resourcesPath + "/data_with_all_types.csv"}' into table" +
         " uniqdata_Compare OPTIONS('DELIMITER'=',' , 'QUOTECHAR'='\"'," +
@@ -67,7 +67,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata_Compaction (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format'")
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata")
 
     sql(s"LOAD DATA INPATH '${resourcesPath + "/data_with_all_types.csv"}' into table" +
         " uniqdata_Compaction OPTIONS('DELIMITER'=',' , 'QUOTECHAR'='\"'," +
@@ -83,10 +83,10 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
 
     sql("alter table uniqdata_Compaction compact 'minor'")
 
-    sql("create table negativeTable_Compare (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata'")
+    sql("create table negativeTable_Compare (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable_Compare options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
 
-    sql("create table negativeTable_Compaction (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata'")
+    sql("create table negativeTable_Compaction (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable_Compaction options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable_Compaction options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     sql("alter table negativeTable_Compaction compact 'minor'")
@@ -98,7 +98,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES" +
       "('DICTIONARY_EXCLUDE'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -116,7 +116,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID short,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES" +
       "('SORT_COLUMNS'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -130,7 +130,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
 
   test("test filter queries on the adaptive encoded column") {
     sql("drop table if exists negativeTable")
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
     checkAnswer(sql("select * from negativeTable where intColumn<0"), sql("select * from negativeTable_Compare where intColumn<0"))
@@ -162,7 +162,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES" +
       "('SORT_COLUMNS'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -181,7 +181,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
     checkAnswer(sql("select * from uniqdata"), sql("select * from uniqdata_Compaction"))
 
     // negative data compaction test
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
@@ -201,7 +201,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES" +
       "('SORT_COLUMNS'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -220,7 +220,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
     checkAnswer(sql("select * from uniqdata"), sql("select * from uniqdata_Compaction"))
 
     // negative data compaction test
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
@@ -242,7 +242,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES" +
       "('SORT_COLUMNS'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -254,7 +254,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
     checkAnswer(sql("select * from uniqdata"), sql("select * from uniqdata_Compare"))
 
     // negative data compaction test
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
 
@@ -275,7 +275,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES" +
       "('SORT_COLUMNS'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -287,7 +287,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
     checkAnswer(sql("select * from uniqdata"), sql("select * from uniqdata_Compare"))
 
     // negative data compaction test
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
 
@@ -305,7 +305,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
       "CREATE TABLE uniqdata (CUST_ID int,CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB " +
       "timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) PARTITIONED BY(DOJ timestamp) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+      "double,INTEGER_COLUMN1 int) PARTITIONED BY(DOJ timestamp) STORED AS carbondata TBLPROPERTIES" +
       "('SORT_COLUMNS'='CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1," +
       "BIGINT_COLUMN2,INTEGER_COLUMN1')")
 
@@ -317,7 +317,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
     checkAnswer(sql("select CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1,BIGINT_COLUMN2,INTEGER_COLUMN1 from uniqdata"), sql("select CUST_ID,CUST_NAME,ACTIVE_EMUI_VERSION,DOB,DOJ,BIGINT_COLUMN1,BIGINT_COLUMN2,INTEGER_COLUMN1 from uniqdata_Compare"))
 
     // negative data compaction test
-    sql("create table negativeTable (intColumn int,stringColumn string) PARTITIONED BY(shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string) PARTITIONED BY(shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select intColumn,stringColumn,shortColumn from negativeTable"), sql("select intColumn,stringColumn,shortColumn from negativeTable_Compare"))
     sql("drop table if exists uniqdata")
@@ -326,7 +326,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
 
   test("test IUD on the adptive encoded column") {
     sql("drop table if exists negativeTable")
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
     sql("insert into negativeTable select 0,null,-10")
@@ -352,7 +352,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
 
   test("test filter queries on adaptive encoded column with complex column in the schema") {
     sql("drop table if exists complexTable")
-    sql("CREATE TABLE complexTable( id LONG,name STRING,salary FLOAT,file struct<school:array<string>, age:int>) STORED BY 'carbondata' TBLPROPERTIES('sort_columns'='id,name')")
+    sql("CREATE TABLE complexTable( id LONG,name STRING,salary FLOAT,file struct<school:array<string>, age:int>) STORED AS carbondata TBLPROPERTIES('sort_columns'='id,name')")
     sql(s"LOAD DATA INPATH '$rootPath/examples/spark2/src/main/resources/streamSample.csv' INTO TABLE complexTable OPTIONS('HEADER'='TRUE')")
     checkAnswer(sql("select id,name, salary from complexTable"),
       Seq(Row(100000001, "batch_1", 0.1),
@@ -365,7 +365,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
 
   test("test bloom datamap on the adaptive encoded column") {
     sql("drop table if exists negativeTable")
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     checkAnswer(sql("select * from negativeTable"), sql("select * from negativeTable_Compare"))
     // create bloom in the intColumn and shortColumn
@@ -394,7 +394,7 @@ class TestAdaptiveEncodingForPrimitiveTypes extends QueryTest with BeforeAndAfte
 
   test("test preaggregate datamap on the adaptive encoded column") {
     sql("drop table if exists negativeTable")
-    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) stored by 'carbondata' TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
+    sql("create table negativeTable (intColumn int,stringColumn string,shortColumn short) STORED AS carbondata TBLPROPERTIES('SORT_COLUMNS'='intColumn,shortColumn')")
     sql(s"load data inpath '${resourcesPath + "/dataWithNegativeValues.csv"}' into table negativeTable options('FILEHEADER'='intColumn,stringColumn,shortColumn')")
     // create preagg datamap on the encoded column
     sql("create datamap negativeTable_preAgg1 on table negativeTable USING 'preaggregate' AS select count(intColumn),sum(intColumn) from negativeTable")

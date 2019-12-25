@@ -50,7 +50,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
     sql(
       """
         | CREATE TABLE carbon_globalsort(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
+        | STORED AS carbondata TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
       """.stripMargin)
   }
 
@@ -65,7 +65,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
     sql(
       """
         | CREATE TABLE carbon_localsort_once(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$filePath' INTO TABLE carbon_localsort_once")
   }
@@ -93,7 +93,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
     sql(
       """
         | CREATE TABLE carbon_globalsort1(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
       """.stripMargin)
 
@@ -141,7 +141,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
       """
         | CREATE TABLE carbon_globalsort_partitioned(name STRING, city STRING, age INT)
         | PARTITIONED BY (id INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='3', 'SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
       """.stripMargin)
 
@@ -168,7 +168,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
     sql(
       """
         | CREATE TABLE carbon_localsort_twice(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
+        | STORED AS carbondata TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$filePath' INTO TABLE carbon_localsort_twice")
     sql(s"LOAD DATA LOCAL INPATH '$filePath' INTO TABLE carbon_localsort_twice")
@@ -228,7 +228,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
     sql(
       """
         | CREATE TABLE carbon_localsort_delete(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
+        | STORED AS carbondata TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$filePath' INTO TABLE carbon_localsort_delete")
     sql("DELETE FROM carbon_localsort_delete WHERE id = 1").show
@@ -247,7 +247,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
     sql(
       """
         | CREATE TABLE carbon_localsort_update(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
+        | STORED AS carbondata TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'name, city')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$filePath' INTO TABLE carbon_localsort_update")
 
@@ -343,7 +343,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
          | charField CHAR(5),
          | floatField FLOAT
          | )
-         | STORED BY 'org.apache.carbondata.format'
+         | STORED AS carbondata
          | TBLPROPERTIES('sort_scope'='local_sort','sort_columns'='stringField')
        """.stripMargin)
     sql(
@@ -367,7 +367,7 @@ class TestGlobalSortDataLoad extends QueryTest with BeforeAndAfterEach with Befo
          | charField CHAR(5),
          | floatField FLOAT
          | )
-         | STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'stringField')
+         | STORED AS carbondata TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT', 'sort_columns' = 'stringField')
        """.stripMargin)
     sql(
       s"""

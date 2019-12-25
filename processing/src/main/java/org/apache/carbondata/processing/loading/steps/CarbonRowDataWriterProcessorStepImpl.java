@@ -339,6 +339,9 @@ public class CarbonRowDataWriterProcessorStepImpl extends AbstractDataLoadProces
   @Override public void close() {
     if (!closed) {
       super.close();
+      if (configuration.getLoadStats() != null) {
+        configuration.getLoadStats().addOutputRows(rowCounter.get());
+      }
       if (null != executorService) {
         executorService.shutdownNow();
       }

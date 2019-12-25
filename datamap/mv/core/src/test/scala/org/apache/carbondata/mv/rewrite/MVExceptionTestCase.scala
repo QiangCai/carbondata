@@ -24,7 +24,7 @@ import org.scalatest.BeforeAndAfterAll
 class MVExceptionTestCase  extends QueryTest with BeforeAndAfterAll {
   override def beforeAll: Unit = {
     drop()
-    sql("create table main_table (name string,age int,height int) stored by 'carbondata'")
+    sql("create table main_table (name string,age int,height int) STORED AS carbondata")
   }
 
   test("test mv no base table") {

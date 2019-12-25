@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.carbondata.common.logging.LogServiceFactory;
+import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
 
 import org.apache.hadoop.fs.FileStatus;
@@ -99,11 +100,13 @@ public class ViewFSCarbonFile extends AbstractDFSCarbonFile {
     }
     try {
       fs = fileStatus.getPath().getFileSystem(FileFactory.getConfiguration());
-      if (fs instanceof ViewFileSystem) {
+      if (changeToName.startsWith(CarbonCommonConstants.LUXORFS_PREFIX) ||
+          fs instanceof ViewFileSystem) {
         fs.delete(new Path(changeToName), true);
         fs.rename(fileStatus.getPath(), new Path(changeToName));
         return true;
       } else {
+        LOGGER.warn("Unrecognized file system for path: " + filePath);
         return false;
       }
     } catch (IOException e) {

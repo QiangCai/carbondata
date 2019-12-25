@@ -80,7 +80,7 @@ class TestBatchSortDataLoad extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE carbon_load1(c1 string, c2 string, c3 string, c4 string, c5 string,
         | c6 string, c7 int, c8 int, c9 int, c10 int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('dictionary_include'='c1,c2,c3,c4,c5,c6',
         | 'sort_scope'='batch_sort', 'sort_columns'='c1,c2,c3,c4,c5,c6')
       """.stripMargin)
@@ -99,7 +99,7 @@ class TestBatchSortDataLoad extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE carbon_load2(c1 string, c2 string, c3 string, c4 string, c5 string,
         | c6 string, c7 int, c8 int, c9 int, c10 int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     sql(s"LOAD DATA LOCAL INPATH '$filePath' into table carbon_load2 ")
@@ -131,7 +131,7 @@ class TestBatchSortDataLoad extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE carbon_load3(c1 string, c2 string, c3 string, c4 string, c5 string,
         | c6 string, c7 int, c8 int, c9 int, c10 int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('dictionary_include'='c1,c2,c3,c4,c5,c6',
         | 'sort_scope'='batch_sort', 'sort_columns'='c1,c2,c3,c4,c5,c6')
       """.stripMargin)
@@ -155,7 +155,7 @@ class TestBatchSortDataLoad extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE carbon_load4(c1 string, c2 string, c3 string, c4 string, c5 string,
         | c6 string, c7 int, c8 int, c9 int, c10 int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('dictionary_include'='c1,c2,c3,c4,c5,c6', 'sort_columns'='c1,c2,c3,c4,c5,c6')
       """.stripMargin)
 
@@ -176,7 +176,7 @@ class TestBatchSortDataLoad extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE carbon_load6(c1 string, c2 string, c3 string, c4 string, c5 string,
         | c6 string, c7 int, c8 int, c9 int, c10 int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('dictionary_include'='c1,c2,c3,c4,c5,c6')
       """.stripMargin)
 

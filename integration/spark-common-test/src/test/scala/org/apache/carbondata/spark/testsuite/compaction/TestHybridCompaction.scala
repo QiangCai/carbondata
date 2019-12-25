@@ -103,7 +103,7 @@ class TestHybridCompaction extends QueryTest with BeforeAndAfterEach with Before
       s"""
          | CREATE TABLE $tableName(seq int, first string, last string,
          |   age int, city string, state string, date date)
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES(
          |   'sort_scope'='local_sort',
          |   'sort_columns'='state, age',
@@ -231,32 +231,4 @@ class TestHybridCompaction extends QueryTest with BeforeAndAfterEach with Before
     out.map(_.get(0).toString) should equal(
       Array("20", "23", "37", "39", "42", "44", "54", "54", "60", "61"))
   }
-
-
-  test("PREAGG") {
-    loadSortedData()
-    loadUnsortedData()
-    val datamapName = "d1"
-    val tableNameDatamapName = tableName + "_" + datamapName
-
-    sql(
-      s"""
-         | CREATE DATAMAP $datamapName
-         | ON TABLE $tableName
-         | USING 'preaggregate'
-         | AS
-         |   SELECT AVG(age), state
-         |   FROM $tableName
-         |   GROUP BY state
-      """.stripMargin)
-
-    loadSortedData()
-    loadUnsortedData()
-
-    sql(s"ALTER TABLE $tableName COMPACT 'major'")
-    val out = sql(s"SELECT * FROM $tableNameDatamapName").collect()
-    out.map(_.get(2).toString) should equal(
-      Array("AL", "CT", "IA", "KS", "ME", "MT", "ND", "WA"))
-  }
-
 }

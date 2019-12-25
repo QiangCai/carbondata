@@ -43,7 +43,7 @@ class ImageSQLSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE carbontable(path STRING, modificationTime TIMESTAMP, length LONG, height INT, width INT, format String, content BINARY)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"INSERT INTO carbontable SELECT path, modificationTime, length, " +
     "IMAGEINFO(content).height, IMAGEINFO(content).width," +

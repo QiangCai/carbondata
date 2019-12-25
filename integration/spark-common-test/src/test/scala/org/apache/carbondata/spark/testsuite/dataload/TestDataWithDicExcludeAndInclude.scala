@@ -51,7 +51,7 @@ class TestLoadDataWithDictionaryExcludeAndInclude extends QueryTest with BeforeA
            CREATE TABLE exclude_include_t3
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
            TBLPROPERTIES('DICTIONARY_EXCLUDE'='country,phonetype,serialname',
            'DICTIONARY_INCLUDE'='ID')
         """)

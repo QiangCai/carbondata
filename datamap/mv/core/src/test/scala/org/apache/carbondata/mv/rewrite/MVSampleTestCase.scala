@@ -18,8 +18,6 @@ package org.apache.carbondata.mv.rewrite
 
 import java.io.File
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.test.util.QueryTest
 import org.scalatest.BeforeAndAfterAll
 
@@ -58,7 +56,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
          |  `qty`     int,
          |  `disc`    string
          |)
-         |STORED BY 'org.apache.carbondata.format'
+         |STORED AS carbondata
         """.stripMargin.trim,
       s"""
          |CREATE TABLE Dim (
@@ -67,14 +65,14 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
          |  `state`   string,
          |  `country` string
          |)
-         |STORED BY 'org.apache.carbondata.format'
+         |STORED AS carbondata
         """.stripMargin.trim,
       s"""
          |CREATE TABLE Item (
          |  `i_item_id`     int,
          |  `i_item_sk`     int
          |)
-         |STORED BY 'org.apache.carbondata.format'
+         |STORED AS carbondata
         """.stripMargin.trim
     )
   }
@@ -84,7 +82,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm1")
     sql(s"create datamap datamap_sm1 using 'mv' as ${sampleTestCases(0)._2}")
     val df = sql(sampleTestCases(0)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(!TestUtil.verifyMVDataMap(analyzed, "datamap_sm1"))
     sql(s"drop datamap datamap_sm1")
   }
@@ -93,7 +91,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm2")
     sql(s"create datamap datamap_sm2 using 'mv' as ${sampleTestCases(2)._2}")
     val df = sql(sampleTestCases(2)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_sm2"))
     sql(s"drop datamap datamap_sm2")
   }
@@ -102,7 +100,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm3")
     sql(s"create datamap datamap_sm3 using 'mv' as ${sampleTestCases(3)._2}")
     val df = sql(sampleTestCases(3)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_sm3"))
     sql(s"drop datamap datamap_sm3")
   }
@@ -111,7 +109,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm4")
     sql(s"create datamap datamap_sm4 using 'mv' as ${sampleTestCases(4)._2}")
     val df = sql(sampleTestCases(4)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_sm4"))
     sql(s"drop datamap datamap_sm4")
   }
@@ -120,7 +118,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm5")
     sql(s"create datamap datamap_sm5 using 'mv' as ${sampleTestCases(5)._2}")
     val df = sql(sampleTestCases(5)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(!TestUtil.verifyMVDataMap(analyzed, "datamap_sm5"))
     sql(s"drop datamap datamap_sm5")
   }
@@ -129,7 +127,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm6")
     sql(s"create datamap datamap_sm6 using 'mv' as ${sampleTestCases(6)._2}")
     val df = sql(sampleTestCases(6)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_sm6"))
     sql(s"drop datamap datamap_sm6")
   }
@@ -138,7 +136,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm7")
     sql(s"create datamap datamap_sm7 using 'mv' as ${sampleTestCases(7)._2}")
     val df = sql(sampleTestCases(7)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_sm7"))
     sql(s"drop datamap datamap_sm7")
   }
@@ -147,7 +145,7 @@ class MVSampleTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_sm8")
     sql(s"create datamap datamap_sm8 using 'mv' as ${sampleTestCases(8)._2}")
     val df = sql(sampleTestCases(8)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_sm8"))
     sql(s"drop datamap datamap_sm8")
   }

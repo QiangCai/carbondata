@@ -33,7 +33,7 @@ import org.apache.carbondata.spark.exception.ProcessMetaDataException
 object CarbonPartitionExample {
 
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("CarbonPartitionExample")
+    val spark = ExampleUtils.createSparkSession("CarbonPartitionExample")
     exampleBody(spark)
     spark.close()
   }
@@ -60,7 +60,7 @@ object CarbonPartitionExample {
                 | salary Int
                 | )
                 | PARTITIONED BY (logdate Timestamp)
-                | STORED BY 'carbondata'
+                | STORED AS carbondata
                 | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
                 | 'RANGE_INFO'='2014/01/01, 2015/01/01, 2016/01/01')
               """.stripMargin)
@@ -77,7 +77,7 @@ object CarbonPartitionExample {
                 | country String,
                 | area String
                 | )
-                | STORED BY 'carbondata'
+                | STORED AS carbondata
               """.stripMargin)
 
     // list partition
@@ -93,7 +93,7 @@ object CarbonPartitionExample {
                 | salary Int
                 | )
                 | PARTITIONED BY (area String)
-                | STORED BY 'carbondata'
+                | STORED AS carbondata
                 | TBLPROPERTIES('PARTITION_TYPE'='LIST',
                 | 'LIST_INFO'='Asia, America, Europe', 'DICTIONARY_EXCLUDE' ='area')
               """.stripMargin)
@@ -111,7 +111,7 @@ object CarbonPartitionExample {
                 | salary Int
                 | )
                 | PARTITIONED BY (vin String)
-                | STORED BY 'carbondata'
+                | STORED AS carbondata
                 | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='5')
               """.stripMargin)
 
@@ -128,7 +128,7 @@ object CarbonPartitionExample {
                 | salary Int
                 |)
                 | PARTITIONED BY (country String)
-                | STORED BY 'carbondata'
+                | STORED AS carbondata
                 | TBLPROPERTIES('PARTITION_TYPE'='LIST',
                 | 'LIST_INFO'='(China, US),UK ,Japan,(Canada,Russia, Good, NotGood), Korea ')
               """.stripMargin)
@@ -179,7 +179,7 @@ object CarbonPartitionExample {
                  | area String
                  | )
                  | PARTITIONED BY (vin String)
-                 | STORED BY 'carbondata'
+                 | STORED AS carbondata
                  | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='5')
                 """.stripMargin)
 

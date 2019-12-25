@@ -21,7 +21,7 @@ import org.apache.spark.sql.catalyst.plans.logical.{Aggregate, LogicalPlan}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.command.{SecondaryIndex, SecondaryIndexModel}
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.hive.{CarbonInternalMetastore, CarbonRelation, CarbonSessionCatalog}
+import org.apache.spark.sql.hive.{CarbonInternalMetastore, CarbonRelation, CarbonSessionCatalogUtil}
 
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.constants.CarbonCommonConstants
@@ -355,7 +355,7 @@ object CarbonInternalScalaUtil {
   def addOrModifyTableProperty(carbonTable: CarbonTable,
     properties: Map[String, String],
     schema: String, needLock: Boolean = true)
-    (sparkSession: SparkSession, catalog: CarbonSessionCatalog): Unit = {
+    (sparkSession: SparkSession): Unit = {
     val tableName = carbonTable.getTableName
     val dbName = carbonTable.getDatabaseName
     val locksToBeAcquired = List(LockUsage.METADATA_LOCK, LockUsage.COMPACTION_LOCK)
@@ -400,7 +400,7 @@ object CarbonInternalScalaUtil {
       val (tableIdentifier, schemParts) = updateSchemaInfo(
         carbonTable = carbonTable,
         thriftTable = thriftTable, schema = schema)(sparkSession)
-      catalog.alterTable(tableIdentifier, schemParts, None)
+      CarbonSessionCatalogUtil.alterTable(tableIdentifier, schemParts, None, sparkSession)
       // remove from the cache so that the table will be loaded again with the new tableproperties
       CarbonInternalMetastore
         .removeTableFromMetadataCache(carbonTable.getDatabaseName, tableName)(sparkSession)

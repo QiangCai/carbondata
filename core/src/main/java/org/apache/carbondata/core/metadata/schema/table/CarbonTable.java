@@ -44,6 +44,7 @@ import org.apache.carbondata.core.datastore.block.SegmentProperties;
 import org.apache.carbondata.core.features.TableOperation;
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
 import org.apache.carbondata.core.metadata.CarbonTableIdentifier;
+import org.apache.carbondata.core.metadata.DatabaseLocationProvider;
 import org.apache.carbondata.core.metadata.SegmentFileStore;
 import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.BucketingInfo;
@@ -291,8 +292,8 @@ public class CarbonTable implements Serializable, Writable {
    * @return
    */
   public static String buildUniqueName(String databaseName, String tableName) {
-    return (databaseName + CarbonCommonConstants.UNDERSCORE + tableName).toLowerCase(
-        Locale.getDefault());
+    return (DatabaseLocationProvider.get().provide(databaseName) +
+        CarbonCommonConstants.UNDERSCORE + tableName).toLowerCase(Locale.getDefault());
   }
 
   /**
@@ -1020,6 +1021,18 @@ public class CarbonTable implements Serializable, Writable {
     return numberOfNoDictSortColumns;
   }
 
+  public static List<CarbonDimension> getNoDictSortColumns(List<CarbonDimension> dimensions) {
+    List<CarbonDimension> noDictSortColumns = new ArrayList<>(dimensions.size());
+    for (int i = 0; i < dimensions.size(); i++) {
+      CarbonDimension dimension = dimensions.get(i);
+      if (dimension.isSortColumn() &&
+          !dimension.getColumnSchema().hasEncoding(Encoding.DICTIONARY)) {
+        noDictSortColumns.add(dimension);
+      }
+    }
+    return noDictSortColumns;
+  }
+
   public CarbonColumn getRangeColumn() {
     String rangeColumn =
         tableInfo.getFactTable().getTableProperties().get(CarbonCommonConstants.RANGE_COLUMN);
@@ -1379,6 +1392,10 @@ public class CarbonTable implements Serializable, Writable {
     }
   }
 
+  public String getGlobalSortPartitions() {
+    return tableInfo.getFactTable().getTableProperties().get("global_sort_partitions");
+  }
+
   public SegmentManager getSegmentManager() {
     return new SegmentManagerImpl(this);
   }
@@ -1406,7 +1423,10 @@ public class CarbonTable implements Serializable, Writable {
       if (segment != null) {
         if (!segment.getLocationMap().values().toArray(
             new SegmentFileStore.FolderDetails[0])[0].isRelative()) {
-          final String segmentFolder = segment.getOptions().get("path");
+          final String segmentFolder = null;
+          if (segment.getOptions() != null) {
+            segment.getOptions().get("path");
+          }
           if (segmentFolder != null) {
             folders.add(segmentFolder);
           }

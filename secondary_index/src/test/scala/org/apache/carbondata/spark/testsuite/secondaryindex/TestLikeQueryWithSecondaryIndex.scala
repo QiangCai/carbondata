@@ -25,7 +25,7 @@ class TestLikeQueryWithSecondaryIndex extends QueryTest with BeforeAndAfterAll {
 
     sql("CREATE TABLE IF NOT EXISTS TCarbon(ID Int, country String, "+
           "name String, phonetype String, serialname String) "+
-        "STORED BY 'carbondata'"
+        "STORED AS carbondata"
     )
     var csvFilePath = s"$pluginResourcesPath/secondaryIndexLikeTest.csv"
 
@@ -36,7 +36,7 @@ class TestLikeQueryWithSecondaryIndex extends QueryTest with BeforeAndAfterAll {
 
     )
 
-    sql("create index insert_index on table TCarbon (name) AS 'org.apache.carbondata.format'"
+    sql("create index insert_index on table TCarbon (name) AS 'carbondata'"
     )
   }
 

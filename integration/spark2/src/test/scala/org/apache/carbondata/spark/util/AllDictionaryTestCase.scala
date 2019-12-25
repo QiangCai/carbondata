@@ -98,7 +98,7 @@ class AllDictionaryTestCase extends Spark2QueryTest with BeforeAndAfterAll {
     try {
       sql(
         "CREATE TABLE IF NOT EXISTS sample (id STRING, name STRING, city STRING, " +
-          "age INT) STORED BY 'org.apache.carbondata.format' " +
+          "age INT) STORED AS carbondata " +
           "TBLPROPERTIES('dictionary_include'='city')"
       )
     } catch {
@@ -111,7 +111,7 @@ class AllDictionaryTestCase extends Spark2QueryTest with BeforeAndAfterAll {
           "array<string>, locationinfo array<struct<ActiveAreaId: INT, ActiveCountry: string, " +
           "ActiveProvince: string, Activecity: string, ActiveDistrict: string, ActiveStreet: " +
           "string>>, proddate struct<productionDate: string,activeDeactivedate: array<string>>, " +
-          "gamePointId INT,contractNumber INT) STORED BY 'org.apache.carbondata.format'" +
+          "gamePointId INT,contractNumber INT) STORED AS carbondata " +
           "TBLPROPERTIES('DICTIONARY_EXCLUDE'='ROMSize', 'dictionary_include'='channelsId')"
       )
     } catch {
@@ -127,7 +127,6 @@ class AllDictionaryTestCase extends Spark2QueryTest with BeforeAndAfterAll {
       .addProperty("carbon.custom.distribution", "true")
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_BAD_RECORDS_ACTION,"FORCE")
-    import org.apache.spark.sql.CarbonSession._
 
     val spark = SparkSession
       .builder()
@@ -137,7 +136,8 @@ class AllDictionaryTestCase extends Spark2QueryTest with BeforeAndAfterAll {
       .config("spark.network.timeout", "600s")
       .config("spark.executor.heartbeatInterval", "600s")
       .config("carbon.enable.vector.reader","false")
-      .getOrCreateCarbonSession(storeLocation, metaStoreDB)
+      .config("spark.sql.extensions", "org.apache.spark.sql.CarbonExtensions")
+      .getOrCreate()
     val catalog = CarbonEnv.getInstance(spark).carbonMetaStore
     sampleRelation = catalog.lookupRelation(Option(CarbonCommonConstants.DATABASE_DEFAULT_NAME),
       "sample")(spark).asInstanceOf[CarbonRelation]

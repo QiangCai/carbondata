@@ -39,8 +39,10 @@ import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonDimension;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonMeasure;
 import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema;
+import org.apache.carbondata.core.stats.LoadStats;
 import org.apache.carbondata.core.util.CarbonProperties;
 import org.apache.carbondata.core.util.CarbonUtil;
+import org.apache.carbondata.core.util.OutputFilesInfoHolder;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.processing.datamap.DataMapWriterListener;
 import org.apache.carbondata.processing.datatypes.GenericDataType;
@@ -190,6 +192,10 @@ public class CarbonFactDataHandlerModel {
   // this will help in knowing complex byte array will be divided into how may new pages.
   private int noDictAllComplexColumnDepth;
 
+  private LoadStats loadStats;
+
+  private OutputFilesInfoHolder outputFilesInfoHolder;
+
   /**
    * Create the model using @{@link CarbonDataLoadConfiguration}
    */
@@ -312,6 +318,9 @@ public class CarbonFactDataHandlerModel {
     carbonFactDataHandlerModel.dataMapWriterlistener = listener;
     carbonFactDataHandlerModel.writingCoresCount = configuration.getWritingCoresCount();
     carbonFactDataHandlerModel.initNumberOfCores();
+    carbonFactDataHandlerModel.setLoadStats(configuration.getLoadStats());
+    carbonFactDataHandlerModel
+        .setOutputFilesInfoHolder(configuration.getOutputFilesInfoHolder());
     return carbonFactDataHandlerModel;
   }
 
@@ -410,6 +419,8 @@ public class CarbonFactDataHandlerModel {
     carbonFactDataHandlerModel
         .setColumnLocalDictGenMap(CarbonUtil.getLocalDictionaryModel(carbonTable));
     carbonFactDataHandlerModel.sortScope = carbonTable.getSortScope();
+    carbonFactDataHandlerModel.setLoadStats(loadModel.getLoadStats());
+    carbonFactDataHandlerModel.setOutputFilesInfoHolder(loadModel.getOutputFilesInfoHolder());
     return carbonFactDataHandlerModel;
   }
 
@@ -790,6 +801,22 @@ public class CarbonFactDataHandlerModel {
 
   public void setNoDictAllComplexColumnDepth(int noDictAllComplexColumnDepth) {
     this.noDictAllComplexColumnDepth = noDictAllComplexColumnDepth;
+  }
+
+  public void setLoadStats(LoadStats loadStats) {
+    this.loadStats = loadStats;
+  }
+
+  public LoadStats getLoadStats() {
+    return this.loadStats;
+  }
+
+  public OutputFilesInfoHolder getOutputFilesInfoHolder() {
+    return outputFilesInfoHolder;
+  }
+
+  public void setOutputFilesInfoHolder(OutputFilesInfoHolder outputFilesInfoHolder) {
+    this.outputFilesInfoHolder = outputFilesInfoHolder;
   }
 }
 

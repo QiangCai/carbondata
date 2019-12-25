@@ -41,7 +41,7 @@ class TestCreateTableWithSortScope extends QueryTest with BeforeAndAfterAll {
          | intField INT,
          | stringField STRING
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('SORT_COLUMNS'='stringField', 'SORT_SCOPE'='GLOBAL_SORT')
        """.stripMargin)
 
@@ -53,7 +53,7 @@ class TestCreateTableWithSortScope extends QueryTest with BeforeAndAfterAll {
          | intField INT,
          | stringField STRING
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('SORT_COLUMNS'='stringField', 'SORT_SCOPE'='LOCAL_SORT')
        """.stripMargin)
 
@@ -67,7 +67,7 @@ class TestCreateTableWithSortScope extends QueryTest with BeforeAndAfterAll {
          | intField INT,
          | stringField STRING
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('SORT_COLUMNS'='stringField', 'SORT_SCOPE'='BATCH_SORT')
        """.stripMargin)
 
@@ -79,7 +79,7 @@ class TestCreateTableWithSortScope extends QueryTest with BeforeAndAfterAll {
          | intField INT,
          | stringField STRING
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('SORT_COLUMNS'='stringField', 'SORT_SCOPE'='NO_SORT')
        """.stripMargin)
 
@@ -94,7 +94,7 @@ class TestCreateTableWithSortScope extends QueryTest with BeforeAndAfterAll {
            | intField INT,
            | stringField STRING
            | )
-           | STORED BY 'carbondata'
+           | STORED AS carbondata
            | TBLPROPERTIES('SORT_COLUMNS'='stringField', 'SORT_SCOPE'='abc')
        """.stripMargin)
     }

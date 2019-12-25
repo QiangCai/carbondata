@@ -26,6 +26,8 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.scalatest.BeforeAndAfterAll
 
+import org.apache.carbondata.core.datastore.impl.FileFactory
+
 class TestLoadDataFrame extends QueryTest with BeforeAndAfterAll {
   var df: DataFrame = _
   var dataFrame: DataFrame = _
@@ -69,6 +71,7 @@ class TestLoadDataFrame extends QueryTest with BeforeAndAfterAll {
   }
 
   def dropTable() = {
+    sql("DROP TABLE IF EXISTS carbon0")
     sql("DROP TABLE IF EXISTS carbon1")
     sql("DROP TABLE IF EXISTS carbon2")
     sql("DROP TABLE IF EXISTS carbon3")
@@ -237,23 +240,30 @@ class TestLoadDataFrame extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test datasource table with specified table path") {
-    val path = "./source"
+    val file = new File("./source")
+    if (file.exists()) {
+      FileFactory.deleteAllFilesOfDir(file)
+    }
+    val path = file.getCanonicalPath
     df2.write
       .format("carbondata")
       .option("tableName", "carbon10")
       .option("tablePath", path)
       .mode(SaveMode.Overwrite)
       .save()
-    assert(new File(path).exists())
+    assert(file.exists())
     checkAnswer(
       sql("select count(*) from carbon10 where c3 > 500"), Row(500)
     )
     sql("drop table carbon10")
-    assert(!new File(path).exists())
+    assert(file.exists())
     assert(intercept[AnalysisException](
       sql("select count(*) from carbon10 where c3 > 500"))
       .message
       .contains("not found"))
+    if (file.exists()) {
+      FileFactory.deleteAllFilesOfDir(file)
+    }
   }
   test("test streaming Table") {
     dataFrame.write
@@ -342,7 +352,7 @@ class TestLoadDataFrame extends QueryTest with BeforeAndAfterAll {
 
   test("test load dataframe while giving already created table") {
 
-    sql(s"create table carbon_table_df(c1 string, c2 string, c3 int) stored by 'carbondata'")
+    sql(s"create table carbon_table_df(c1 string, c2 string, c3 int) STORED AS carbondata")
     // save dataframe to carbon file
     df.write
       .format("carbondata")
@@ -364,7 +374,7 @@ class TestLoadDataFrame extends QueryTest with BeforeAndAfterAll {
 
   test("test load dataframe while giving already created table with delete segment") {
 
-    sql(s"create table carbon_table_df1(c1 string, c2 string, c3 int) stored by 'carbondata'")
+    sql(s"create table carbon_table_df1(c1 string, c2 string, c3 int) STORED AS carbondata")
     val table = CarbonEnv.getCarbonTable(TableIdentifier("carbon_table_df1"))(sqlContext.sparkSession)
     // save dataframe to carbon file
     df.write

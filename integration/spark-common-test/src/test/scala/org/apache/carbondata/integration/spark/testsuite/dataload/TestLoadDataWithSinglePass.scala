@@ -36,7 +36,7 @@ class TestLoadDataWithSinglePass extends QueryTest with BeforeAndAfterAll {
       """
         |CREATE TABLE table_two_pass (ID int, date Timestamp, country String,
         |name String, phonetype String, serialname String, salary int)
-        |STORED BY 'org.apache.carbondata.format'
+        |STORED AS carbondata
       """.stripMargin)
 
     sql(
@@ -49,7 +49,7 @@ class TestLoadDataWithSinglePass extends QueryTest with BeforeAndAfterAll {
       """
         |CREATE TABLE table_one_pass (ID int, date Timestamp, country String,
         |name String, phonetype String, serialname String, salary int)
-        |STORED BY 'org.apache.carbondata.format'
+        |STORED AS carbondata
       """.stripMargin)
 
     sql(
@@ -71,7 +71,7 @@ class TestLoadDataWithSinglePass extends QueryTest with BeforeAndAfterAll {
       """
         |CREATE TABLE table_one_pass_2 (ID int, date Timestamp, country String,
         |name String, phonetype String, serialname String, salary int)
-        |STORED BY 'org.apache.carbondata.format'
+        |STORED AS carbondata
       """.stripMargin)
     sql(
       s"""
@@ -110,7 +110,7 @@ class TestLoadDataWithSinglePass extends QueryTest with BeforeAndAfterAll {
       """
         |CREATE TABLE dict_exclude (ID int, date Timestamp, country String,
         |name String, phonetype String, serialname String, salary int)
-        |STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('DICTIONARY_EXCLUDE'='country,name,serialname,phonetype')
+        |STORED AS carbondata TBLPROPERTIES('DICTIONARY_EXCLUDE'='country,name,serialname,phonetype')
       """.stripMargin)
     sql(
       s"""

@@ -22,6 +22,7 @@ import java.lang.reflect.Method
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.broadcast.Broadcast
+import org.apache.spark.executor.OutputMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.catalyst.analysis.EmptyRule
@@ -30,9 +31,11 @@ import org.apache.spark.sql.catalyst.plans.logical
 import org.apache.spark.sql.catalyst.plans.logical.{ColumnStat, LogicalPlan, Statistics}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.internal.{SessionState, SQLConf}
+import org.apache.spark.sql.internal.{SQLConf, SessionState}
 import org.apache.spark.sql.types.{DataType, StructType}
 import org.apache.spark.util.{CarbonReflectionUtils, SerializableConfiguration, SparkUtil, Utils}
+
+import org.apache.carbondata.core.stats.LoadStats
 
 object SparkSQLUtil {
   def sessionState(sparkSession: SparkSession): SessionState = sparkSession.sessionState
@@ -47,7 +50,7 @@ object SparkSQLUtil {
   }
 
   def getSparkSession: SparkSession = {
-    SparkSession.getDefaultSession.get
+    SparkSession.getActiveSession.getOrElse(null)
   }
 
   def invokeStatsMethod(logicalPlanObj: LogicalPlan, conf: SQLConf): Statistics = {
@@ -261,4 +264,10 @@ object SparkSQLUtil {
     taskGroupDesc
   }
 
+  def setOutputMetrics(metrics: OutputMetrics, loadStats: LoadStats): Unit = {
+    if (loadStats != null && metrics != null) {
+      metrics.setBytesWritten(loadStats.getNumOutputBytes)
+      metrics.setRecordsWritten(loadStats.getNumOutputRows)
+    }
+  }
 }

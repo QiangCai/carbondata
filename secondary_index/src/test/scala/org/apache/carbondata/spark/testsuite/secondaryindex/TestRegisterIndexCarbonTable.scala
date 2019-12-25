@@ -14,7 +14,7 @@ package org.apache.carbondata.spark.testsuite.secondaryindex
 import java.io.{File, IOException}
 
 import org.apache.commons.io.FileUtils
-import org.apache.spark.sql.test.util.QueryTest
+import org.apache.spark.sql.common.util.QueryTest
 import org.apache.spark.sql.Row
 import org.scalatest.BeforeAndAfterAll
 
@@ -54,16 +54,16 @@ class TestRegisterIndexCarbonTable extends QueryTest with BeforeAndAfterAll {
   }
   test("register tables test") {
     sql("drop database if exists carbon cascade")
-    sql(s"create database carbon location '${dblocation}'")
+    sql(s"create database carbon location '${location}'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
-    sql("create index index_on_c3 on table carbontable (c3, c5) AS 'org.apache.carbondata.format'")
-    backUpData(dblocation, "carbontable")
-    backUpData(dblocation, "index_on_c3")
+    sql("create index index_on_c3 on table carbontable (c3, c5) AS 'carbondata'")
+    backUpData(location, "carbontable")
+    backUpData(location, "index_on_c3")
     sql("drop table carbontable")
-    restoreData(dblocation, "carbontable")
-    restoreData(dblocation, "index_on_c3")
+    restoreData(location, "carbontable")
+    restoreData(location, "index_on_c3")
     sql("refresh table carbontable")
     sql("refresh table index_on_c3")
     checkAnswer(sql("select count(*) from carbontable"), Row(1))

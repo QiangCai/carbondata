@@ -23,6 +23,7 @@ import org.apache.spark.sql.util.CarbonException
 
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.common.logging.LogServiceFactory
+import org.apache.carbondata.core.datastore.impl.FileFactory
 import org.apache.carbondata.core.metadata.datatype.{DataTypes => CarbonType}
 import org.apache.carbondata.spark.CarbonOption
 
@@ -33,7 +34,7 @@ class CarbonDataFrameWriter(sqlContext: SQLContext, val dataFrame: DataFrame) {
   def saveAsCarbonFile(parameters: Map[String, String] = Map()): Unit = {
     // create a new table using dataframe's schema and write its content into the table
     sqlContext.sparkSession.sql(
-      makeCreateTableString(dataFrame.schema, new CarbonOption(parameters)))
+      makeCreateTableString(dataFrame.schema, new CarbonOption(parameters))).collect()
     writeToCarbonFile(parameters)
   }
 
@@ -124,12 +125,14 @@ class CarbonDataFrameWriter(sqlContext: SQLContext, val dataFrame: DataFrame) {
 
     val dbName = CarbonEnv.getDatabaseName(options.dbName)(sqlContext.sparkSession)
 
+    val tablePath = options.tablePath.map(FileFactory.getUpdatedFilePath(_))
+
     s"""
        | CREATE TABLE IF NOT EXISTS $dbName.${options.tableName}
        | (${ carbonSchema.mkString(", ") })
        | ${ if (partition.nonEmpty) s"PARTITIONED BY (${partition.mkString(", ")})" else ""}
-       | STORED BY 'carbondata'
-       | ${ if (options.tablePath.nonEmpty) s"LOCATION '${options.tablePath.get}'" else ""}
+       | STORED AS carbondata
+       | ${ if (tablePath.nonEmpty) s"LOCATION '${tablePath.get}'" else ""}
        |  ${ if (property.nonEmpty) "TBLPROPERTIES (" + property + ")" else "" }
        |
      """.stripMargin

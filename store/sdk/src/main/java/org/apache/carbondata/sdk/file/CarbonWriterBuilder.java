@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -808,7 +809,7 @@ public class CarbonWriterBuilder {
     String tableName;
     String dbName;
     dbName = "";
-    tableName = "_tempTable_" + String.valueOf(timestamp);
+    tableName = "_tempTable-" + UUID.randomUUID().toString() + "_" + String.valueOf(timestamp);
     TableSchema schema = tableSchemaBuilder.build();
     schema.setTableName(tableName);
     CarbonTable table =

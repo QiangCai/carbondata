@@ -39,7 +39,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
     sql(
       """
         | CREATE TABLE loadtest(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
   }
 
@@ -105,7 +105,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
   test("test data loading with invalid values for mesasures") {
     val testData = s"$resourcesPath/invalidMeasures.csv"
     sql("drop table if exists invalidMeasures")
-    sql("CREATE TABLE invalidMeasures (country String, salary double, age decimal(10,2)) STORED BY 'carbondata'")
+    sql("CREATE TABLE invalidMeasures (country String, salary double, age decimal(10,2)) STORED AS carbondata")
     sql(s"LOAD DATA LOCAL INPATH '$testData' into table invalidMeasures options('Fileheader'='country,salary,age')")
     checkAnswer(
       sql("SELECT * FROM invalidMeasures"),
@@ -116,7 +116,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
   test("test data loading into table whose name has '_'") {
     sql("DROP TABLE IF EXISTS load_test")
     sql(""" CREATE TABLE load_test(id int, name string, city string, age int)
-        STORED BY 'org.apache.carbondata.format' """)
+        STORED AS carbondata """)
     val testData = s"$resourcesPath/sample.csv"
     try {
       sql(s"LOAD DATA LOCAL INPATH '$testData' into table load_test")
@@ -133,7 +133,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
   test("test data loading into table with Single Pass") {
     sql("DROP TABLE IF EXISTS load_test_singlepass")
     sql(""" CREATE TABLE load_test_singlepass(id int, name string, city string, age int)
-        STORED BY 'org.apache.carbondata.format' """)
+        STORED AS carbondata """)
     val testData = s"$resourcesPath/sample.csv"
     try {
       sql(s"LOAD DATA LOCAL INPATH '$testData' into table load_test_singlepass options ('SINGLE_PASS'='TRUE')")
@@ -150,12 +150,13 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
 
   test("test load data with decimal type and sort intermediate files as 1") {
     sql("drop table if exists carbon_table")
+    sql("drop table if exists carbonBigDecimalLoad")
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.SORT_INTERMEDIATE_FILES_LIMIT, "1")
       .addProperty(CarbonCommonConstants.SORT_SIZE, "1")
       .addProperty(CarbonCommonConstants.DATA_LOAD_BATCH_SIZE, "1")
-    sql("create table if not exists carbonBigDecimal (ID Int, date Timestamp, country String, name String, phonetype String, serialname String, salary decimal(27, 10)) STORED BY 'org.apache.carbondata.format'")
-    sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/decimalBoundaryDataCarbon.csv' into table carbonBigDecimal")
+    sql("create table if not exists carbonBigDecimalLoad (ID Int, date Timestamp, country String, name String, phonetype String, serialname String, salary decimal(27, 10)) STORED AS carbondata")
+    sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/decimalBoundaryDataCarbon.csv' into table carbonBigDecimalLoad")
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.SORT_INTERMEDIATE_FILES_LIMIT,
         CarbonCommonConstants.SORT_INTERMEDIATE_FILES_LIMIT_DEFAULT_VALUE)
@@ -169,8 +170,8 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
     val testdata =s"$resourcesPath/32000char.csv"
     sql("drop table if exists load32000chardata")
     sql("drop table if exists load32000chardata_dup")
-    sql("CREATE TABLE load32000chardata(dim1 String, dim2 String, mes1 int) STORED BY 'org.apache.carbondata.format'")
-    sql("CREATE TABLE load32000chardata_dup(dim1 String, dim2 String, mes1 int) STORED BY 'org.apache.carbondata.format'")
+    sql("CREATE TABLE load32000chardata(dim1 String, dim2 String, mes1 int) STORED AS carbondata")
+    sql("CREATE TABLE load32000chardata_dup(dim1 String, dim2 String, mes1 int) STORED AS carbondata")
     sql(s"LOAD DATA LOCAL INPATH '$testdata' into table load32000chardata OPTIONS('FILEHEADER'='dim1,dim2,mes1')")
     intercept[Exception] {
       sql("insert into load32000chardata_dup select dim1,concat(load32000chardata.dim2,'aaaa'),mes1 from load32000chardata").show()
@@ -184,7 +185,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
   test("test load / insert / update with data more than 32000 bytes - dictionary_exclude") {
     val testdata = s"$resourcesPath/unicodechar.csv"
     sql("drop table if exists load32000bytes")
-    sql("create table load32000bytes(name string) stored by 'carbondata'")
+    sql("create table load32000bytes(name string) STORED AS carbondata")
     sql("insert into table load32000bytes select 'aaa'")
 
     assert(intercept[Exception] {
@@ -208,7 +209,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
   test("test load / insert / update with data more than 32000 bytes - dictionary_include") {
     val testdata = s"$resourcesPath/unicodechar.csv"
     sql("drop table if exists load32000bytes")
-    sql("create table load32000bytes(name string) stored by 'carbondata' TBLPROPERTIES('DICTIONARY_INCLUDE'='name')")
+    sql("create table load32000bytes(name string) STORED AS carbondata TBLPROPERTIES('DICTIONARY_INCLUDE'='name')")
     sql("insert into table load32000bytes select 'aaa'")
 
     assert(intercept[Exception] {
@@ -231,7 +232,7 @@ class TestLoadDataGeneral extends QueryTest with BeforeAndAfterEach {
 
   test("test if stale folders are deleting on data load") {
     sql("drop table if exists stale")
-    sql("create table stale(a string) stored by 'carbondata'")
+    sql("create table stale(a string) STORED AS carbondata")
     sql("insert into stale values('k')")
     val carbonTable = CarbonMetadata.getInstance().getCarbonTable("default", "stale")
     val tableStatusFile = CarbonTablePath.getTableStatusFilePath(carbonTable.getTablePath)

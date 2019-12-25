@@ -54,7 +54,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE normal_test(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE normal_test OPTIONS('header'='false')")
@@ -63,7 +63,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
 
@@ -167,7 +167,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test4(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT', 'autorefreshdatamap' = 'false')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE datamap_test4 OPTIONS('header'='false')")
@@ -193,7 +193,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test1(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -224,7 +224,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test2(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -237,7 +237,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test3(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -262,7 +262,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -284,7 +284,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -305,7 +305,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -326,7 +326,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -349,7 +349,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -374,7 +374,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -400,7 +400,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT', 'CACHE_LEVEL'='BLOCKLET')
       """.stripMargin)
     sql(
@@ -423,7 +423,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(
@@ -448,7 +448,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -474,7 +474,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
 
   test("test lucene fine grain data map for show datamaps with Preaggregate and Lucene") {
     sql("DROP TABLE IF EXISTS datamap_main")
-    sql("create table datamap_main (a string, b string, c string) stored by 'carbondata'")
+    sql("create table datamap_main (a string, b string, c string) STORED AS carbondata")
     sql(
       s"""
          | CREATE DATAMAP dm_lucene ON TABLE datamap_main
@@ -496,7 +496,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE source_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -509,7 +509,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE target_table
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | AS
         | Select * from source_table where TEXT_MATCH('name:n1*')
       """.stripMargin)
@@ -524,7 +524,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_limit(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -545,7 +545,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_overwrite(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -559,7 +559,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE table1(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql("INSERT OVERWRITE TABLE table1 select *from datamap_test_overwrite where TEXT_MATCH('name:n*')")
@@ -573,7 +573,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE main(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'CACHE_LEVEL'='BLOCKLET')
       """.stripMargin)
     sql(
@@ -619,7 +619,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test7(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -671,7 +671,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test5(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT', 'CACHE_LEVEL'='BLOCKLET')
       """.stripMargin)
     sql(
@@ -704,7 +704,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test5(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -728,7 +728,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE table1(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE table1 OPTIONS('header'='false')")
@@ -744,7 +744,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -766,7 +766,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -788,7 +788,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(
@@ -811,7 +811,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists table_stop")
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_LUCENE_INDEX_STOP_WORDS, "false")
-    sql("create table table_stop(suggestion string,goal string) stored by 'carbondata' TBLPROPERTIES('CACHE_LEVEL'='BLOCKLET')")
+    sql("create table table_stop(suggestion string,goal string) STORED AS carbondata TBLPROPERTIES('CACHE_LEVEL'='BLOCKLET')")
     sql(
       "create datamap stop_dm on table table_stop using 'lucene' DMPROPERTIES('index_columns'='suggestion')")
     sql("insert into table_stop select 'The is the stop word','abcde'")
@@ -828,14 +828,14 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test4(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT',
         | 'autorefreshdatamap' = 'false', 'CACHE_LEVEL'='BLOCKLET')
       """.stripMargin)
     sql(
       """
         | CREATE TABLE datamap_copy(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT',
         | 'autorefreshdatamap' = 'false', 'CACHE_LEVEL'='BLOCKLET')
       """.stripMargin)
@@ -860,7 +860,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     val exception_duplicate_column: Exception = intercept[MalformedDataMapCommandException] {
@@ -886,7 +886,7 @@ class LuceneFineGrainDataMapSuite extends QueryTest with BeforeAndAfterAll {
     sql(
       """
         | CREATE TABLE datamap_test_table(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='LOCAL_SORT')
       """.stripMargin)
     sql(

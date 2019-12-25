@@ -87,7 +87,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='address, note', 'dictionary_include'='address')
            |""".
           stripMargin)
@@ -101,7 +101,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='address, note', 'dictionary_exclude'='address')
            |""".
           stripMargin)
@@ -115,7 +115,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='name, note', 'SORT_COLUMNS'='name, address')
            |""".
           stripMargin)
@@ -129,7 +129,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='id, note')
            |""".stripMargin)
     }
@@ -143,7 +143,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='address, note, Note')
            |""".stripMargin)
     }
@@ -157,7 +157,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='address, note, NoteS')
            |""".stripMargin)
     }
@@ -171,7 +171,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING
-           | ) partitioned by (note string) STORED BY 'carbondata'
+           | ) partitioned by (note string) STORED AS carbondata
            | TBLPROPERTIES('LONG_STRING_COLUMNS'='note')
            |""".stripMargin)
     }
@@ -184,7 +184,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('no_inverted_index'='note', 'LONG_STRING_COLUMNS'='address, note')
            |""".stripMargin)
     }
@@ -197,7 +197,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
         s"""
            | CREATE TABLE if not exists $longStringTable(
            | id INT, name STRING, description STRING, address STRING, note STRING
-           | ) STORED BY 'carbondata'
+           | ) STORED AS carbondata
            | TBLPROPERTIES('inverted_index'='note', 'long_string_columns'='note,description')
            |""".stripMargin)
     }
@@ -209,7 +209,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
       s"""
          | CREATE TABLE if not exists $longStringTable(
          | id INT, name STRING, description STRING, address STRING, note STRING
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
          | TBLPROPERTIES('LONG_STRING_COLUMNS'='description, note', 'SORT_COLUMNS'='name')
          |""".stripMargin)
     sql(
@@ -341,7 +341,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
       s"""
          | CREATE TABLE if not exists $longStringTable(
          | id INT, name STRING, description STRING, address STRING, note STRING
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
          | TBLPROPERTIES('LONG_STRING_COLUMNS'='description, note', 'SORT_COLUMNS'='name')
          |""".stripMargin)
 
@@ -369,7 +369,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
     sql("""
         | CREATE TABLE varchar_complex_table
         | (m1 int,arr1 array<string>,varchar1 string,s1 string,varchar2 string,arr2 array<string>)
-        | STORED BY 'carbondata'
+        | STORED AS carbondata
         | TBLPROPERTIES('long_string_columns'='varchar1,varchar2')
         | """.stripMargin)
     sql("insert into varchar_complex_table values(1, array('ar1.0','ar1.1'), 'longstr10', 'normal string1', 'longstr11', array('ar2.0','ar2.1')),(2, array('ar1.2','ar1.3'), 'longstr20', 'normal string2', 'longstr21', array('ar2.2','ar2.3'))")
@@ -403,7 +403,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
       s"""
          | CREATE TABLE if not exists $longStringTable(
          | id INT, name STRING, description STRING, address STRING
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
          | TBLPROPERTIES('LONG_STRING_COLUMNS'='description', 'SORT_COLUMNS'='name')
          |""".stripMargin)
     val exceptionCaught = intercept[Exception] {
@@ -449,7 +449,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
       s"""
          | CREATE TABLE if not exists $longStringTable(
          | id INT, name STRING, description STRING, address STRING, note STRING
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
          | TBLPROPERTIES('LONG_STRING_COLUMNS'='description, note', 'dictionary_include'='name', 'sort_columns'='id')
          |""".
         stripMargin)
@@ -471,7 +471,7 @@ class VarcharDataTypesBasicTestCase extends QueryTest with BeforeAndAfterEach wi
       s"""
          | CREATE TABLE if not exists $longStringTable(
          | id INT, name STRING, description STRING, address STRING, note STRING
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
          | TBLPROPERTIES('LONG_STRING_COLUMNS'='address, note', 'dictionary_include'='name', 'sort_columns'='id')
          |""".
         stripMargin)

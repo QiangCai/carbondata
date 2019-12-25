@@ -129,7 +129,7 @@ class TestOcrUdf extends QueryTest with BeforeAndAfterAll {
          | name string,
          | image binary
          | )
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('vector'='true')
       """.stripMargin)
 

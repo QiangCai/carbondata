@@ -232,6 +232,7 @@ public final class DataLoadProcessBuilder {
     }
 
     configuration.setTaskNo(loadModel.getTaskNo());
+    configuration.setOutputFilesInfoHolder(loadModel.getOutputFilesInfoHolder());
     String[] complexDelimiters = new String[loadModel.getComplexDelimiters().size()];
     loadModel.getComplexDelimiters().toArray(complexDelimiters);
     configuration
@@ -329,6 +330,7 @@ public final class DataLoadProcessBuilder {
     configuration.setNumberOfLoadingCores(CarbonProperties.getInstance().getNumberOfLoadingCores());
 
     configuration.setColumnCompressor(loadModel.getColumnCompressor());
+    configuration.setLoadStats(loadModel.getLoadStats());
     return configuration;
   }
 

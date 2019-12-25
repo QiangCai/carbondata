@@ -74,7 +74,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
            | booleanField boolean,
            | binaryFiled binary
            | )
-           | stored by 'carbondata'
+           | STORED AS carbondata
            | tblproperties('vector'='true')
       """.stripMargin)
 
@@ -138,7 +138,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
            | structField struct<col1:string, col2:int, col3:array<string>>,
            | mapField map<string, int>
            | )
-           | stored by 'carbondata'
+           | STORED AS carbondata
            | tblproperties('vector'='true')
       """.stripMargin)
 
@@ -204,7 +204,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
            | structField struct<col1:string, col2:int, col3:array<string>>,
            | mapField map<string, int>
            | )
-           | stored by 'carbondata'
+           | STORED AS carbondata
            | tblproperties('vector'='true')
       """.stripMargin)
 
@@ -275,7 +275,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
         s"""create table $tableName(
            | jsonContent string
            | )
-           | stored by 'carbondata'
+           | STORED AS carbondata
            | tblproperties('vector'='true')
       """.stripMargin)
 
@@ -316,7 +316,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
            |  col1 struct<col5: string>,
            |  col2 struct<col3: array<string>, col4: string>
            | )
-           | stored by 'carbondata'
+           | STORED AS carbondata
            | tblproperties('vector'='true')
       """.stripMargin)
 
@@ -353,7 +353,7 @@ class TestCarbonVector extends QueryTest with BeforeAndAfterAll {
            | structField struct<col1:string, col2:int, col3:array<string>>,
            | mapField map<string, int>
            | )
-           | stored by 'carbondata'
+           | STORED AS carbondata
            | tblproperties('vector'='true')
       """.stripMargin)
 

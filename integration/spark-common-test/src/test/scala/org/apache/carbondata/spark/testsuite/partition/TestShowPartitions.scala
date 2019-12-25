@@ -43,7 +43,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
                 | country String,
                 | area String
                 | )
-                | STORED BY 'carbondata'
+                | STORED AS carbondata
               """.stripMargin)
 
     sql("drop table if exists hashTable")
@@ -54,7 +54,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='3')
       """.stripMargin)
 
@@ -66,7 +66,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (doj Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='01-01-2010, 01-01-2015')
       """.stripMargin)
@@ -79,7 +79,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (workgroupcategory int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3)')
       """.stripMargin)
@@ -95,7 +95,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='3')
       """.stripMargin)
     sql(
@@ -105,7 +105,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (doj Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='01-01-2010, 01-01-2015')
       """.stripMargin)
@@ -116,7 +116,7 @@ class TestShowPartition  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (workgroupcategory int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3)')
       """.stripMargin)

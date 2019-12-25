@@ -30,7 +30,7 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
 
   override def beforeAll {
     sql("drop table if exists index_test")
-    sql("CREATE TABLE index_test (integer_column1 string,date1 timestamp,date2 timestamp,ID int,string_column1 string,string_column2 string)STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('DICTIONARY_INCLUDE'='ID','DICTIONARY_EXCLUDE'='string_column1,string_column2,integer_column1')")
+    sql("CREATE TABLE index_test (integer_column1 string,date1 timestamp,date2 timestamp,ID int,string_column1 string,string_column2 string)STORED AS CARBONDATA TBLPROPERTIES('DICTIONARY_INCLUDE'='ID','DICTIONARY_EXCLUDE'='string_column1,string_column2,integer_column1')")
     val currentFormat = CarbonProperties.getInstance().getProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT)
     CarbonProperties.getInstance().addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy-MM-dd HH:mm:ss")
     sql(s"LOAD DATA INPATH '$pluginResourcesPath/index.csv' into table index_test OPTIONS('DELIMITER'=',' ,'FILEHEADER'='ID,integer_column1,date1,date2,string_column1,string_column2')")
@@ -38,18 +38,18 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
   }
 
 //  test("test create index after update and delete") {
-//    sql("create table dest2 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'")
+//    sql("create table dest2 (c1 string,c2 int,c3 string,c5 string) STORED AS CARBONDATA")
 //    sql("load data inpath './src/test/resources/secindex/dest.csv' INTO table dest2")
 //    sql("load data inpath './src/test/resources/secindex/dest1.csv' INTO table dest2")
 //    sql("load data inpath './src/test/resources/secindex/dest2.csv' INTO table dest2")
 //    sql("load data inpath './src/test/resources/secindex/dest3.csv' INTO table dest2")
-//    sql("create table source2 (c11 string,c22 int,c33 string,c55 string, c66 int) STORED BY 'org.apache.carbondata.format'")
+//    sql("create table source2 (c11 string,c22 int,c33 string,c55 string, c66 int) STORED AS CARBONDATA")
 //    sql("LOAD DATA LOCAL INPATH './src/test/resources/secindex/source3.csv' INTO table source2")
 //    sql("update dest2 d set (d.c3, d.c5 ) = (select s.c33,s.c55 from source2 s where d.c1 = s.c11 and s.c22 < 3 or (s.c22 > 10 and s.c22 < 13) or (s.c22 > 20 and s.c22 < 23) or (s.c22 > 30 and s.c22 < 33))")
 //    sql("delete from dest2 where (c2 < 2) or (c2 > 10 and c2 < 13) or (c2 > 20 and c2 < 23) or (c2 > 30 and c2 < 33)")
 //    sql("delete from dest2 where (c2 > 3 and c2 < 5) or (c2 > 13 and c2 < 15) or (c2 > 23 and c2 < 25) or (c2 > 33 and c2 < 35)")
 //    sql("delete from dest2 where (c2 > 5 and c2 < 8) or (c2 > 15 and c2 < 18 ) or (c2 > 25 and c2 < 28) or (c2 > 35 and c2 < 38)")
-//    sql("create index indexdest2 on table dest2 (c3) AS 'org.apache.carbondata.format'")
+//    sql("create index indexdest2 on table dest2 (c3) AS 'carbondata'")
 //  }
 
   test("test create index table with load after index table creation") {
@@ -58,11 +58,11 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+        "utilization int,salary int) STORED AS CARBONDATA " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
         "'DICTIONARY_EXCLUDE'='empname')")
     sql("drop index if exists index_no_dictionary on load_after_index")
-    sql("create index index_no_dictionary on table load_after_index (empname) AS 'org.apache.carbondata.format'")
+    sql("create index index_no_dictionary on table load_after_index (empname) AS 'carbondata'")
     sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/data.csv' INTO " +
         "TABLE load_after_index OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
     checkAnswer(sql("select count(*) from load_after_index"),
@@ -76,7 +76,7 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+        "utilization int,salary int) STORED AS CARBONDATA " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
         "'DICTIONARY_EXCLUDE'='empname')")
 
@@ -86,9 +86,9 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
         "TABLE multiple_load OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
 
     sql("drop index if exists index_no_dictionary1 on multiple_load")
-    sql("create index index_no_dictionary1 on table multiple_load (empname) AS 'org.apache.carbondata.format'")
+    sql("create index index_no_dictionary1 on table multiple_load (empname) AS 'carbondata'")
     sql("drop index if exists index_dictionary on multiple_load")
-    sql("create index index_dictionary on table multiple_load (deptno) AS 'org.apache.carbondata.format'")
+    sql("create index index_dictionary on table multiple_load (deptno) AS 'carbondata'")
 
     checkAnswer(sql("select count(*) from multiple_load"),
       sql("select count(*) from index_no_dictionary1"))
@@ -103,7 +103,7 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+        "utilization int,salary int) STORED AS CARBONDATA " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
         "'DICTIONARY_EXCLUDE'='empname')")
 
@@ -116,7 +116,7 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
     
     sql("drop index if exists index_no_dictionary2 on compaction_load")
 
-    sql("create index index_no_dictionary2 on table compaction_load (empname) AS 'org.apache.carbondata.format'")
+    sql("create index index_no_dictionary2 on table compaction_load (empname) AS 'carbondata'")
 
     checkAnswer(sql("select count(*) from index_no_dictionary2"), Seq(Row(10)))
 
@@ -129,7 +129,7 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
 //        "designation String, doj Timestamp, workgroupcategory int, " +
 //        "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
 //        "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-//        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+//        "utilization int,salary int) STORED AS CARBONDATA " +
 //        "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
 //        "'DICTIONARY_EXCLUDE'='empname')")
 //
@@ -139,7 +139,7 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
 //        "TABLE auto_compaction_index OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
 //   
 //    sql("drop index if exists index_no_dictionary3 on auto_compaction_index")
-//    sql("create index index_no_dictionary3 on table auto_compaction_index (empname) AS 'org.apache.carbondata.format'")
+//    sql("create index index_no_dictionary3 on table auto_compaction_index (empname) AS 'carbondata'")
 //
 //    sql("alter table auto_compaction_index compact 'major'")
 //
@@ -150,40 +150,40 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
 
   test("test create index with dict,nodict&directdict cols1") {
     sql("drop index if exists indextable01 ON index_test")
-    sql("CREATE INDEX indextable01 ON TABLE index_test (id,date2,string_column2,date1,string_column1,integer_column1) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX indextable01 ON TABLE index_test (id,date2,string_column2,date1,string_column1,integer_column1) AS 'carbondata'")
     checkAnswer(sql("select integer_column1,date1,date2,id,string_column1,string_column2 from index_test"),
         sql("select integer_column1,date1,date2,id,string_column1,string_column2 from indextable01"))
   }
   test("test create index with dict,nodict&directdict cols2") {
     sql("drop index if exists indextable02 ON index_test")
-    sql("CREATE INDEX indextable02 ON TABLE index_test (date2,id,string_column2,date1,string_column1,integer_column1) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX indextable02 ON TABLE index_test (date2,id,string_column2,date1,string_column1,integer_column1) AS 'carbondata'")
     checkAnswer(sql("select integer_column1,date1,date2,id,string_column1,string_column2 from index_test"),
         sql("select integer_column1,date1,date2,id,string_column1,string_column2 from indextable02"))
   }
   
   test("test create index with directdict,nodict") {
     sql("drop index if exists indextable03 ON index_test")
-    sql("CREATE INDEX indextable03 ON TABLE index_test (date1,string_column1) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX indextable03 ON TABLE index_test (date1,string_column1) AS 'carbondata'")
     checkAnswer(sql("select date1,string_column1 from index_test"),
         sql("select date1,string_column1 from indextable03"))
   }
 
   test("test create index with nodict,directdict,dict") {
     sql("drop index if exists indextable04 ON index_test")
-    sql("CREATE INDEX indextable04 ON TABLE index_test (string_column2,date2,id) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX indextable04 ON TABLE index_test (string_column2,date2,id) AS 'carbondata'")
     checkAnswer(sql("select string_column2,date2,id from index_test"),
         sql("select string_column2,date2,id from indextable04"))
   }
   
   test("test create index with jumbled order of parent table cols") {
     sql("drop index if exists indextable05 ON index_test")
-    sql("CREATE INDEX indextable05 ON TABLE index_test (string_column2,id,date2,date1) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX indextable05 ON TABLE index_test (string_column2,id,date2,date1) AS 'carbondata'")
     checkAnswer(sql("select string_column2,id,date2,date1 from index_test"),
         sql("select string_column2,id,date2,date1 from indextable05"))
   }
   test("Load from 2 csv's with unique value for index column and compare the query with or condition") {
     sql("drop table if exists seccust")
-    sql("create table seccust (id string, c_custkey string, c_name string, c_address string, c_nationkey string, c_phone string,c_acctbal decimal, c_mktsegment string, c_comment string) STORED BY 'org.apache.carbondata.format'")
+    sql("create table seccust (id string, c_custkey string, c_name string, c_address string, c_nationkey string, c_phone string,c_acctbal decimal, c_mktsegment string, c_comment string) STORED AS CARBONDATA")
     sql(s"load data  inpath '$pluginResourcesPath/secindex/firstunique.csv' into table seccust options('DELIMITER'='|','FILEHEADER'='id,c_custkey,c_name,c_address,c_nationkey,c_phone,c_acctbal,c_mktsegment,c_comment')")
     sql(s"load data  inpath '$pluginResourcesPath/secindex/secondunique.csv' into table seccust options('DELIMITER'='|','FILEHEADER'='id,c_custkey,c_name,c_address,c_nationkey,c_phone,c_acctbal,c_mktsegment,c_comment')")
     val count1BeforeIndex = sql("select count(*) from seccust where c_phone = '25-989-741-2988' or c_mktsegment ='BUILDING'").collect
@@ -191,8 +191,8 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
 
     sql("drop index if exists sc_indx5 on seccust")
     sql("drop index if exists sc_indx6 on seccust")
-    sql("create index sc_indx5 on table seccust(c_phone) as 'org.apache.carbondata.format'")  
-    sql("create index sc_indx6 on table seccust(c_mktsegment) as 'org.apache.carbondata.format'")
+    sql("create index sc_indx5 on table seccust(c_phone) AS 'carbondata'")
+    sql("create index sc_indx6 on table seccust(c_mktsegment) AS 'carbondata'")
     checkAnswer(sql("select count(*) from seccust where c_phone = '25-989-741-2988' or c_mktsegment ='BUILDING'"),
       count1BeforeIndex)
     checkAnswer(sql("select count(*) from seccust where (c_mktsegment ='BUILDING' and c_phone ='25-989-741-2989') or c_phone = '25-989-741-2988'"),
@@ -202,10 +202,10 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
 
   /*test("Load once and create sec index and load again and do select ") {
     sql("drop table if exists seccust1")
-    sql("create table seccust1 (id string, c_custkey string, c_name string, c_address string, c_nationkey string, c_phone string,c_acctbal decimal, c_mktsegment string, c_comment string) STORED BY 'org.apache.carbondata.format'")
+    sql("create table seccust1 (id string, c_custkey string, c_name string, c_address string, c_nationkey string, c_phone string,c_acctbal decimal, c_mktsegment string, c_comment string) STORED AS carbondata")
     sql("load data  inpath './src/test/resources/secindex/firstunique.csv' into table seccust1 options('DELIMITER'='|','QUOTECHAR'='\"','FILEHEADER'='id,c_custkey,c_name,c_address,c_nationkey,c_phone,c_acctbal,c_mktsegment,c_comment')")
     sql("drop index if exists sc_indx5 on seccust1")
-    sql("create index sc_indx5 on table seccust1(c_phone) as 'org.apache.carbondata.format'")
+    sql("create index sc_indx5 on table seccust1(c_phone) AS 'carbondata'")
     sql("load data  inpath './src/test/resources/secindex/firstunique.csv' into table seccust1 options('DELIMITER'='|','QUOTECHAR'='\"','FILEHEADER'='id,c_custkey,c_name,c_address,c_nationkey,c_phone,c_acctbal,c_mktsegment,c_comment')")
     checkAnswer(sql("select c_phone from sc_indx5"),
       Seq(Row("25-989-741-2989"),Row("25-989-741-2989")))
@@ -221,11 +221,10 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
       // create table
       sql(
         "CREATE table si_compaction_test (empno int, empname String, designation String) STORED " +
-        "BY 'org.apache.carbondata.format'")
+        "AS carbondata")
       // create index
       sql(
-        "create index alter_i1 on table si_compaction_test (designation) AS 'org.apache" +
-        ".carbondata.format'")
+        "create index alter_i1 on table si_compaction_test (designation) AS 'carbondata'")
       // insert data
       sql("insert into si_compaction_test select 11,'arvind','lead'")
       sql("insert into si_compaction_test select 12,'krithi','TA'")
@@ -260,10 +259,10 @@ class TestCreateIndexWithLoadAndCompaction extends QueryTest with BeforeAndAfter
   test("test block SI on table flat folder structure") {
     sql("drop table if exists table_with_flat")
     sql(
-      "create table table_with_flat (a string,b string) stored by 'carbondata' tblproperties('flat_folder'='true')")
+      "create table table_with_flat (a string,b string) STORED AS carbondata tblproperties('flat_folder'='true')")
     sql("insert into table_with_flat values('k','r')")
     val ex = intercept[Exception] {
-      sql("create index index2 on table table_with_flat(b) as 'carbondata' ")
+      sql("create index index2 on table table_with_flat(b) AS 'carbondata' ")
     }
     assert(ex.getMessage.contains("Index table creation is not permitted on table with flat folder structure"))
   }

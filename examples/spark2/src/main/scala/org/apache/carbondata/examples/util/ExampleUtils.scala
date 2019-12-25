@@ -19,7 +19,7 @@ package org.apache.carbondata.examples.util
 
 import java.io.File
 
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.{CarbonEnv, SaveMode, SparkSession}
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.util.CarbonProperties
@@ -57,7 +57,46 @@ object ExampleUtils {
       .config("spark.sql.warehouse.dir", warehouse)
       .config("spark.driver.host", "localhost")
       .config("spark.sql.crossJoin.enabled", "true")
+      .enableHiveSupport()
       .getOrCreateCarbonSession(storeLocation, metaStoreDB)
+
+    CarbonEnv.getInstance(spark)
+
+    spark.sparkContext.setLogLevel("ERROR")
+    spark
+  }
+
+  def createSparkSession(appName: String, workThreadNum: Int = 1): SparkSession = {
+    val rootPath = new File(this.getClass.getResource("/").getPath
+                            + "../../../..").getCanonicalPath
+    val storeLocation = s"$rootPath/examples/spark2/target/store"
+    val warehouse = s"$rootPath/examples/spark2/target/warehouse"
+    val metaStoreDB = s"$rootPath/examples/spark2/target"
+
+    CarbonProperties.getInstance()
+      .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy/MM/dd HH:mm:ss")
+      .addProperty(CarbonCommonConstants.CARBON_DATE_FORMAT, "yyyy/MM/dd")
+      .addProperty(CarbonCommonConstants.ENABLE_UNSAFE_COLUMN_PAGE, "true")
+      .addProperty(CarbonCommonConstants.CARBON_BADRECORDS_LOC, "")
+
+    val masterUrl = if (workThreadNum <= 1) {
+      "local"
+    } else {
+      "local[" + workThreadNum.toString() + "]"
+    }
+
+    val spark = SparkSession
+      .builder()
+      .master(masterUrl)
+      .appName(appName)
+      .config("spark.sql.warehouse.dir", warehouse)
+      .config("spark.driver.host", "localhost")
+      .config("spark.sql.crossJoin.enabled", "true")
+      .config("spark.sql.extensions", "org.apache.spark.sql.CarbonExtensions")
+      .enableHiveSupport()
+      .getOrCreate()
+
+    CarbonEnv.getInstance(spark)
 
     spark.sparkContext.setLogLevel("ERROR")
     spark

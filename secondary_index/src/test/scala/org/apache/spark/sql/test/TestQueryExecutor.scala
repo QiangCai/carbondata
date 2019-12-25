@@ -25,9 +25,6 @@ import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.datastore.impl.FileFactory
 import org.apache.carbondata.core.util.CarbonProperties
 
-/**
- * the sql executor of spark-common-test
- */
 trait TestQueryExecutorRegister {
   def sql(sqlText: String): DataFrame
 
@@ -133,7 +130,9 @@ object TestQueryExecutor {
     }
     jarsLocal
   }
-
+  CarbonProperties.getInstance()
+    .addProperty("spark.sql.extensions",
+      "org.apache.spark.sql.CarbonInternalExtensions")
   val INSTANCE = lookupQueryExecutor.newInstance().asInstanceOf[TestQueryExecutorRegister]
   CarbonProperties.getInstance()
     .addProperty(CarbonCommonConstants.CARBON_BAD_RECORDS_ACTION, "FORCE")

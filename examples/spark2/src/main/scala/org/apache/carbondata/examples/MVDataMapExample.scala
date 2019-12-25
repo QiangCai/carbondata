@@ -31,7 +31,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 object MVDataMapExample {
 
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("MVDataMapExample")
+    val spark = ExampleUtils.createSparkSession("MVDataMapExample")
     exampleBody(spark)
     performanceTest(spark)
     spark.close()
@@ -52,7 +52,7 @@ object MVDataMapExample {
         | name String,
         | city String,
         | age Int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     spark.sql(
@@ -60,7 +60,7 @@ object MVDataMapExample {
         | CREATE TABLE dimtable
         | (name String,
         | address String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     spark.sql(s"""LOAD DATA LOCAL INPATH '$testData' into table mainTable""")
@@ -138,7 +138,7 @@ object MVDataMapExample {
         | CREATE TABLE emp_address
         | (name String,
         | address String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     spark.sql(

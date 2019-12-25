@@ -21,13 +21,11 @@ import java.util
 import java.util.UUID
 
 import scala.collection.JavaConverters._
-
 import org.apache.spark.sql.{CarbonEnv, Row, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.catalog.CatalogTypes.TablePartitionSpec
 import org.apache.spark.sql.execution.command.{AlterTableAddPartitionCommand, AlterTableDropPartitionCommand, AtomicRunnableCommand}
 import org.apache.spark.util.{AlterTableUtil, DataMapUtil}
-
 import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandException
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.datamap.DataMapStoreManager
@@ -38,6 +36,7 @@ import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager
 import org.apache.carbondata.events._
 import org.apache.carbondata.spark.rdd.CarbonDropPartitionRDD
+import org.apache.spark.sql.parser.CarbonSparkSqlParserUtil
 
 /**
  * Drop the partitions from hive and carbon store. It drops the partitions in following steps
@@ -84,10 +83,12 @@ case class CarbonAlterTableDropHivePartitionCommand(
           table.getTableName,
           locksToBeAcquired)(sparkSession)
         val partitions =
-          specs.flatMap(f => sparkSession.sessionState.catalog.listPartitions(tableName, Some(f)))
+          specs.flatMap(f => sparkSession.sessionState.catalog.listPartitions(tableName,
+            Some(CarbonSparkSqlParserUtil.copyTablePartition(f))))
         val carbonPartitions = partitions.map { partition =>
           new PartitionSpec(new util.ArrayList[String](
-            partition.spec.seq.map { case (column, value) => column + "=" + value }.toList.asJava),
+            partition.spec.seq.map { case (column, value) =>
+              column.toLowerCase + "=" + value }.toList.asJava),
             partition.location)
         }
         carbonPartitionsTobeDropped = new util.ArrayList[PartitionSpec](carbonPartitions.asJava)

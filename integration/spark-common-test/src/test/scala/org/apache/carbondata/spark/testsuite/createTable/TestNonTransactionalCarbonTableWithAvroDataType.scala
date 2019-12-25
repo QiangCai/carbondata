@@ -96,8 +96,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         | carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("HEARTS")))
   }
@@ -142,8 +142,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("bob", 10, Row("SPADES"))))
   }
@@ -185,8 +185,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"),
       Seq(Row("bob", 10, mutable.WrappedArray.make(Array("SPADES", "DIAMONDS")))))
@@ -215,8 +215,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(null, null, 10345))))
   }
@@ -244,8 +244,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(true, null, null))))
   }
@@ -273,8 +273,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row("abc", null, null))))
   }
@@ -302,8 +302,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(null, 10, null))))
   }
@@ -331,8 +331,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(null))))
   }
@@ -396,8 +396,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row("VAL_0"))))
   }
@@ -431,8 +431,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     sql("select * from sdkOutputTable").show(false)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(
@@ -468,8 +468,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"),
       Seq(Row(Row(mutable.WrappedArray.make(Array(null)), 12))))
@@ -500,8 +500,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     sql("describe formatted sdkOutputTable").show(false)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(Row(null, 1)))))
@@ -558,8 +558,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"),
       Seq(Row(Row(Row(null, mutable.WrappedArray.make(Array(Row(Row("abc")))))))))
@@ -652,8 +652,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     sql("describe formatted sdkOutputTable").show(false)
     checkAnswer(sql("select * from sdkOutputTable"),
@@ -704,8 +704,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkExistence(sql("select * from sdkOutputTable"), true, "1010.00")
   }
@@ -773,8 +773,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkExistence(sql("select * from sdkOutputTable"), true, "32.00")
   }
@@ -844,8 +844,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkExistence(sql("select * from sdkOutputTable"), true, "32.0")
   }
@@ -890,8 +890,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(172800, Row(172800))))
   }
@@ -936,8 +936,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(1728000, Row(1728000))))
   }
@@ -980,8 +980,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(decimal)))
   }
@@ -1024,8 +1024,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(decimal)))
   }
@@ -1068,8 +1068,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(decimal)))
   }
@@ -1108,8 +1108,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(avroRec)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(decimal)))
   }
@@ -1198,8 +1198,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(Row(null,null),Row("ab")))))
   }
@@ -1233,8 +1233,8 @@ class TestNonTransactionalCarbonTableWithAvroDataType extends QueryTest with Bef
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Row(null,null,null,"sun",null))))
   }

@@ -11,7 +11,7 @@
  */
 package org.apache.spark.sql.parser
 
-import org.apache.spark.sql.{CarbonEnv, CarbonSession, SparkSession}
+import org.apache.spark.sql.{CarbonEnv, CarbonSession, CarbonUtils, SparkSession}
 import org.apache.spark.sql.catalyst.parser.SqlBaseParser
 import org.apache.spark.sql.catalyst.parser.SqlBaseParser.CreateTableContext
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -33,7 +33,7 @@ class CarbonInternalSparkSqlParser(conf: SQLConf, sparkSession: SparkSession)
   private val substitutor = new VariableSubstitution(conf)
 
   override def parsePlan(sqlText: String): LogicalPlan = {
-    CarbonSession.updateSessionInfoToCurrentThread(sparkSession)
+    CarbonUtils.updateSessionInfoToCurrentThread(sparkSession)
     try {
       super.parsePlan(sqlText)
     } catch {

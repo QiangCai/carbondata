@@ -21,14 +21,14 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import org.apache.spark.sql._
-import org.apache.spark.sql.catalyst.TableIdentifier
+import org.apache.spark.sql.catalyst.{CarbonParserUtil, TableIdentifier}
 import org.apache.spark.sql.execution.command._
 import org.apache.spark.sql.execution.command.datamap.CarbonDropDataMapCommand
 import org.apache.spark.sql.execution.command.management.CarbonLoadDataCommand
 import org.apache.spark.sql.execution.command.table.CarbonCreateTableCommand
 import org.apache.spark.sql.execution.command.timeseries.TimeSeriesUtil
 import org.apache.spark.sql.optimizer.CarbonFilters
-import org.apache.spark.sql.parser.CarbonSpark2SqlParser
+import org.apache.spark.sql.parser.{CarbonSpark2SqlParser, CarbonSparkSqlParserUtil}
 import org.apache.spark.util.{DataMapUtil, PartitionUtils}
 
 import org.apache.carbondata.common.exceptions.MetadataProcessException
@@ -63,10 +63,9 @@ case class PreAggregateTableHelper(
 
   def initMeta(sparkSession: SparkSession): Seq[Row] = {
     val dmProperties = dataMapProperties.asScala
-    val updatedQuery = new CarbonSpark2SqlParser().addPreAggFunction(queryString)
-    val df = sparkSession.sql(updatedQuery)
+    val updatedQuery = CarbonSparkSqlParserUtil.getPreAggPlan(queryString, sparkSession)
     val fieldRelationMap = PreAggregateUtil.validateActualSelectPlanAndGetAttributes(
-      df.logicalPlan, queryString)
+      updatedQuery, queryString)
 
     val partitionInfo = parentTable.getPartitionInfo
     val fields = fieldRelationMap.keySet.toSeq
@@ -85,7 +84,7 @@ case class PreAggregateTableHelper(
 
     dmProperties.foreach(t => tableProperties.put(t._1, t._2))
 
-    val selectTable = PreAggregateUtil.getParentCarbonTable(df.logicalPlan)
+    val selectTable = PreAggregateUtil.getParentCarbonTable(updatedQuery)
     if (!parentTable.getTableName.equalsIgnoreCase(selectTable.getTableName)) {
       throw new MalformedDataMapCommandException(
         "Parent table name is different in select and create")
@@ -96,9 +95,9 @@ case class PreAggregateTableHelper(
       TableIdentifier(parentTable.getTableName + "_" + dataMapName,
         Some(parentTable.getDatabaseName))
     // prepare table model of the collected tokens
-    val tableModel: TableModel = new CarbonSpark2SqlParser().prepareTableModel(
+    val tableModel: TableModel = CarbonParserUtil.prepareTableModel(
       ifNotExistPresent = ifNotExistsSet,
-      new CarbonSpark2SqlParser().convertDbNameToLowerCase(tableIdentifier.database),
+      CarbonParserUtil.convertDbNameToLowerCase(tableIdentifier.database),
       tableIdentifier.table.toLowerCase,
       fields,
       partitionerFields,
@@ -172,8 +171,8 @@ case class PreAggregateTableHelper(
     } else {
       queryString
     }
-    val dataFrame = sparkSession.sql(new CarbonSpark2SqlParser().addPreAggLoadFunction(
-      updatedLoadQuery)).drop("preAggLoad")
+    val dataFrame =
+      CarbonSparkSqlParserUtil.getPreAggLoadQuery(updatedLoadQuery, sparkSession)
     loadCommand = PreAggregateUtil.createLoadCommandForChild(
       childSchema.getChildSchema.getListOfColumns,
       tableIdentifier,

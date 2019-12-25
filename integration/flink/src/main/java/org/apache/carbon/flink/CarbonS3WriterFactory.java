@@ -70,6 +70,7 @@ final class CarbonS3WriterFactory extends CarbonWriterFactory {
                 .withTableProperties(getTableProperties(tableProperties))
                 .withJsonInput(getTableSchema(tableCloned))
                 .withHadoopConf(configuration)
+                .withThreadSafe((short)2)
                 .build();
         } catch (InvalidLoadOptionException exception) {
             // TODO

@@ -629,7 +629,7 @@ public class CarbonTablePath {
   public static String getCarbonDataFileName(String carbonDataFilePath) {
     return carbonDataFilePath.substring(
         carbonDataFilePath.lastIndexOf(CarbonCommonConstants.FILE_SEPARATOR) + 1,
-        carbonDataFilePath.indexOf(CARBON_DATA_EXT));
+        carbonDataFilePath.lastIndexOf(CARBON_DATA_EXT));
   }
 
   /**

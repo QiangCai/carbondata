@@ -24,9 +24,9 @@ class DropTableTest extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists cd cascade")
     sql("create database cd")
     sql("show tables in cd").show()
-    sql("create table cd.t1 (a string, b string, c string) stored by 'carbondata'")
-    sql("create index i1 on table cd.t1(c) as 'org.apache.carbondata.format'")
-    sql("create index i2 on table cd.t1(c,b) as 'org.apache.carbondata.format'")
+    sql("create table cd.t1 (a string, b string, c string) STORED AS carbondata")
+    sql("create index i1 on table cd.t1(c) AS 'carbondata'")
+    sql("create index i2 on table cd.t1(c,b) AS 'carbondata'")
     sql("show tables in cd").show()
     sql("drop table cd.t1")
     assert(sql("show tables in cd").collect()
@@ -38,9 +38,9 @@ class DropTableTest extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists cd cascade")
     sql("create database cd")
     sql("show tables in cd").show()
-    sql("create table cd.t1 (a string, b string, c string) stored by 'carbondata'")
-    sql("create index i1 on table cd.t1(c) as 'org.apache.carbondata.format'")
-    sql("create index i2 on table cd.t1(c,b) as 'org.apache.carbondata.format'")
+    sql("create table cd.t1 (a string, b string, c string) STORED AS carbondata")
+    sql("create index i1 on table cd.t1(c) as 'carbondata'")
+    sql("create index i2 on table cd.t1(c,b) as 'carbondata'")
     sql("show tables in cd").show()
     sql("drop index i1 on cd.t1")
     sql("show tables in cd").show()
@@ -50,9 +50,9 @@ class DropTableTest extends QueryTest with BeforeAndAfterAll {
   test("test to drop index tables") {
     sql("drop database if exists cd cascade")
     sql("create database cd")
-    sql("create table cd.t1 (a string, b string, c string) stored by 'carbondata'")
-    sql("create index i1 on table cd.t1(c) as 'org.apache.carbondata.format'")
-    sql("create index i2 on table cd.t1(c,b) as 'org.apache.carbondata.format'")
+    sql("create table cd.t1 (a string, b string, c string) STORED AS carbondata")
+    sql("create index i1 on table cd.t1(c) AS 'carbondata'")
+    sql("create index i2 on table cd.t1(c,b) AS 'carbondata'")
     sql("show tables in cd").show()
     sql("drop index i1 on cd.t1")
     sql("drop index i2 on cd.t1")
@@ -63,7 +63,7 @@ class DropTableTest extends QueryTest with BeforeAndAfterAll {
 
   test("test drop index command") {
     sql("drop table if exists testDrop")
-    sql("create table testDrop (a string, b string, c string) stored by 'carbondata'")
+    sql("create table testDrop (a string, b string, c string) STORED AS carbondata")
     val exception = intercept[RuntimeException] {
       sql("drop index indTestDrop on testDrop")
     }

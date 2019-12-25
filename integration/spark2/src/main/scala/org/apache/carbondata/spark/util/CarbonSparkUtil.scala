@@ -22,6 +22,7 @@ import scala.collection.mutable
 
 import org.apache.hadoop.fs.s3a.Constants.{ACCESS_KEY, ENDPOINT, SECRET_KEY}
 import org.apache.spark.sql.hive.{CarbonMetaData, CarbonRelation, DictionaryMap}
+import org.apache.spark.sql.types._
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.metadata.encoder.Encoding
@@ -145,6 +146,35 @@ object CarbonSparkUtil {
   def getS3EndPoint(args: Array[String]): String = {
     if (args.length >= 4 && args(3).contains(".com")) args(3)
     else ""
+  }
+
+  def updateStruct(struct: StructType): StructType = {
+    struct.copy(fields = struct.map(f => updateField(f)).toArray)
+  }
+
+  def updateArray(array: ArrayType): ArrayType = {
+    array.copy(elementType = updateDataType(array.elementType))
+  }
+
+  def updateMap(map: MapType): MapType = {
+    map.copy(
+      keyType = updateDataType(map.keyType),
+      valueType = updateDataType(map.valueType)
+    )
+  }
+
+  def updateField(field: StructField): StructField = {
+    field.copy(name = field.name.toLowerCase, dataType = updateDataType(field.dataType))
+  }
+
+  def updateDataType(dataType: DataType): DataType = {
+    dataType match {
+      case _: FloatType => DataTypes.DoubleType
+      case struct: StructType => updateStruct(struct)
+      case array: ArrayType => updateArray(array)
+      case map: MapType => updateMap(map)
+      case _ => dataType
+    }
   }
 
 }

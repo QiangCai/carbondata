@@ -16,8 +16,6 @@
  */
 package org.apache.carbondata.mv.rewrite
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.test.util.QueryTest
 import org.scalatest.BeforeAndAfterAll
 
@@ -79,7 +77,7 @@ class MVCountAndCaseTestCase  extends QueryTest with BeforeAndAfterAll{
                        | GROUP BY MT.`3600`, MT.`2250410101`
                        | ORDER BY `3600` ASC LIMIT 5000""".stripMargin)
 
-    assert(TestUtil.verifyMVDataMap(frame.queryExecution.analyzed, "data_table_mv"))
+    assert(TestUtil.verifyMVDataMap(frame.queryExecution.optimizedPlan, "data_table_mv"))
   }
 
   override def afterAll(): Unit = {

@@ -15,7 +15,7 @@ class SparkQueryTest extends QueryTest {
    * @param preAggTableNames preAggTableNames
    */
   def checkPreAggTable(df: DataFrame, exists: Boolean, preAggTableNames: String*): Unit = {
-    val plan = df.queryExecution.analyzed
+    val plan = df.queryExecution.optimizedPlan
     for (preAggTableName <- preAggTableNames) {
       var isValidPlan = false
       plan.transform {

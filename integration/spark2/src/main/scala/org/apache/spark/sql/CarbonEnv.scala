@@ -31,6 +31,7 @@ import org.apache.spark.sql.execution.command.mv._
 import org.apache.spark.sql.execution.command.preaaggregate._
 import org.apache.spark.sql.execution.command.timeseries.TimeSeriesFunction
 import org.apache.spark.sql.hive._
+import org.apache.spark.sql.internal.{SessionState, SparkSessionListener}
 import org.apache.spark.sql.profiler.Profiler
 import org.apache.spark.util.CarbonReflectionUtils
 
@@ -39,7 +40,7 @@ import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.datamap.DataMapStoreManager
 import org.apache.carbondata.core.datastore.impl.FileFactory
-import org.apache.carbondata.core.metadata.{AbsoluteTableIdentifier, CarbonMetadata}
+import org.apache.carbondata.core.metadata.{AbsoluteTableIdentifier, CarbonMetadata, DatabaseLocationProvider}
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.util._
 import org.apache.carbondata.datamap.{TextMatchMaxDocUDF, TextMatchUDF}
@@ -198,6 +199,9 @@ class CarbonEnv {
   private def noOpException(e: Option[Throwable]): Option[Throwable] = e
 }
 
+/**
+ * @Deprecated
+ */
 object CarbonEnv {
 
   val carbonEnvMap = new ConcurrentHashMap[SparkSession, CarbonEnv]
@@ -205,17 +209,21 @@ object CarbonEnv {
   val LOGGER = LogServiceFactory.getLogService(this.getClass.getName)
 
   def getInstance(sparkSession: SparkSession): CarbonEnv = {
-    if (sparkSession.isInstanceOf[CarbonSession]) {
-      sparkSession.sessionState.catalog.asInstanceOf[CarbonSessionCatalog].getCarbonEnv
-    } else {
       var carbonEnv: CarbonEnv = carbonEnvMap.get(sparkSession)
       if (carbonEnv == null) {
         carbonEnv = new CarbonEnv
         carbonEnv.init(sparkSession)
+        addSparkSessionListener(sparkSession)
         carbonEnvMap.put(sparkSession, carbonEnv)
       }
       carbonEnv
-    }
+  }
+
+  private def addSparkSessionListener(sparkSession: SparkSession): Unit = {
+    sparkSession
+      .sessionState
+      .sessionStateListenerManager
+      .addListener(new CloseSessionListener(sparkSession, sparkSession.sessionState))
   }
 
   /**
@@ -368,21 +376,22 @@ object CarbonEnv {
         .locationUri.toString
     // for default database and db ends with .db
     // check whether the carbon store and hive store is same or different.
-    if (dbName.equals("default") || databaseLocation.endsWith(".db")) {
-      val properties = CarbonProperties.getInstance()
-      val carbonStorePath =
-        FileFactory.getUpdatedFilePath(properties.getProperty(CarbonCommonConstants.STORE_LOCATION))
-      val hiveStorePath =
-        FileFactory.getUpdatedFilePath(sparkSession.conf.get("spark.sql.warehouse.dir"))
-      // if carbon.store does not point to spark.sql.warehouse.dir then follow the old table path
-      // format
-      if (!hiveStorePath.equals(carbonStorePath)) {
-        databaseLocation = CarbonProperties.getStorePath +
-                           CarbonCommonConstants.FILE_SEPARATOR +
-                           dbName
+    if (!EnvHelper.isLuxor(sparkSession)) {
+      if (dbName.equals("default") || databaseLocation.endsWith(".db")) {
+        val properties = CarbonProperties.getInstance()
+        val carbonStorePath =
+          FileFactory.getUpdatedFilePath(properties.getProperty(CarbonCommonConstants.STORE_LOCATION))
+        val hiveStorePath =
+          FileFactory.getUpdatedFilePath(sparkSession.conf.get("spark.sql.warehouse.dir"))
+        // if carbon.store does not point to spark.sql.warehouse.dir then follow the old table path
+        // format
+        if (!hiveStorePath.equals(carbonStorePath)) {
+          databaseLocation = CarbonProperties.getStorePath +
+                             CarbonCommonConstants.FILE_SEPARATOR +
+                             DatabaseLocationProvider.get().provide(dbName)
+        }
       }
     }
-
     FileFactory.getUpdatedFilePath(databaseLocation)
   }
 
@@ -398,10 +407,17 @@ object CarbonEnv {
       getCarbonTable(databaseNameOp, tableName)(sparkSession).getTablePath
     } catch {
       case _: NoSuchTableException =>
-        val dbName = getDatabaseName(databaseNameOp)(sparkSession)
-        val dbLocation = getDatabaseLocation(dbName, sparkSession)
-        dbLocation + CarbonCommonConstants.FILE_SEPARATOR + tableName
+        newTablePath(databaseNameOp, tableName)(sparkSession)
     }
+  }
+
+  def newTablePath(
+      databaseNameOp: Option[String],
+      tableName: String
+  )(sparkSession: SparkSession): String = {
+    val dbName = getDatabaseName(databaseNameOp)(sparkSession)
+    val dbLocation = getDatabaseLocation(dbName, sparkSession)
+    dbLocation + CarbonCommonConstants.FILE_SEPARATOR + tableName
   }
 
   def getIdentifier(
@@ -439,5 +455,15 @@ object CarbonEnv {
     (sparkSession: SparkSession): Boolean = {
     getInstance(sparkSession).carbonMetaStore.tableExists(tableName, dbNameOp)(sparkSession)
   }
+}
 
+class CloseSessionListener(
+    sparkSession: SparkSession,
+    sessionState: SessionState
+) extends SparkSessionListener {
+  override def closeSession(): Unit = {
+    CarbonEnv.carbonEnvMap.remove(sparkSession)
+    ThreadLocalSessionInfo.unsetAll()
+    sessionState.sessionStateListenerManager.removeListener(this)
+  }
 }

@@ -266,7 +266,7 @@ object CarbonScalaUtil {
         CarbonSparkDataSourceUtil.convertCarbonToSparkDataType(carbonColumn.getDataType)
       try {
         if (value.equals(hiveDefaultPartition)) {
-          (col, value)
+          (col.toLowerCase, value)
         } else {
           val convertedString =
             CarbonScalaUtil.convertToCarbonFormat(
@@ -275,14 +275,14 @@ object CarbonScalaUtil {
               forwardDictionaryCache,
               table)
           if (convertedString == null) {
-            (col, hiveDefaultPartition)
+            (col.toLowerCase, hiveDefaultPartition)
           } else {
-            (col, convertedString)
+            (col.toLowerCase, convertedString)
           }
         }
       } catch {
         case e: Exception =>
-          (col, value)
+          (col.toLowerCase, value)
       }
     }
   }
@@ -296,7 +296,7 @@ object CarbonScalaUtil {
     parts.map { f =>
       val specLinkedMap: mutable.LinkedHashMap[String, String] = mutable.LinkedHashMap
         .empty[String, String]
-      f.spec.foreach(fSpec => specLinkedMap.put(fSpec._1, fSpec._2))
+      f.spec.foreach(fSpec => specLinkedMap.put(fSpec._1.toLowerCase, fSpec._2))
       val changedSpec =
         updatePartitions(
           specLinkedMap,
@@ -402,6 +402,9 @@ object CarbonScalaUtil {
         case aex: AnalysisException =>
           logger.error(aex.getMessage())
           throw aex
+        case uoe: UnsupportedOperationException =>
+          executorMessage = uoe.getMessage
+          errorMessage = errorMessage + ":" + executorMessage
         case _ =>
           if (ex.getCause != null) {
             executorMessage = ex.getCause.getMessage

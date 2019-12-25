@@ -36,7 +36,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     sql(
@@ -46,7 +46,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='3')
       """.stripMargin)
 
@@ -57,7 +57,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (doj Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='01-01-2010, 01-01-2015, 01-04-2015, 01-07-2015')
       """.stripMargin)
@@ -69,7 +69,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         | deptname String, projectcode int, projectjoindate Timestamp, projectenddate Timestamp,
         | attendance int, utilization int,salary int)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='Ben, Jack, Sam, Tom')
       """.stripMargin)
@@ -81,7 +81,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         | deptname String, projectcode int, projectjoindate Timestamp, projectenddate Timestamp,
         | attendance int, utilization int,salary int)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='Ben, Jack, Sam, Tom', 'DICTIONARY_EXCLUDE'='empname')
       """.stripMargin)
@@ -93,7 +93,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (workgroupcategory int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3)')
       """.stripMargin)
@@ -105,7 +105,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3)')
       """.stripMargin)
@@ -117,7 +117,7 @@ class TestQueryForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3)', 'DICTIONARY_EXCLUDE'='empname')
       """.stripMargin)

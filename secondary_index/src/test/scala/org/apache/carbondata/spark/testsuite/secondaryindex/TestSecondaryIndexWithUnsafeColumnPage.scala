@@ -27,9 +27,9 @@ class TestSecondaryIndexWithUnsafeColumnPage extends QueryTest with BeforeAndAft
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.ENABLE_UNSAFE_COLUMN_PAGE, "true")
     sql("drop table if exists testSecondryIndex")
-    sql("create table testSecondryIndex( a string,b string,c string) stored by 'carbondata'")
+    sql("create table testSecondryIndex( a string,b string,c string) STORED AS carbondata")
     sql("insert into testSecondryIndex select 'babu','a','6'")
-    sql("create index testSecondryIndex_IndexTable on table testSecondryIndex(b) as 'org.apache.carbondata.format'")
+    sql("create index testSecondryIndex_IndexTable on table testSecondryIndex(b) AS 'carbondata'")
   }
 
   test("Test secondry index data count") {

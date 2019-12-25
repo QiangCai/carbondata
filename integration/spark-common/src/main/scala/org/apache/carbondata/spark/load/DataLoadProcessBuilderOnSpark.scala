@@ -20,7 +20,7 @@ package org.apache.carbondata.spark.load
 import java.util.Comparator
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.{Accumulator, DataSkewRangePartitioner, TaskContext}
+import org.apache.spark.{DataSkewRangePartitioner, TaskContext}
 import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -28,6 +28,7 @@ import org.apache.spark.sql.execution.command.ExecutionErrors
 import org.apache.spark.sql.util.SparkSQLUtil
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.unsafe.types.UTF8String
+import org.apache.spark.util.LongAccumulator
 
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.carbondata.core.constants.CarbonCommonConstants
@@ -67,12 +68,11 @@ object DataLoadProcessBuilderOnSpark {
 
     val sc = sparkSession.sparkContext
     val modelBroadcast = sc.broadcast(model)
-    val partialSuccessAccum = sc.accumulator(0, "Partial Success Accumulator")
-
-    val inputStepRowCounter = sc.accumulator(0, "Input Processor Accumulator")
-    val convertStepRowCounter = sc.accumulator(0, "Convert Processor Accumulator")
-    val sortStepRowCounter = sc.accumulator(0, "Sort Processor Accumulator")
-    val writeStepRowCounter = sc.accumulator(0, "Write Processor Accumulator")
+    val partialSuccessAccum = sc.longAccumulator("Partial Success Accumulator")
+    val inputStepRowCounter = sc.longAccumulator("Input Processor Accumulator")
+    val convertStepRowCounter = sc.longAccumulator("Convert Processor Accumulator")
+    val sortStepRowCounter = sc.longAccumulator("Sort Processor Accumulator")
+    val writeStepRowCounter = sc.longAccumulator("Write Processor Accumulator")
 
     hadoopConf
       .set(CarbonCommonConstants.CARBON_WRITTEN_BY_APPNAME, sparkSession.sparkContext.appName)
@@ -132,8 +132,11 @@ object DataLoadProcessBuilderOnSpark {
     // 4. Write
     sc.runJob(sortRDD, (context: TaskContext, rows: Iterator[CarbonRow]) => {
       setTaskListener()
-      DataLoadProcessorStepOnSpark.writeFunc(rows, context.partitionId, modelBroadcast,
-        writeStepRowCounter, conf.value.value)
+      val model = modelBroadcast.value.getCopyWithTaskNo(context.partitionId.toString)
+      model.initLoadStats()
+      DataLoadProcessorStepOnSpark.writeFunc(
+        rows, context.partitionId, model, writeStepRowCounter, conf.value.value)
+      SparkSQLUtil.setOutputMetrics(context.taskMetrics().outputMetrics, model.getLoadStats)
     })
 
     // clean cache only if persisted and keeping unpersist non-blocking as non-blocking call will
@@ -148,11 +151,10 @@ object DataLoadProcessBuilderOnSpark {
     LOGGER.info("Total rows processed in step Data Converter: " + convertStepRowCounter.value)
     LOGGER.info("Total rows processed in step Sort Processor: " + sortStepRowCounter.value)
     LOGGER.info("Total rows processed in step Data Writer: " + writeStepRowCounter.value)
-
     updateLoadStatus(model, partialSuccessAccum)
   }
 
-  private def updateLoadStatus(model: CarbonLoadModel, partialSuccessAccum: Accumulator[Int]
+  private def updateLoadStatus(model: CarbonLoadModel, partialSuccessAccum: LongAccumulator
   ): Array[(String, (LoadMetadataDetails, ExecutionErrors))] = {
     // Update status
     if (partialSuccessAccum.value != 0) {
@@ -183,11 +185,11 @@ object DataLoadProcessBuilderOnSpark {
     // initialize and prepare row counter
     val sc = sparkSession.sparkContext
     val modelBroadcast = sc.broadcast(model)
-    val partialSuccessAccum = sc.accumulator(0, "Partial Success Accumulator")
-    val inputStepRowCounter = sc.accumulator(0, "Input Processor Accumulator")
-    val convertStepRowCounter = sc.accumulator(0, "Convert Processor Accumulator")
-    val sortStepRowCounter = sc.accumulator(0, "Sort Processor Accumulator")
-    val writeStepRowCounter = sc.accumulator(0, "Write Processor Accumulator")
+    val partialSuccessAccum = sc.longAccumulator("Partial Success Accumulator")
+    val inputStepRowCounter = sc.longAccumulator("Input Processor Accumulator")
+    val convertStepRowCounter = sc.longAccumulator("Convert Processor Accumulator")
+    val sortStepRowCounter = sc.longAccumulator("Sort Processor Accumulator")
+    val writeStepRowCounter = sc.longAccumulator("Write Processor Accumulator")
 
     // 1. Input
     hadoopConf

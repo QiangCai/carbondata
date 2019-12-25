@@ -39,14 +39,13 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   test("test index with IUD delete all_rows") {
 
     sql(
-      "create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata" +
-      ".format'")
+      "create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table dest""")
     sql("drop index if exists index_dest1 on dest")
-    sql("create index index_dest1 on table dest (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest1 on table dest (c3) AS 'carbondata'")
     sql("drop index if exists index_dest2 on dest")
     //create second index table , result should be same
-    sql("create index index_dest2 on table dest (c3,c5) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest2 on table dest (c3,c5) AS 'carbondata'")
     // delete all rows in the segment
     sql("delete from dest d where d.c2 not in (56)").show
     checkAnswer(
@@ -92,11 +91,10 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
 
   test("test index with IUD delete all_rows-1") {
     sql(
-      "create table source (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache" +
-      ".carbondata.format'")
+      "create table source (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table source""")
     sql("drop index if exists index_source1 on source")
-    sql("create index index_source1 on table source (c5) AS 'org.apache.carbondata.format'")
+    sql("create index index_source1 on table source (c5) AS 'carbondata'")
     // delete (5-1)=4 rows
     try {
       sql("""delete from source d where d.c2 in (1,2,3,4)""").show
@@ -114,7 +112,7 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
     }
     // crete second index table
     sql("drop index if exists index_source2 on source")
-    sql("create index index_source2 on table source (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_source2 on table source (c3) AS 'carbondata'")
     // result should be same
       checkAnswer(
         sql("""select c3 from source"""),
@@ -128,11 +126,10 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
 
   test("test index with IUD delete using Join") {
     sql(
-      "create table test (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata" +
-      ".format'")
+      "create table test (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table test""")
     sql("drop index if exists index_test1 on test")
-    sql("create index index_test1 on table test (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_test1 on table test (c3) AS 'carbondata'")
     // delete all rows in the segment
     sql("delete from test d where d.c2 not in (56)").show
     checkAnswer(
@@ -144,9 +141,9 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
 
   test("test if secondary index gives correct result on limit query after row deletion") {
     sql("drop table if exists t10")
-    sql("create table t10(id int, country string) stored by 'carbondata' TBLPROPERTIES" +
+    sql("create table t10(id int, country string) STORED AS carbondata TBLPROPERTIES" +
         "('DICTIONARY_INCLUDE'='id')").show()
-    sql("create index si3 on table t10(country) as 'carbondata'")
+    sql("create index si3 on table t10(country) AS 'carbondata'")
     sql(
       s" load data INPATH '$pluginResourcesPath/IUD/sample_1.csv' INTO table t10 options " +
       "('DELIMITER'=',','FILEHEADER'='id,country')")
@@ -167,11 +164,10 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   test("test index with IUD delete and compaction") {
     sql("drop table if exists test")
     sql(
-      "create table test (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata" +
-      ".format'")
+      "create table test (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table test""")
     sql("drop index if exists index_test1 on test")
-    sql("create index index_test1 on table test (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_test1 on table test (c3) AS 'carbondata'")
     sql("delete from test d where d.c2 = '1'").show
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table test""")
     sql("alter table test compact 'major'")
@@ -191,7 +187,7 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
         "int,dim2 string,M1 int,dim3 string,M2 int,dim4 string,dim5 string,M3 int,dim6 string," +
         "dim7 string,M4 int,dim8 string,dim9 string,M5 int,dim10 string,dim11 string,dim12 " +
         "string,M6 int,dim13 string,dim14 string,dim15 string,M7 int,dim16 string,dim17 string," +
-        "dim18 string,dim19 string) STORED BY 'org.apache.carbondata.format' tblproperties" +
+        "dim18 string,dim19 string) STORED AS carbondata tblproperties" +
         "('dictionary_include'='dim1,name,tech,dim2,dim3,dim4,dim5,dim6,dim7,dim8,dim9,dim10," +
         "dim11,dim12,dim13,dim14,dim15,dim16,dim17,dim18,dim19')")
 
@@ -201,7 +197,7 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
         "dim13,dim14,dim15,M7,dim16,dim17,dim18,dim19')")
     val count = sql("select * from sitestmain where name='Cathy'").count()
     sql("update sitestmain set (name) = ('Revathi') where name='Cathy'").show()
-    sql("create index siindex on table sitestmain(name) as 'org.apache.carbondata.format'")
+    sql("create index siindex on table sitestmain(name) AS 'carbondata'")
     checkAnswer(sql("select name from sitestmain where name='Revathi' limit 1"),
       Seq(Row("Revathi")))
     assertResult(count)(sql("select * from sitestmain where name='Revathi'").count())
@@ -210,12 +206,11 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   // DTS2019010208198
   test("test set segments with SI") {
     sql("drop table if exists dest")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table dest""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table dest""")
     sql("drop index if exists index_dest1 on dest")
-    sql("create index index_dest1 on table dest (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest1 on table dest (c3) AS 'carbondata'")
     checkAnswer(sql("select count(*) from dest"), Seq(Row(10)))
     sql("set carbon.input.segments.default.dest=0")
     checkAnswer(sql("select count(*) from dest"), Seq(Row(5)))
@@ -255,9 +250,9 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
       case ex: Throwable => throw new RuntimeException(ex)
     }
     sql("drop table if exists test")
-    sql(s"create external table test stored by 'carbondata' location '$writerPath'")
+    sql(s"create external table test STORED AS carbondata location '$writerPath'")
     val exception = intercept[MalformedCarbonCommandException] {
-      sql("create index idx on table test(cert_no) as 'org.apache.carbondata.format'")
+      sql("create index idx on table test(cert_no) AS 'carbondata'")
     }
     assert(exception.getMessage
       .contains("Unsupported operation on non transactional table"))
@@ -266,11 +261,10 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   test("test SI with Union and Union All with same table") {
     sql("drop table if exists dest")
     sql("drop table if exists dest_parquet")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
     checkAnswer(sql(
       "select c3 from dest where c3 = 'abc' union select c3 from dest  where c3 = 'abc'"),
       sql("select c3 from dest_parquet where c3 = 'abc' union select c3 from " +
@@ -288,14 +282,13 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists dest1")
     sql("drop table if exists dest_parquet")
     sql("drop table if exists dest_parquet1")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
     sql("create table dest_parquet1 stored as parquet select * from dest")
-    sql("create table dest1 stored by 'carbondata' select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
-    sql("create index index_dest1 on table dest1 (c3) AS 'org.apache.carbondata.format'")
+    sql("create table dest1 STORED AS carbondata select * from dest")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
+    sql("create index index_dest1 on table dest1 (c3) AS 'carbondata'")
     checkAnswer(sql(
       "select c3 from dest where c3 = 'abc' union select c3 from dest1  where c3 = 'abc'"),
       sql(
@@ -316,14 +309,13 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists dest")
     sql("drop table if exists dest1")
     sql("drop table if exists dest_parquet")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
     sql("create table dest_parquet1 stored as parquet select * from dest")
-    sql("create table dest1 stored by 'carbondata' select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
-    sql("create index index_dest1 on table dest1 (c3) AS 'org.apache.carbondata.format'")
+    sql("create table dest1 STORED AS carbondata select * from dest")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
+    sql("create index index_dest1 on table dest1 (c3) AS 'carbondata'")
     checkAnswer(sql(
       "select c3 from dest where c3 = 'abc' union select c3 from dest1  " +
       "where c3 = 'abc' union select c3 from dest1  where c3 = 'abc'"),
@@ -346,11 +338,10 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   test("test SI with more than 2 Union and Union All with same table") {
     sql("drop table if exists dest")
     sql("drop table if exists dest_parquet")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
     checkAnswer(sql(
       "select c3 from dest where c3 = 'abc' union select c3 from dest  where c3 = 'abc' " +
       "union select c3 from dest  where c3 = 'abc'"),
@@ -370,11 +361,11 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   test("test SI with join") {
     sql("drop table if exists dest")
     sql("drop table if exists dest_parquet")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS " +
+        "carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
     checkAnswer(sql("select t1.c3,t2.c3 from dest t1, dest t2 where t1.c3=t2.c3 and t1.c3 = 'abc'"),
       sql("select t1.c3,t2.c3 from dest_parquet t1, dest t2 where t1.c3=t2.c3 and t1.c3 = 'abc'"))
     sql("drop table if exists dest")
@@ -384,11 +375,11 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
   test("test SI with Union and Union All with donotPushtoSI operations") {
     sql("drop table if exists dest")
     sql("drop table if exists dest_parquet")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS " +
+        "carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
     checkAnswer(sql(
       "select c3 from dest where c3 = 'abc' union select c3 from dest  where c3 != 'abc'"),
       sql("select c3 from dest_parquet where c3 = 'abc' union select c3 from " +
@@ -430,14 +421,14 @@ class TestSecondaryIndexWithIUD extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists dest1")
     sql("drop table if exists dest_parquet")
     sql("drop table if exists dest_parquet1")
-    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED BY " +
-        "'org.apache.carbondata.format'")
+    sql("create table dest (c1 string,c2 int,c3 string,c5 string) STORED AS " +
+        "carbondata")
     sql("insert into dest values('a',1,'abc','b')")
     sql("create table dest_parquet stored as parquet select * from dest")
     sql("create table dest_parquet1 stored as parquet select * from dest")
-    sql("create table dest1 stored by 'carbondata' select * from dest")
-    sql("create index index_dest on table dest (c3) AS 'org.apache.carbondata.format'")
-    sql("create index index_dest1 on table dest1 (c3) AS 'org.apache.carbondata.format'")
+    sql("create table dest1 STORED AS carbondata select * from dest")
+    sql("create index index_dest on table dest (c3) AS 'carbondata'")
+    sql("create index index_dest1 on table dest1 (c3) AS 'carbondata'")
     checkAnswer(sql(
       "select c3 from dest where c3 = 'abc' union select c3 from dest1  " +
       "where c3 = 'abc' union select c3 from dest1  where c3 != 'abc'"),

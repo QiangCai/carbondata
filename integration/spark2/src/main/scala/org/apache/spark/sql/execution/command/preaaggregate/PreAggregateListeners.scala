@@ -21,13 +21,15 @@ import java.util.UUID
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{Dataset, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.execution.command.AlterTableModel
 import org.apache.spark.sql.execution.command.management.{CarbonAlterTableCompactionCommand, CarbonLoadDataCommand}
 import org.apache.spark.sql.execution.command.partition.CarbonAlterTableDropHivePartitionCommand
-import org.apache.spark.sql.parser.CarbonSpark2SqlParser
+import org.apache.spark.sql.hive.CarbonMVRules
+import org.apache.spark.sql.parser.{CarbonSpark2SqlParser, CarbonSparkSqlParserUtil}
 
 import org.apache.carbondata.common.exceptions.MetadataProcessException
 import org.apache.carbondata.common.logging.{LogService, LogServiceFactory}
@@ -338,12 +340,11 @@ object CompactionProcessMetaListener extends OperationEventListener {
         // select * from preaggtable1
         // The following code will generate the select query with a load UDF that will be used to
         // apply DataLoadingRules
-        val childDataFrame = sparkSession.sql(new CarbonSpark2SqlParser()
-          // adding the aggregation load UDF
-          .addPreAggLoadFunction(
-          // creating the select query on the bases on table schema
+        val childDataFrame = CarbonSparkSqlParserUtil.getPreAggLoadQuery(
           PreAggregateUtil.createChildSelectQuery(
-            dataMapSchema.getChildSchema, table.getDatabaseName))).drop("preAggLoad")
+            dataMapSchema.getChildSchema, table.getDatabaseName),
+          sparkSession
+        )
         val loadCommand = PreAggregateUtil.createLoadCommandForChild(
           dataMapSchema.getChildSchema.getListOfColumns,
           TableIdentifier(childTableName, Some(childDatabaseName)),
@@ -367,12 +368,12 @@ object CompactionProcessMetaListener extends OperationEventListener {
       // select * from preaggtable1
       // The following code will generate the select query with a load UDF that will be used to
       // apply DataLoadingRules
-      val childDataFrame = sparkSession.sql(new CarbonSpark2SqlParser()
-        // adding the aggregation load UDF
-        .addPreAggLoadFunction(
-        // creating the select query on the bases on table schema
+
+      val childDataFrame = CarbonSparkSqlParserUtil.getPreAggLoadQuery(
         PreAggregateUtil.createChildSelectQuery(
-          table.getTableInfo.getFactTable, table.getDatabaseName))).drop("preAggLoad")
+          table.getTableInfo.getFactTable, table.getDatabaseName),
+        sparkSession
+      )
       val loadCommand = PreAggregateUtil.createLoadCommandForChild(
         table.getTableInfo.getFactTable.getListOfColumns,
         TableIdentifier(childTableName, Some(childDatabaseName)),
@@ -445,8 +446,9 @@ object LoadProcessMetaListener extends OperationEventListener {
                 s"$databaseName.${tableSelectedForRollup.get.getChildSchema.getTableName}")
             }
           }
-          val childDataFrame = sparkSession.sql(new CarbonSpark2SqlParser().addPreAggLoadFunction(
-            childSelectQuery._1)).drop("preAggLoad")
+          val childDataFrame =
+            CarbonSparkSqlParserUtil.getPreAggLoadQuery(childSelectQuery._1, sparkSession)
+
           val isOverwrite =
             operationContext.getProperty("isOverwrite").asInstanceOf[Boolean]
           val loadCommand = PreAggregateUtil.createLoadCommandForChild(
@@ -479,84 +481,94 @@ object LoadPostAggregateListener extends OperationEventListener {
         case e: LoadTablePostExecutionEvent => Some(e.getCarbonLoadModel)
         case _ => None
       }
-    val sparkSession = SparkSession.getActiveSession.get
     if (carbonLoadModelOption.isDefined) {
       val carbonLoadModel = carbonLoadModelOption.get
       val table = carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable
-      if (CarbonUtil.hasAggregationDataMap(table)) {
-        val isOverwrite =
-          operationContext.getProperty("isOverwrite").asInstanceOf[Boolean]
-        if (isOverwrite && table.isHivePartitionTable) {
-          val parentPartitionColumns = table.getPartitionInfo.getColumnSchemaList.asScala
-            .map(_.getColumnName)
-          val childTablesWithoutPartitionColumns =
-            table.getTableInfo.getDataMapSchemaList.asScala.filter { dataMapSchema =>
-              val childColumns = dataMapSchema.getChildSchema.getListOfColumns.asScala
-              val partitionColExists = parentPartitionColumns.forall {
-                partition =>
-                  childColumns.exists { childColumn =>
-                    childColumn.getAggFunction.isEmpty &&
-                    childColumn.getParentColumnTableRelations.asScala.head.getColumnName.
-                      equals(partition)
-                  }
-              }
-              !partitionColExists
+      if (!table.isHivePartitionTable) {
+        preAggregation(operationContext, table, carbonLoadModel.getSegmentId)
+      }
+    }
+  }
+
+  def preAggregation(
+      operationContext: OperationContext,
+      table: CarbonTable,
+      segmentId: String
+  ): Unit = {
+    if (CarbonUtil.hasAggregationDataMap(table)) {
+      val isOverwrite =
+        operationContext.getProperty("isOverwrite").asInstanceOf[Boolean]
+      if (isOverwrite && table.isHivePartitionTable) {
+        val parentPartitionColumns = table.getPartitionInfo.getColumnSchemaList.asScala
+          .map(_.getColumnName)
+        val childTablesWithoutPartitionColumns =
+          table.getTableInfo.getDataMapSchemaList.asScala.filter { dataMapSchema =>
+            val childColumns = dataMapSchema.getChildSchema.getListOfColumns.asScala
+            val partitionColExists = parentPartitionColumns.forall {
+              partition =>
+                childColumns.exists { childColumn =>
+                  childColumn.getAggFunction.isEmpty &&
+                  childColumn.getParentColumnTableRelations.asScala.head.getColumnName.
+                    equals(partition)
+                }
             }
-          if (childTablesWithoutPartitionColumns.nonEmpty) {
-            throw new MetadataProcessException(
-              "Cannot execute load overwrite or insert overwrite as the following aggregate tables"
-              + s" ${
-                childTablesWithoutPartitionColumns.toList.map(_.getChildSchema.getTableName)
-              } are not partitioned on all the partition column. Drop these to continue")
+            !partitionColExists
           }
+        if (childTablesWithoutPartitionColumns.nonEmpty) {
+          throw new MetadataProcessException(
+            "Cannot execute load overwrite or insert overwrite as the following aggregate tables"
+            + s" ${
+              childTablesWithoutPartitionColumns.toList.map(_.getChildSchema.getTableName)
+            } are not partitioned on all the partition column. Drop these to continue")
         }
-        // getting all the aggergate datamap schema
-        val aggregationDataMapList = table.getTableInfo.getDataMapSchemaList.asScala
-          .filter(_.isInstanceOf[AggregationDataMapSchema])
-          .asInstanceOf[mutable.ArrayBuffer[AggregationDataMapSchema]]
-        // sorting the datamap for timeseries rollup
-        val sortedList = aggregationDataMapList.sortBy(_.getOrdinal)
-        val successDataMaps = sortedList.takeWhile { dataMapSchema =>
-          val childLoadCommand = operationContext
-            .getProperty(dataMapSchema.getChildSchema.getTableName)
-            .asInstanceOf[CarbonLoadDataCommand]
-          childLoadCommand.dataFrame = Some(PreAggregateUtil
-            .getDataFrame(sparkSession, childLoadCommand.logicalPlan.get))
-          childLoadCommand.operationContext = operationContext
-          val timeseriesParent = childLoadCommand.internalOptions.get("timeseriesParent")
-          val (parentTableIdentifier, segmentToLoad) =
-            if (timeseriesParent.isDefined && timeseriesParent.get.nonEmpty) {
-              val (parentTableDatabase, parentTableName) =
-                (timeseriesParent.get.split('.')(0), timeseriesParent.get.split('.')(1))
-              (TableIdentifier(parentTableName, Some(parentTableDatabase)),
-                operationContext.getProperty(
-                  s"${ parentTableDatabase }_${ parentTableName }_Segment").toString)
+      }
+      // getting all the aggergate datamap schema
+      val aggregationDataMapList = table.getTableInfo.getDataMapSchemaList.asScala
+        .filter(_.isInstanceOf[AggregationDataMapSchema])
+        .asInstanceOf[ArrayBuffer[AggregationDataMapSchema]]
+      // sorting the datamap for timeseries rollup
+      val sortedList = aggregationDataMapList.sortBy(_.getOrdinal)
+      val sparkSession = SparkSession.getActiveSession.get
+      val successDataMaps = sortedList.takeWhile { dataMapSchema =>
+        val childLoadCommand = operationContext
+          .getProperty(dataMapSchema.getChildSchema.getTableName)
+          .asInstanceOf[CarbonLoadDataCommand]
+        childLoadCommand.dataFrame = Some(PreAggregateUtil
+          .getDataFrame(sparkSession, childLoadCommand.logicalPlan.get))
+        childLoadCommand.operationContext = operationContext
+        val timeseriesParent = childLoadCommand.internalOptions.get("timeseriesParent")
+        val (parentTableIdentifier, segmentToLoad) =
+          if (timeseriesParent.isDefined && timeseriesParent.get.nonEmpty) {
+            val (parentTableDatabase, parentTableName) =
+              (timeseriesParent.get.split('.')(0), timeseriesParent.get.split('.')(1))
+            (TableIdentifier(parentTableName, Some(parentTableDatabase)),
+              operationContext.getProperty(
+                s"${ parentTableDatabase }_${ parentTableName }_Segment").toString)
+          } else {
+            val currentSegmentFile = operationContext.getProperty("current.segmentfile")
+            val segment = if (currentSegmentFile != null) {
+              new Segment(segmentId, currentSegmentFile.toString)
             } else {
-              val currentSegmentFile = operationContext.getProperty("current.segmentfile")
-              val segment = if (currentSegmentFile != null) {
-                new Segment(carbonLoadModel.getSegmentId, currentSegmentFile.toString)
-              } else {
-                Segment.toSegment(carbonLoadModel.getSegmentId, null)
-              }
-              (TableIdentifier(table.getTableName, Some(table.getDatabaseName)), segment.toString)
+              Segment.toSegment(segmentId, null)
             }
+            (TableIdentifier(table.getTableName, Some(table.getDatabaseName)), segment.toString)
+          }
 
         PreAggregateUtil.startDataLoadForDataMap(
-        parentTableIdentifier,
-            segmentToLoad,
-            validateSegments = false,
-            childLoadCommand,
-            isOverwrite,
-            sparkSession)
-        }
-        val loadFailed = successDataMaps.lengthCompare(sortedList.length) != 0
-        if (loadFailed) {
-          successDataMaps.foreach(dataMapSchema => markSuccessSegmentsAsFailed(operationContext
-            .getProperty(dataMapSchema.getChildSchema.getTableName)
-            .asInstanceOf[CarbonLoadDataCommand]))
-          throw new RuntimeException(
-            "Data Load failed for DataMap. Please check logs for the failure")
-        }
+          parentTableIdentifier,
+          segmentToLoad,
+          validateSegments = false,
+          childLoadCommand,
+          isOverwrite,
+          sparkSession)
+      }
+      val loadFailed = successDataMaps.lengthCompare(sortedList.length) != 0
+      if (loadFailed) {
+        successDataMaps.foreach(dataMapSchema => markSuccessSegmentsAsFailed(operationContext
+          .getProperty(dataMapSchema.getChildSchema.getTableName)
+          .asInstanceOf[CarbonLoadDataCommand]))
+        throw new RuntimeException(
+          "Data Load failed for DataMap. Please check logs for the failure")
       }
     }
   }
@@ -601,13 +613,20 @@ object CommitPreAggregateListener extends OperationEventListener with CommitHelp
         }
         compactionEvent.carbonLoadModel
     }
+    val table = carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable
     val isCompactionFlow = Option(
       operationContext.getProperty("isCompaction")).getOrElse("false").toString.toBoolean
-    val dataMapSchemas =
-      carbonLoadModel.getCarbonDataLoadSchema.getCarbonTable.getTableInfo.getDataMapSchemaList
+    val dataMapSchemas = table.getTableInfo.getDataMapSchemaList
       .asScala.filter(_.getChildSchema != null)
     // extract all child LoadCommands
     val childLoadCommands = if (!isCompactionFlow) {
+      if (table.isHivePartitionTable) {
+        LoadPostAggregateListener.preAggregation(
+          operationContext,
+          table,
+          carbonLoadModel.getSegmentId
+        )
+      }
       // If not compaction flow then the key for load commands will be tableName
         dataMapSchemas.map { dataMapSchema =>
           operationContext.getProperty(dataMapSchema.getChildSchema.getTableName)

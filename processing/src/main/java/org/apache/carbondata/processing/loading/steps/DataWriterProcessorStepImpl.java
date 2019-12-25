@@ -233,6 +233,9 @@ public class DataWriterProcessorStepImpl extends AbstractDataLoadProcessorStep {
   @Override public void close() {
     if (!closed) {
       super.close();
+      if (configuration.getLoadStats() != null) {
+        configuration.getLoadStats().addOutputRows(rowCounter.get());
+      }
       if (listener != null) {
         try {
           LOGGER.debug("closing all the DataMap writers registered to DataMap writer listener");

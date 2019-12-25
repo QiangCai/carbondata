@@ -36,8 +36,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
     sql(
       s"""CREATE TABLE partition_table(shortField SHORT, intField INT, bigintField LONG,
          |doubleField DOUBLE, timestamp TIMESTAMP, decimalField DECIMAL(18,2),dateField DATE,
-         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED BY
-         |'carbondata' TBLPROPERTIES('SORT_SCOPE'='LOCAL_SORT')""".stripMargin)
+         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED AS
+         |carbondata TBLPROPERTIES('SORT_SCOPE'='LOCAL_SORT')""".stripMargin)
     sql(
       s"""load data inpath '$resourcesPath/Data/partition/list_partition_table.csv' into table
          |partition_table""".stripMargin)
@@ -56,8 +56,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
     sql(
       s"""CREATE TABLE partition_table(shortField SHORT, intField INT, bigintField LONG,
          |doubleField DOUBLE, timestamp TIMESTAMP, decimalField DECIMAL(18,2),dateField DATE,
-         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED BY
-         |'carbondata' TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT')""".stripMargin)
+         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED AS
+         |carbondata TBLPROPERTIES('SORT_SCOPE'='GLOBAL_SORT')""".stripMargin)
     sql(
       s"""load data inpath '$resourcesPath/Data/partition/list_partition_table.csv' into table
          |partition_table""".stripMargin)
@@ -76,8 +76,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
     sql(
       s"""CREATE TABLE partition_table(shortField SHORT, intField INT, bigintField LONG,
          |doubleField DOUBLE, timestamp TIMESTAMP, decimalField DECIMAL(18,2),dateField DATE,
-         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED BY
-         |'carbondata' TBLPROPERTIES('SORT_SCOPE'='BATCH_SORT')""".stripMargin)
+         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED AS
+         |carbondata TBLPROPERTIES('SORT_SCOPE'='BATCH_SORT')""".stripMargin)
     sql(
       s"""load data inpath '$resourcesPath/Data/partition/list_partition_table.csv' into table
          |partition_table""".stripMargin)
@@ -96,8 +96,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
     sql(
       s"""CREATE TABLE partition_table(shortField SHORT, intField INT, bigintField LONG,
          |doubleField DOUBLE, timestamp TIMESTAMP, decimalField DECIMAL(18,2),dateField DATE,
-         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED BY
-         |'carbondata' TBLPROPERTIES('SORT_SCOPE'='NO_SORT')""".stripMargin)
+         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED AS
+         |carbondata TBLPROPERTIES('SORT_SCOPE'='NO_SORT')""".stripMargin)
     sql(
       s"""load data inpath '$resourcesPath/Data/partition/list_partition_table.csv' into table
          |partition_table""".stripMargin)
@@ -116,8 +116,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
     sql(
       s"""CREATE TABLE partition_table(shortField SHORT, intField INT, bigintField LONG,
          |doubleField DOUBLE, timestamp TIMESTAMP, decimalField DECIMAL(18,2),dateField DATE,
-         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED BY
-         |'carbondata'""".stripMargin)
+         |charField CHAR(5), floatField FLOAT ) PARTITIONED BY (stringField STRING) STORED AS
+         |carbondata""".stripMargin)
     sql(
       "create datamap ag1 on table partition_table using 'preaggregate' as select shortField, sum" +
       "(intField) from partition_table group by shortField")
@@ -135,8 +135,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
       s"""CREATE TABLE uniqdata (CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB timestamp,
          |BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 decimal(30,10),
          |DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 double,
-         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED BY
-         |'carbondata'""".stripMargin)
+         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED AS
+         |carbondata""".stripMargin)
     sql(
       s"""LOAD DATA INPATH  '$resourcesPath/Data/partition/2000_UniqData_partition.csv' into table
          | uniqdata partition(CUST_ID='1') OPTIONS('DELIMITER'=',','BAD_RECORDS_ACTION'='FORCE',
@@ -166,8 +166,8 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
       s"""CREATE TABLE uniqdata (CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB timestamp,
          |BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 decimal(30,10),
          |DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 double,
-         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED BY
-         |'carbondata'""".stripMargin)
+         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED AS
+         |carbondata""".stripMargin)
     sql(
       s"""LOAD DATA INPATH  '$resourcesPath/Data/partition/2000_UniqData_partition.csv' into table
          | uniqdata partition(CUST_ID='1') OPTIONS('DELIMITER'=',','BAD_RECORDS_ACTION'='FORCE',
@@ -215,13 +215,13 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
       s"""CREATE TABLE uniqdata (CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB timestamp,
          |BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 decimal(30,10),
          |DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 double,
-         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED BY 'carbondata'"""
+         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED AS carbondata"""
         .stripMargin)
     sql(
       s"""CREATE TABLE uniqdata1 (CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB timestamp,
          |BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 decimal(30,10),
          |DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 double,
-         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED BY 'carbondata'"""
+         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED AS carbondata"""
         .stripMargin)
     sql(
       s"""LOAD DATA INPATH  '$resourcesPath/Data/partition/2000_UniqData_partition.csv' into table
@@ -248,7 +248,7 @@ class PartitionWithPreAggregateTestCase extends QueryTest with BeforeAndAfterAll
       s"""CREATE TABLE uniqdata (CUST_NAME String,ACTIVE_EMUI_VERSION string, DOB timestamp,
          |BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 decimal(30,10),
          |DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 double,
-         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED BY 'carbondata'"""
+         |INTEGER_COLUMN1 int, DOJ timestamp) PARTITIONED BY (CUST_ID int) STORED AS carbondata"""
         .stripMargin)
     sql("create datamap ag1 on table uniqdata using 'preaggregate' as select cust_id, " +
         "sum(Double_COLUMN1) from uniqdata group by cust_id")

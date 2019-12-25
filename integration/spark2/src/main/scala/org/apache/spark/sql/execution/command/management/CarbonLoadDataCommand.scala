@@ -24,6 +24,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.reflect.classTag
 
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.conf.Configuration
@@ -34,10 +35,11 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.{InternalRow, TableIdentifier}
 import org.apache.spark.sql.catalyst.analysis.{NoSuchTableException, UnresolvedAttribute}
 import org.apache.spark.sql.catalyst.catalog.CatalogTable
+import org.apache.spark.sql.catalyst.expressions.codegen.GenerateOrdering
 import org.apache.spark.sql.catalyst.expressions.{Ascending, AttributeReference, SortOrder}
 import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, Project, Sort}
 import org.apache.spark.sql.execution.LogicalRDD
-import org.apache.spark.sql.execution.command.{AtomicRunnableCommand, DataLoadTableFileMapping, UpdateTableModel}
+import org.apache.spark.sql.execution.command.{AlterTableRecoverPartitionsCommand, AtomicRunnableCommand, DataLoadTableFileMapping, UpdateTableModel}
 import org.apache.spark.sql.execution.datasources.{CatalogFileIndex, FindDataSourceTable, HadoopFsRelation, LogicalRelation, SparkCarbonTableFormat}
 import org.apache.spark.sql.hive.CarbonRelation
 import org.apache.spark.sql.optimizer.CarbonFilters
@@ -76,7 +78,7 @@ import org.apache.carbondata.processing.loading.model.CarbonLoadModel
 import org.apache.carbondata.processing.util.{CarbonBadRecordUtil, CarbonDataProcessorUtil, CarbonLoaderUtil}
 import org.apache.carbondata.spark.dictionary.provider.SecureDictionaryServiceProvider
 import org.apache.carbondata.spark.dictionary.server.SecureDictionaryServer
-import org.apache.carbondata.spark.load.{CsvRDDHelper, DataLoadProcessorStepOnSpark}
+import org.apache.carbondata.spark.load.{CsvRDDHelper, DataLoadProcessBuilderOnSpark, DataLoadProcessorStepOnSpark, GlobalSortHelper}
 import org.apache.carbondata.spark.rdd.CarbonDataRDDFactory
 import org.apache.carbondata.spark.util.{CarbonScalaUtil, GlobalDictionaryUtil}
 
@@ -106,6 +108,8 @@ case class CarbonLoadDataCommand(
 
   var parentTablePath: String = _
 
+  var finalPartition : Map[String, Option[String]] = Map.empty
+
   override def processMetadata(sparkSession: SparkSession): Seq[Row] = {
     val LOGGER = LogServiceFactory.getLogService(this.getClass.getCanonicalName)
     val dbName = CarbonEnv.getDatabaseName(databaseNameOp)(sparkSession)
@@ -132,6 +136,8 @@ case class CarbonLoadDataCommand(
           case l: LogicalRelation => l
         }.head
       sizeInBytes = logicalPartitionRelation.relation.sizeInBytes
+
+      finalPartition = getCompletePartitionValues(sparkSession)
     }
     if (table.isChildDataMap) {
       val parentTableIdentifier = table.getTableInfo.getParentRelationIdentifiers.get(0)
@@ -187,6 +193,7 @@ case class CarbonLoadDataCommand(
     val carbonLoadModel = new CarbonLoadModel()
     val tableProperties = table.getTableInfo.getFactTable.getTableProperties
     val optionsFinal = LoadOption.fillOptionWithDefaultValue(options.asJava)
+    EnvHelper.setDefaultHeader(sparkSession, optionsFinal)
     optionsFinal
       .put("complex_delimiter_level_4",
         ComplexDelimitersEnum.COMPLEX_DELIMITERS_LEVEL_4.value())
@@ -229,6 +236,13 @@ case class CarbonLoadDataCommand(
               carbonProperty.getProperty(CarbonLoadOptionConstants.CARBON_OPTIONS_SORT_SCOPE,
                 carbonProperty.getProperty(CarbonCommonConstants.LOAD_SORT_SCOPE,
                   CarbonCommonConstants.LOAD_SORT_SCOPE_DEFAULT))))))
+      if (!StringUtils.isBlank(tableProperties.get("global_sort_partitions"))) {
+        if (options.get("global_sort_partitions").isEmpty) {
+          optionsFinal.put(
+            "global_sort_partitions",
+            tableProperties.get("global_sort_partitions"))
+        }
+      }
     }
 
     optionsFinal
@@ -400,15 +414,6 @@ case class CarbonLoadDataCommand(
         throw ex
     } finally {
       releaseConcurrentLoadLock(concurrentLoadLock, LOGGER)
-      // Once the data load is successful delete the unwanted partition files
-      val partitionLocation = CarbonProperties.getStorePath + "/partition/" +
-                              table.getDatabaseName + "/" +
-                              table.getTableName + "/"
-      val fileType = FileFactory.getFileType(partitionLocation)
-      if (FileFactory.isFileExist(partitionLocation, fileType)) {
-        val file = FileFactory.getCarbonFile(partitionLocation, fileType)
-        CarbonUtil.deleteFoldersAndFiles(file)
-      }
     }
     Seq.empty
   }
@@ -672,7 +677,7 @@ case class CarbonLoadDataCommand(
     val dateFormat = new SimpleDateFormat(dateFormatString)
     // Clean up the alreday dropped partitioned data
     SegmentFileStore.cleanSegments(table, null, false)
-    CarbonSession.threadSet("partition.operationcontext", operationContext)
+    CarbonUtils.threadSet("partition.operationcontext", operationContext)
     // input data from csv files. Convert to logical plan
     val allCols = new ArrayBuffer[String]()
     // get only the visible dimensions from table
@@ -685,8 +690,8 @@ case class CarbonLoadDataCommand(
 
     var partitionsLen = 0
     val sortScope = CarbonDataProcessorUtil.getSortScope(carbonLoadModel.getSortScope)
-    val partitionValues = if (partition.nonEmpty) {
-      partition.filter(_._2.nonEmpty).map { case (col, value) =>
+    val partitionValues = if (finalPartition.nonEmpty) {
+      finalPartition.filter(_._2.nonEmpty).map { case (col, value) =>
         catalogTable.schema.find(_.name.equalsIgnoreCase(col)) match {
           case Some(c) =>
             CarbonScalaUtil.convertToDateAndTimeFormats(
@@ -718,9 +723,9 @@ case class CarbonLoadDataCommand(
               carbonLoadModel))
           (updatedFrame.rdd, updatedFrame.schema)
         } else {
-          if (partition.nonEmpty) {
-            val headers = carbonLoadModel.getCsvHeaderColumns.dropRight(partition.size)
-            val updatedHeader = headers ++ partition.keys.map(_.toLowerCase)
+          if (finalPartition.nonEmpty) {
+            val headers = carbonLoadModel.getCsvHeaderColumns.dropRight(finalPartition.size)
+            val updatedHeader = headers ++ finalPartition.keys.map(_.toLowerCase)
             carbonLoadModel.setCsvHeader(updatedHeader.mkString(","))
             carbonLoadModel.setCsvHeaderColumns(carbonLoadModel.getCsvHeader.split(","))
           }
@@ -728,8 +733,9 @@ case class CarbonLoadDataCommand(
         }
 
         val expectedColumns = {
-          val staticPartCols = partition.filter(_._2.isDefined).keySet
-          attributes.filterNot(a => staticPartCols.contains(a.name))
+          val staticPartCols = finalPartition.filter(_._2.isDefined).keySet
+            .map(columnName => columnName.toLowerCase())
+          attributes.filterNot(a => staticPartCols.contains(a.name.toLowerCase))
         }
         if (expectedColumns.length != dfAttributes.length) {
           throw new AnalysisException(
@@ -739,12 +745,12 @@ case class CarbonLoadDataCommand(
         }
         val nonPartitionBounds = expectedColumns.zipWithIndex.map(_._2).toArray
         val partitionBounds = new Array[Int](partitionValues.length)
-        if (partition.nonEmpty) {
-          val nonPartitionSchemaLen = attributes.length - partition.size
+        if (finalPartition.nonEmpty) {
+          val nonPartitionSchemaLen = attributes.length - finalPartition.size
           var i = nonPartitionSchemaLen
           var index = 0
           var partIndex = 0
-          partition.values.foreach { p =>
+          finalPartition.values.foreach { p =>
             if (p.isDefined) {
               partitionBounds(partIndex) = nonPartitionSchemaLen + index
               partIndex = partIndex + 1
@@ -819,30 +825,15 @@ case class CarbonLoadDataCommand(
         carbonLoadModel,
         sparkSession,
         operationContext)
-      val logicalPlan = if (sortScope == SortScopeOptions.SortScope.GLOBAL_SORT) {
-        var numPartitions =
-          CarbonDataProcessorUtil.getGlobalSortPartitions(carbonLoadModel.getGlobalSortPartitions)
-        if (numPartitions <= 0) {
-          numPartitions = partitionsLen
-        }
-        if (numPartitions > 0) {
-          Dataset.ofRows(sparkSession, query).repartition(numPartitions).logicalPlan
-        } else {
-          query
-        }
-      } else {
-        query
-      }
-
       val convertedPlan =
         CarbonReflectionUtils.getInsertIntoCommand(
           table = convertRelation,
-          partition = partition,
-          query = logicalPlan,
+          partition = finalPartition,
+          query = query,
           overwrite = false,
           ifPartitionNotExists = false)
       SparkUtil.setNullExecutionId(sparkSession)
-      Dataset.ofRows(sparkSession, convertedPlan)
+      Dataset.ofRows(sparkSession, convertedPlan).collect()
     } catch {
       case ex: Throwable =>
         val (executorMessage, errorMessage) = CarbonScalaUtil.retrieveAndLogErrorMsg(ex, LOGGER)
@@ -853,7 +844,7 @@ case class CarbonLoadDataCommand(
         LOGGER.error(ex)
         throw ex
     } finally {
-      CarbonSession.threadUnset("partition.operationcontext")
+      CarbonUtils.threadUnset("partition.operationcontext")
       if (isOverwriteTable) {
         DataMapStoreManager.getInstance().clearDataMaps(table.getAbsoluteTableIdentifier)
         // Clean the overwriting segments if any.
@@ -928,29 +919,23 @@ case class CarbonLoadDataCommand(
       // Update attribute datatypes in case of dictionary columns, in case of dictionary columns
       // datatype is always int
       val column = table.getColumnByName(table.getTableName, attr.name)
-      if (column.hasEncoding(Encoding.DICTIONARY)) {
-        CarbonToSparkAdapter.createAttributeReference(attr.name,
-          IntegerType,
-          attr.nullable,
-          attr.metadata,
-          attr.exprId,
-          attr.qualifier,
-          attr)
-      } else if (attr.dataType == TimestampType || attr.dataType == DateType) {
-        CarbonToSparkAdapter.createAttributeReference(attr.name,
-          LongType,
-          attr.nullable,
-          attr.metadata,
-          attr.exprId,
-          attr.qualifier,
-          attr)
+      val updatedDataType = if (column.hasEncoding(Encoding.DICTIONARY)) {
+        IntegerType
       } else {
-        attr
+        attr.dataType match {
+          case TimestampType | DateType =>
+            LongType
+          case _: StructType | _: ArrayType | _: MapType =>
+            BinaryType
+          case _ =>
+            attr.dataType
+        }
       }
+      attr.copy(dataType = updatedDataType)(attr.exprId, attr.qualifier)
     }
     // Only select the required columns
-    var output = if (partition.nonEmpty) {
-      val lowerCasePartition = partition.map { case (key, value) => (key.toLowerCase, value) }
+    var output = if (finalPartition.nonEmpty) {
+      val lowerCasePartition = finalPartition.map { case (key, value) => (key.toLowerCase, value) }
       catalogTable.schema.map { attr =>
         attributes.find(_.name.equalsIgnoreCase(attr.name)).get
       }.filter(attr => lowerCasePartition.getOrElse(attr.name.toLowerCase, None).isEmpty)
@@ -975,16 +960,26 @@ case class CarbonLoadDataCommand(
         updatedRdd.persist(StorageLevel.fromString(
           CarbonProperties.getInstance().getGlobalSortRddStorageLevel))
       }
-      val child = Project(output, LogicalRDD(attributes, updatedRdd)(sparkSession))
-      val sortColumns = table.getSortColumns(table.getTableName)
-      val sortPlan =
-        Sort(
-          output.filter(f => sortColumns.contains(f.name)).map(SortOrder(_, Ascending)),
-          global = true,
-          child)
-      (sortPlan, partitionsLen, Some(updatedRdd))
+      var numPartitions =
+        CarbonDataProcessorUtil.getGlobalSortPartitions(loadModel.getGlobalSortPartitions)
+      if (numPartitions <= 0) {
+        numPartitions = partitionsLen
+      }
+      val sortColumns = attributes.take(table.getSortColumns(table.getTableName).size())
+      val sortedRDD: RDD[InternalRow] =
+        GlobalSortHelper.sortBy(updatedRdd, numPartitions, sortColumns)
+      val outputOrdering = sortColumns.map(SortOrder(_, Ascending))
+      (
+        Project(output, LogicalRDD(attributes, sortedRDD, outputOrdering = outputOrdering)(sparkSession)),
+        partitionsLen,
+        Some(updatedRdd)
+      )
     } else {
-      (Project(output, LogicalRDD(attributes, updatedRdd)(sparkSession)), partitionsLen, None)
+      (
+        Project(output, LogicalRDD(attributes, updatedRdd)(sparkSession)),
+        partitionsLen,
+        None
+      )
     }
   }
 
@@ -1008,9 +1003,9 @@ case class CarbonLoadDataCommand(
       model.getCarbonDataLoadSchema.getCarbonTable.getTableInfo.getFactTable.getPartitionInfo
     info.setColumnSchemaList(new util.ArrayList[ColumnSchema](info.getColumnSchemaList))
     val modelBroadcast = sc.broadcast(model)
-    val partialSuccessAccum = sc.accumulator(0, "Partial Success Accumulator")
+    val partialSuccessAccum = sc.longAccumulator("Partial Success Accumulator")
 
-    val inputStepRowCounter = sc.accumulator(0, "Input Processor Accumulator")
+    val inputStepRowCounter = sc.longAccumulator("Input Processor Accumulator")
     // 1. Input
     val convertRDD =
       if (isDataFrame) {
@@ -1088,13 +1083,19 @@ case class CarbonLoadDataCommand(
     val table = loadModel.getCarbonDataLoadSchema.getCarbonTable
     val metastoreSchema = StructType(catalogTable.schema.fields.map{f =>
       val column = table.getColumnByName(table.getTableName, f.name)
-      if (column.hasEncoding(Encoding.DICTIONARY)) {
-        f.copy(dataType = IntegerType)
-      } else if (f.dataType == TimestampType || f.dataType == DateType) {
-        f.copy(dataType = LongType)
+      val updatedDataType = if (column.hasEncoding(Encoding.DICTIONARY)) {
+        IntegerType
       } else {
-        f
+        f.dataType match {
+          case TimestampType | DateType =>
+            LongType
+          case _: StructType | _: ArrayType | _: MapType =>
+            BinaryType
+          case _ =>
+            f.dataType
+        }
       }
+      f.copy(dataType = updatedDataType)
     })
     val lazyPruningEnabled = sparkSession.sqlContext.conf.manageFilesourcePartitions
     val catalog = new CatalogFileIndex(
@@ -1110,7 +1111,7 @@ case class CarbonLoadDataCommand(
     val dataSchema =
       StructType(metastoreSchema
         .filterNot(field => partitionSchema.contains(field)))
-    if (partition.nonEmpty) {
+    if (finalPartition.nonEmpty) {
       partitionSchema = StructType(partitionSchema.fields.map(_.copy(dataType = StringType)))
     }
     val options = new mutable.HashMap[String, String]()
@@ -1119,10 +1120,10 @@ case class CarbonLoadDataCommand(
     options += (("onepass", loadModel.getUseOnePass.toString))
     options += (("dicthost", loadModel.getDictionaryServerHost))
     options += (("dictport", loadModel.getDictionaryServerPort.toString))
-    if (partition.nonEmpty) {
+    if (finalPartition.nonEmpty) {
       val staticPartitionStr = ObjectSerializationUtil.convertObjectToString(
         new util.HashMap[String, Boolean](
-          partition.map{case (col, value) => (col.toLowerCase, value.isDefined)}.asJava))
+          finalPartition.map{case (col, value) => (col.toLowerCase, value.isDefined)}.asJava))
       options += (("staticpartition", staticPartitionStr))
     }
     options ++= this.options
@@ -1173,6 +1174,32 @@ case class CarbonLoadDataCommand(
     // use dataFrameWithTupleId as loadDataFrame
     val dataFrameWithTupleId = dataFrame.get.select(fieldWithTupleId: _*)
     (dataFrameWithTupleId)
+  }
+
+  def getCompletePartitionValues(sparkSession: SparkSession): Map[String, Option[String]] = {
+    if (partition.nonEmpty && !EnvHelper.isLuxor(sparkSession)) {
+      val lowerCasePartitionMap = partition.map { entry =>
+        (entry._1.toLowerCase, entry._2)
+      }
+      val partitionsColumns = table.getPartitionInfo.getColumnSchemaList
+      if (partition.size != partitionsColumns.size()) {
+        val dynamicPartitions = {
+          partitionsColumns
+            .asScala
+            .filter { column =>
+              !lowerCasePartitionMap.contains(column.getColumnName)
+            }
+            .map { column =>
+              (column.getColumnName, None)
+            }
+        }
+        partition ++ dynamicPartitions
+      } else {
+        partition
+      }
+    } else {
+      partition
+    }
   }
 
   override protected def opName: String = {

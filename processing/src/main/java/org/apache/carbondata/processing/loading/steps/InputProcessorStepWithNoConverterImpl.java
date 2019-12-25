@@ -61,10 +61,10 @@ public class InputProcessorStepWithNoConverterImpl extends AbstractDataLoadProce
 
   private int[] orderOfData;
 
-  private Map<Integer, GenericDataType> dataFieldsWithComplexDataType;
-
   // cores used in SDK writer, set by the user
   private short sdkWriterCores;
+
+  private Map<Integer, GenericDataType> dataFieldsWithComplexDataType;
 
   public InputProcessorStepWithNoConverterImpl(CarbonDataLoadConfiguration configuration,
       CarbonIterator<Object[]>[] inputIterators) {
@@ -86,7 +86,6 @@ public class InputProcessorStepWithNoConverterImpl extends AbstractDataLoadProce
     configuration.setCardinalityFinder(rowConverter);
     noDictionaryMapping =
         CarbonDataProcessorUtil.getNoDictionaryMapping(configuration.getDataFields());
-
     dataFieldsWithComplexDataType = new HashMap<>();
     convertComplexDataType(dataFieldsWithComplexDataType);
 
@@ -189,13 +188,15 @@ public class InputProcessorStepWithNoConverterImpl extends AbstractDataLoadProce
 
     private int[] orderOfData;
 
-    private Map<Integer, GenericDataType> dataFieldsWithComplexDataType;
-
     private DirectDictionaryGenerator dateDictionaryGenerator;
 
     private DirectDictionaryGenerator timestampDictionaryGenerator;
 
+    private Map<Integer, GenericDataType> dataFieldsWithComplexDataType;
+
     private BadRecordLogHolder logHolder = new BadRecordLogHolder();
+
+    private boolean isHivePartitionTable = false;
 
     public InputProcessorIterator(List<CarbonIterator<Object[]>> inputIterators, int batchSize,
         boolean preFetch, AtomicLong rowCounter, int[] orderOfData, boolean[] noDictionaryMapping,
@@ -214,6 +215,8 @@ public class InputProcessorStepWithNoConverterImpl extends AbstractDataLoadProce
       this.dataFields = configuration.getDataFields();
       this.orderOfData = orderOfData;
       this.dataFieldsWithComplexDataType = dataFieldsWithComplexDataType;
+      this.isHivePartitionTable =
+          configuration.getTableSpec().getCarbonTable().isHivePartitionTable();
     }
 
     @Override public boolean hasNext() {
@@ -275,7 +278,9 @@ public class InputProcessorStepWithNoConverterImpl extends AbstractDataLoadProce
           }
         } else {
           // if this is a complex column then recursively comver the data into Byte Array.
-          if (dataTypes[i].isComplexType()) {
+          if (dataTypes[i].isComplexType() && isHivePartitionTable) {
+            newData[i] = data[orderOfData[i]];
+          } else if (dataTypes[i].isComplexType()) {
             ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(byteArray);
             try {

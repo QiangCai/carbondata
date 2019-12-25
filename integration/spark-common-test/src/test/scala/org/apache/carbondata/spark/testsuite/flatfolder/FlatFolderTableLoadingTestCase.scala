@@ -37,7 +37,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE originTable OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
@@ -57,7 +57,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int,empno int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('sort_scope'='global_sort', 'flat_folder'='true')
+        | STORED AS carbondata tblproperties('sort_scope'='global_sort', 'flat_folder'='true')
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder_gs OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
 
@@ -75,7 +75,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int,empno int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('flat_folder'='true')
+        | STORED AS carbondata tblproperties('flat_folder'='true')
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
 
@@ -93,7 +93,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int,empno int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('flat_folder'='true')
+        | STORED AS carbondata tblproperties('flat_folder'='true')
       """.stripMargin)
     sql("create datamap p2 on table flatfolder_preagg using 'preaggregate' as select empname, designation, min(salary) from flatfolder_preagg group by empname, designation ")
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder_preagg OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
@@ -108,7 +108,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("merge index flat folder issue") {
     sql("drop table if exists t1")
-    sql("create table t1(c1 int,c2 string,c3 float,c4 date) stored by 'carbondata' TBLPROPERTIES('flat_folder'='true')")
+    sql("create table t1(c1 int,c2 string,c3 float,c4 date) STORED AS carbondata TBLPROPERTIES('flat_folder'='true')")
     sql("insert into t1 select 1,'a',1001,'1999-01-02'")
     sql("insert into t1 select 2,'b',20.01,'1998-01-02'")
     sql("insert into t1 select 3,'c',30.01,'1997-01-02'")
@@ -135,7 +135,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int,empno int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('flat_folder'='true')
+        | STORED AS carbondata tblproperties('flat_folder'='true')
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder_delete OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder_delete OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
@@ -160,7 +160,7 @@ class FlatFolderTableLoadingTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int,empno int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('flat_folder'='true', 'SORT_SCOPE'='GLOBAL_SORT' )
+        | STORED AS carbondata tblproperties('flat_folder'='true', 'SORT_SCOPE'='GLOBAL_SORT' )
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder_delete OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"', 'GLOBAL_SORT_PARTITIONS'='4')""")
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE flatfolder_delete OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"', 'GLOBAL_SORT_PARTITIONS'='4')""")

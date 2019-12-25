@@ -76,6 +76,8 @@ case class CarbonCreateTableCommand(
       val tablePath = if (FileFactory.getCarbonFile(path).exists() && !isExternal &&
                           isTransactionalTable && tableLocation.isEmpty) {
         path + "_" + tableInfo.getFactTable.getTableId
+      } else if (EnvHelper.isLuxor(sparkSession) && !isExternal && tableLocation.isEmpty) {
+        path + "_" + tableInfo.getFactTable.getTableId
       } else {
         path
       }
@@ -141,11 +143,29 @@ case class CarbonCreateTableCommand(
                   s"Dictionary include cannot be applied on partition columns")
               }
               s" PARTITIONED BY (${partitionInfo.getColumnSchemaList.asScala.map(
-                _.getColumnName).mkString(",")})"
+                _.getColumnName.toLowerCase).mkString(",")})"
             } else {
               ""
             }
-
+          val repeatedPropKeys =
+            Seq("tablename",
+              "dbname",
+              "tablePath",
+              "isExternal",
+              "path",
+              "isTransactional",
+              "isVisible",
+              "carbonSchemaPartsNo")
+          val tableProperties =
+            tableInfo
+              .getFactTable
+              .getTableProperties
+              .asScala
+              .filter(prop => !repeatedPropKeys.exists(_.equalsIgnoreCase(prop._1)))
+              .map { property =>
+                s"""  ${ property._1 }  "${ property._2 }","""
+              }
+              .mkString("\n", "\n", "")
           // synchronized to prevent concurrently creation of table with same name
           CarbonCreateTableCommand.synchronized {
             // isVisible property is added to hive table properties to differentiate between main
@@ -154,18 +174,18 @@ case class CarbonCreateTableCommand(
             sparkSession.sql(
               s"""CREATE TABLE $dbName.$tableName
                  |(${ rawSchema })
-                 |USING org.apache.spark.sql.CarbonSource
-                 |OPTIONS (
+                 |USING carbondata
+                 |OPTIONS (${tableProperties}
                  |  tableName "$tableName",
                  |  dbName "$dbName",
                  |  tablePath "$tablePath",
-                 |  path "${FileFactory.addSchemeIfNotExists(tablePath)}",
                  |  isExternal "$isExternal",
+                 |  path "${tablePath}",
                  |  isTransactional "$isTransactionalTable",
                  |  isVisible "$isVisible"
                  |  $carbonSchemaString)
                  |  $partitionString
-             """.stripMargin)
+             """.stripMargin).collect
           }
         } catch {
           case e: AnalysisException =>

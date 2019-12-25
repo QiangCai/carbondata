@@ -21,7 +21,7 @@ import java.util.Date
 
 import scala.collection.JavaConverters._
 
-import org.apache.spark.sql.{CarbonEnv, Row, SparkSession}
+import org.apache.spark.sql.{CarbonEnv, EnvHelper, Row, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.catalog.CatalogTypes.TablePartitionSpec
 import org.apache.spark.sql.catalyst.expressions.Attribute
@@ -100,7 +100,7 @@ private[sql] case class CarbonDescribeFormattedCommand(
       ("Owner", catalogTable.owner, ""),
       ("Created", new Date(catalogTable.createTime).toString, ""))
 
-    if (!CarbonEnv.getInstance(sparkSession).isLeo) {
+    if (!EnvHelper.isPrivacy(sparkSession, carbonTable.isExternalTable)) {
       results ++= Seq(
         ("Location ", carbonTable.getTablePath, "")
       )
@@ -144,6 +144,10 @@ private[sql] case class CarbonDescribeFormattedCommand(
     if (carbonTable.getRangeColumn != null) {
       results ++= Seq(("RANGE COLUMN", carbonTable.getRangeColumn.getColName, ""))
     }
+    if (carbonTable.getGlobalSortPartitions != null) {
+      results ++= Seq(("GLOBAL SORT PARTITIONS", carbonTable.getGlobalSortPartitions, ""))
+    }
+
     //////////////////////////////////////////////////////////////////////////////
     //  Encoding Information
     //////////////////////////////////////////////////////////////////////////////

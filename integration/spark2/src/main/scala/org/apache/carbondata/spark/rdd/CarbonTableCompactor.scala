@@ -283,7 +283,6 @@ class CarbonTableCompactor(carbonLoadModel: CarbonLoadModel,
           compactionType != CompactionType.IUD_UPDDEL_DELTA) {
         MergeIndexUtil.mergeIndexFilesOnCompaction(compactionCallableModel)
       }
-
       val compactionLoadStatusPostEvent = AlterTableCompactionPostStatusUpdateEvent(sc.sparkSession,
         carbonTable,
         carbonMergerMapping,

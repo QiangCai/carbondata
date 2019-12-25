@@ -46,7 +46,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='HASH','NUM_PARTITIONS'='3')
       """.stripMargin)
 
@@ -68,7 +68,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (doj Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
         |  'RANGE_INFO'='2017-06-11 00:00:02, 2017-06-13 23:59:59', 'DICTIONARY_INCLUDE'='doj')
       """.stripMargin)
@@ -95,7 +95,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (workgroupcategory string)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3)')
       """.stripMargin)
@@ -124,7 +124,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (workgroupcategory string)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('PARTITION_TYPE'='LIST',
         |  'LIST_INFO'='0, 1, (2, 3, 1)')
       """.stripMargin) }
@@ -133,7 +133,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
   test("test exception if partition column is dropped") {
     sql("drop table if exists test")
     sql(
-      "create table test(a int, b string) partitioned by (c int) stored by 'carbondata' " +
+      "create table test(a int, b string) partitioned by (c int) STORED AS carbondata " +
       "tblproperties('PARTITION_TYPE'='LIST','list_info'='0,10,5,20')")
     intercept[Exception] { sql("alter table test drop columns(c)") }
   }
@@ -141,7 +141,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
   test("test describe formatted for partition column") {
     sql("drop table if exists des")
     sql(
-      """create table des(a int, b string) partitioned by (c string) stored by 'carbondata'
+      """create table des(a int, b string) partitioned by (c string) STORED AS carbondata
         |tblproperties ('partition_type'='list','list_info'='1,2')""".stripMargin)
     checkExistence(sql("describe formatted des"), true, "Partition Type")
     sql("drop table if exists des")
@@ -153,7 +153,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_hash_1(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 INT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 INT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='HASH', 'NUM_PARTITIONS'='2.1')
         """.stripMargin
       )
@@ -165,7 +165,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_hash_2(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 INT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 INT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='HASH', 'NUM_PARTITIONS'='abc')
         """.stripMargin
       )
@@ -177,7 +177,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_hash_3(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 INT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 INT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='HASH', 'NUM_PARTITIONS'='-2.1')
         """.stripMargin
       )
@@ -192,7 +192,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_int(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 INT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 INT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -203,7 +203,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_small(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 SMALLINT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 SMALLINT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -214,7 +214,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_float(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 FLOAT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 FLOAT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -225,7 +225,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_double(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 DOUBLE) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 DOUBLE) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -236,7 +236,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_bigint(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 BIGINT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 BIGINT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -247,7 +247,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_date(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 DATE) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 DATE) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -258,7 +258,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_timestamp(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 TIMESTAMP) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 TIMESTAMP) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='abc,def')
         """.stripMargin)
     }
@@ -269,11 +269,11 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_list_decimal(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 DECIMAL(25, 4)) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 DECIMAL(25, 4)) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='LIST', 'LIST_INFO'='23.23111,2.32')
         """.stripMargin)
     }
-    assert(exception_test_list_decimal.getMessage.contains("Invalid Partition Values"))
+    assert(exception_test_list_decimal.getMessage.contains("UnSupported partition type"))
   }
 
   test("test exception when values in range_info can not match partition column type") {
@@ -282,7 +282,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_int(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 INT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 INT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -293,7 +293,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_smallint(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 SMALLINT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 SMALLINT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -304,7 +304,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_float(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 FLOAT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 FLOAT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -315,7 +315,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_double(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 DOUBLE) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 DOUBLE) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -326,7 +326,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_bigint(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 BIGINT) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 BIGINT) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -337,7 +337,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_date(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 DATE) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 DATE) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -348,7 +348,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_timestamp(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 TIMESTAMP) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 TIMESTAMP) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
@@ -359,11 +359,11 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
       sql(
         """
           | CREATE TABLE test_range_decimal(col1 INT, col2 STRING)
-          | PARTITIONED BY (col3 DECIMAL(25, 4)) STORED BY 'carbondata'
+          | PARTITIONED BY (col3 DECIMAL(25, 4)) STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE', 'RANGE_INFO'='abc,def')
         """.stripMargin)
     }
-    assert(exception_test_range_decimal.getMessage.contains("Invalid Partition Values"))
+    assert(exception_test_range_decimal.getMessage.contains("UnSupported partition type"))
   }
 
   test("Invalid Partition Range") {
@@ -375,7 +375,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
           |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
           |  utilization int,salary int)
           | PARTITIONED BY (doj Timestamp)
-          | STORED BY 'org.apache.carbondata.format'
+          | STORED AS carbondata
           | TBLPROPERTIES('PARTITION_TYPE'='RANGE',
           |  'RANGE_INFO'='2017-06-11 00:00:02')
         """.stripMargin)
@@ -386,7 +386,7 @@ class TestDDLForPartitionTable  extends QueryTest with BeforeAndAfterAll {
 
   test("test number of partitions for default partition") {
     sql("drop table if exists desc")
-    sql("create table desc(name string) partitioned by (num int) stored by 'carbondata'")
+    sql("create table desc(name string) partitioned by (num int) STORED AS carbondata")
     sql("insert into desc select 'abc',3")
     sql("insert into desc select 'abc',5")
     val descFormatted1 = sql("describe formatted desc").collect

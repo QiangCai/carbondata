@@ -19,7 +19,7 @@ package org.apache.spark.sql.hive
 import org.apache.hadoop.hive.ql.exec.UDF
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.catalyst.expressions.Expression
+import org.apache.spark.sql.catalyst.expressions.{Expression, ScalaUDF}
 
 import org.apache.carbondata.common.logging.LogServiceFactory
 
@@ -58,6 +58,7 @@ object CarbonHiveMetadataUtil {
   def checkNIUDF(condition: Expression): Boolean = {
     condition match {
       case hiveUDF: HiveSimpleUDF if hiveUDF.function.isInstanceOf[NonIndexUDFExpression] => true
+      case scalaUDF: ScalaUDF if "NI".equalsIgnoreCase(scalaUDF.udfName.get) => true
       case _ => false
     }
   }

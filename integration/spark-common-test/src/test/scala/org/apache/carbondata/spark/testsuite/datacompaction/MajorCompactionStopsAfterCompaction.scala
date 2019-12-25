@@ -40,8 +40,7 @@ class MajorCompactionStopsAfterCompaction extends QueryTest with BeforeAndAfterA
     sql(
       "CREATE TABLE IF NOT EXISTS stopmajor (country String, ID decimal(7,4), date Timestamp, name " +
         "String, " +
-        "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-        ".format'"
+        "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
 
     val csvFilePath1 = s"$resourcesPath/compaction/compaction1.csv"

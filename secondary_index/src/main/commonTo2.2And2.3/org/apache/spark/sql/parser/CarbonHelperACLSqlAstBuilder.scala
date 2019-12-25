@@ -50,10 +50,10 @@ class CarbonHelperACLSqlAstBuilder(conf: SQLConf,
               "'STORED AS' FileFormat is not supported for internal table.", ctx
             )
           }
-        // STORED BY
+        // STORED AS
         case (null, s: StorageHandlerContext) =>
           operationNotAllowed(
-            "'STORED BY' StorageHandler is not supported for internal table.", ctx
+            "'STORED AS' StorageHandler is not supported for internal table.", ctx
           )
         case _ =>
       }
@@ -64,7 +64,7 @@ class CarbonHelperACLSqlAstBuilder(conf: SQLConf,
   /**
    * Parse a key-value map from a [[TablePropertyListContext]], assuming all values are specified.
    */
-  def visitPropertyKeyValues(ctx: TablePropertyListContext): Map[String, String] = {
+  override def visitPropertyKeyValues(ctx: TablePropertyListContext): Map[String, String] = {
     val props = visitTablePropertyList(ctx)
     CarbonSparkSqlParserUtil.visitPropertyKeyValues(ctx, props)
   }

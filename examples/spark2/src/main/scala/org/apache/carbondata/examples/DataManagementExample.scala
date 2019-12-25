@@ -27,7 +27,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 object DataManagementExample {
 
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("DataManagementExample")
+    val spark = ExampleUtils.createSparkSession("DataManagementExample")
     exampleBody(spark)
     spark.close()
   }
@@ -47,7 +47,7 @@ object DataManagementExample {
          | serialname String,
          | salary Int,
          | floatField float
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
        """.stripMargin)
 
     val rootPath = new File(this.getClass.getResource("/").getPath

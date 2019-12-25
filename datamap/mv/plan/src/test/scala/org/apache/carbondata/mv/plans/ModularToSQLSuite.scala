@@ -17,7 +17,7 @@
 
 package org.apache.carbondata.mv.plans
 
-import org.apache.spark.sql.hive.CarbonSessionCatalog
+import org.apache.spark.sql.hive.CarbonSessionCatalogUtil
 import org.scalatest.BeforeAndAfter
 import org.apache.carbondata.mv.dsl.Plans._
 import org.apache.carbondata.mv.testutil.ModularPlanTest
@@ -29,7 +29,7 @@ class ModularToSQLSuite extends ModularPlanTest with BeforeAndAfter {
 
   val spark = sqlContext
   val testHive = sqlContext.sparkSession
-  val hiveClient = SparkSQLUtil.sessionState(spark.sparkSession).catalog.asInstanceOf[CarbonSessionCatalog].getClient()
+  val hiveClient = CarbonSessionCatalogUtil.getClient(spark.sparkSession)
   
   ignore("convert modular plans to sqls") {
     
@@ -123,7 +123,7 @@ class ModularToSQLSuite extends ModularPlanTest with BeforeAndAfter {
     testHive.udf.register("my_fun", (s: Integer) => s)
     
     testSQLBatch.foreach { query =>
-      val analyzed = testHive.sql(query).queryExecution.analyzed
+      val analyzed = testHive.sql(query).queryExecution.optimizedPlan
       val optimized = analyzed.optimize
       val modularPlan = analyzed.optimize.modularize
 
@@ -134,7 +134,7 @@ class ModularToSQLSuite extends ModularPlanTest with BeforeAndAfter {
 
       LOGGER.info(s"\n\n===== CONVERTED SQL =====\n\n$compactSql \n")
       
-      val analyzed1 = testHive.sql(convertedSql).queryExecution.analyzed
+      val analyzed1 = testHive.sql(convertedSql).queryExecution.optimizedPlan
       val modularPlan1 = analyzed1.optimize.modularize
 
       LOGGER.info(s"\n\n===== CONVERTED SQL =====\n\n$compactSql \n")

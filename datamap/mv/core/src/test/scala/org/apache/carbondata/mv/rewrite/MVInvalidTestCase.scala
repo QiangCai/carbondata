@@ -23,7 +23,7 @@ class MVInvalidTestCase  extends QueryTest with BeforeAndAfterAll {
 
   override def beforeAll(): Unit = {
     drop
-    sql("create table main_table (name string,age int,height int) stored by 'carbondata'")
+    sql("create table main_table (name string,age int,height int) STORED AS carbondata")
   }
 
   def drop {
@@ -38,7 +38,7 @@ class MVInvalidTestCase  extends QueryTest with BeforeAndAfterAll {
     sql("create datamap main_table_mv on table main_table using 'mv' as select age,name,height from main_table where name = 'tom'")
     sql("rebuild datamap main_table_mv")
 
-    assert(!TestUtil.verifyMVDataMap(sql(querySQL).queryExecution.analyzed, "main_table_mv"))
+    assert(!TestUtil.verifyMVDataMap(sql(querySQL).queryExecution.optimizedPlan, "main_table_mv"))
   }
 
   override def afterAll(): Unit = {

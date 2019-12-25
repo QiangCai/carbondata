@@ -31,7 +31,7 @@ import org.apache.spark.{Partition, SparkContext, TaskContext, TaskKilledExcepti
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{AnalysisException, CarbonDatasourceHadoopRelation, Column, DataFrame, Row, SparkSession}
 import org.apache.spark.sql.catalyst.expressions.{Alias, CaseWhen, Cast, NamedExpression}
-import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.catalyst.{CarbonParserUtil, InternalRow}
 import org.apache.spark.sql.catalyst.json.{CreateJacksonParser, JSONOptions}
 import org.apache.spark.sql.catalyst.plans.logical.{Filter, LogicalPlan, Project, SubqueryAlias}
 import org.apache.spark.sql.execution.command.{BucketFields, Field, TableNewProcessor}
@@ -380,8 +380,7 @@ object InsertColumnsHelper {
    */
   def generateVirtualColumn(field: Seq[Field]): (Seq[CarbonColumn], Seq[ColumnSchema]) = {
     // TODO need to infer data type for abstract complex data type
-    val parser = new CarbonSpark2SqlParser()
-    val virtualTableModel = parser.prepareTableModel(
+    val virtualTableModel = CarbonParserUtil.prepareTableModel(
       true,
       Option("default"),
       "default",

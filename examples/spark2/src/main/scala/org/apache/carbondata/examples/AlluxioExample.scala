@@ -35,7 +35,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 
 object AlluxioExample {
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("AlluxioExample")
+    val spark = ExampleUtils.createSparkSession("AlluxioExample")
     exampleBody(spark)
     spark.close()
   }
@@ -54,7 +54,7 @@ object AlluxioExample {
            CREATE TABLE IF NOT EXISTS alluxio_table
            (ID Int, date Date, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'carbondata'
+           STORED AS carbondata
            """)
 
     spark.sql(s"""

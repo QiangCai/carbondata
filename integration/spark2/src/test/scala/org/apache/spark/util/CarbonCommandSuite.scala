@@ -155,7 +155,7 @@ class CarbonCommandSuite extends Spark2QueryTest with BeforeAndAfterAll {
   test("test if delete segments by id is unsupported for pre-aggregate tables") {
     dropTable("preaggMain")
     dropTable("preaggMain_preagg1")
-    sql("create table preaggMain (a string, b string, c string) stored by 'carbondata'")
+    sql("create table preaggMain (a string, b string, c string) STORED AS carbondata")
     sql("create datamap preagg1 on table PreAggMain using 'preaggregate' as select a,sum(b) from PreAggMain group by a")
     intercept[UnsupportedOperationException] {
       sql("delete from table preaggMain where segment.id in (1,2)")
@@ -170,7 +170,7 @@ class CarbonCommandSuite extends Spark2QueryTest with BeforeAndAfterAll {
   test("separate visible and invisible segments info into two files") {
     val tableName = "test_tablestatus_history"
     sql(s"drop table if exists ${tableName}")
-    sql(s"create table ${tableName} (name String, age int) stored by 'carbondata' "
+    sql(s"create table ${tableName} (name String, age int) STORED AS carbondata "
       + "TBLPROPERTIES('AUTO_LOAD_MERGE'='true','COMPACTION_LEVEL_THRESHOLD'='2,2')")
     val carbonTable = CarbonEnv.getCarbonTable(Some("default"), tableName)(sqlContext.sparkSession)
     sql(s"insert into ${tableName} select 'abc1',1")
@@ -196,7 +196,7 @@ class CarbonCommandSuite extends Spark2QueryTest with BeforeAndAfterAll {
   test("show history segments") {
     val tableName = "test_tablestatus_history"
     sql(s"drop table if exists ${tableName}")
-    sql(s"create table ${tableName} (name String, age int) stored by 'carbondata' "
+    sql(s"create table ${tableName} (name String, age int) STORED AS carbondata "
       + "TBLPROPERTIES('AUTO_LOAD_MERGE'='true','COMPACTION_LEVEL_THRESHOLD'='2,2')")
     val carbonTable = CarbonMetadata.getInstance().getCarbonTable("default", tableName)
     sql(s"insert into ${tableName} select 'abc1',1")

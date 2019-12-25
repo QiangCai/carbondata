@@ -102,7 +102,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(smallIntField smallInt)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -137,7 +137,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(intField int)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -172,7 +172,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(bigIntField bigint)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -207,7 +207,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(floatField float)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -242,7 +242,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(doubleField double)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -276,7 +276,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(decimalField decimal(25, 4))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -311,7 +311,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(timestampField timestamp)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -346,7 +346,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(dateField date)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -381,7 +381,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(stringField string)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -416,7 +416,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(varcharField varchar(10))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -451,7 +451,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(charField char(10))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='hash','num_partitions'='3')
       """.stripMargin)
 
@@ -486,7 +486,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(smallIntField smallInt)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='-32768, 32767')
       """.stripMargin)
 
@@ -521,7 +521,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(intField int)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='-2147483648, 2147483647')
       """.stripMargin)
 
@@ -556,7 +556,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(bigIntField bigint)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='-9223372036854775808, 9223372036854775807')
       """.stripMargin)
 
@@ -591,7 +591,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(floatField float)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='-2147483648.1,2147483648.1')
       """.stripMargin)
 
@@ -626,7 +626,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(doubleField double)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='-9223372036854775808.1,9223372036854775808.1')
       """.stripMargin)
 
@@ -642,7 +642,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
 
   }
 
-  test("allTypeTable_list_decimal") {
+  ignore("allTypeTable_list_decimal") {
     val tableName = "allTypeTable_list_decimal"
 
     sql(
@@ -660,7 +660,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(decimalField decimal(25, 4))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='-9223372036854775808.1234, 9223372036854775808.1234')
       """.stripMargin)
 
@@ -695,7 +695,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(timestampField timestamp)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='2017-06-11 00:00:01, 2017-06-13 23:59:59')
       """.stripMargin)
 
@@ -730,7 +730,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(dateField date)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='2017-06-11,2017-06-13')
       """.stripMargin)
 
@@ -765,7 +765,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(stringField string)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='abc1,abc2')
       """.stripMargin)
 
@@ -800,7 +800,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(varcharField varchar(10))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='abcd1,abcd3')
       """.stripMargin)
 
@@ -835,7 +835,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(charField char(10))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='list','list_info'='abcde1,abcde3')
       """.stripMargin)
 
@@ -870,7 +870,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(smallIntField smallInt)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='0, 129')
       """.stripMargin)
 
@@ -905,7 +905,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(intField int)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='-1, 32769')
       """.stripMargin)
 
@@ -940,7 +940,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(bigIntField bigint)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='-9223372036854775807, 2147483649')
       """.stripMargin)
 
@@ -975,7 +975,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(floatField float)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='-2147483647.1,2147483648.1')
       """.stripMargin)
 
@@ -1010,7 +1010,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(doubleField double)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='-9223372036854775807.1,9223372036854775808.1')
       """.stripMargin)
 
@@ -1026,7 +1026,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
 
   }
 
-  test("allTypeTable_range_decimal") {
+  ignore("allTypeTable_range_decimal") {
     val tableName = "allTypeTable_range_decimal"
 
     sql(
@@ -1044,7 +1044,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(decimalField decimal(25, 4))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='-9223372036854775807.1234, 9223372036854775808.1234')
       """.stripMargin)
 
@@ -1079,7 +1079,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(timestampField timestamp)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='2017-06-11 00:00:02, 2017-06-13 23:59:59')
       """.stripMargin)
 
@@ -1114,7 +1114,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(dateField date)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='2017-06-12,2017-06-13')
       """.stripMargin)
 
@@ -1149,7 +1149,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(stringField string)
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='abc2,abc3')
       """.stripMargin)
 
@@ -1184,7 +1184,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(varcharField varchar(10))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='abcd2,abcd3')
       """.stripMargin)
 
@@ -1219,7 +1219,7 @@ class TestAllDataTypeForPartitionTable extends QueryTest with BeforeAndAfterAll 
          | arrayField array<string>,
          | structField struct<col1:string, col2:string, col3:string>)
          | partitioned by(charField char(10))
-         | stored by 'carbondata'
+         | STORED AS carbondata
          | tblproperties('partition_type'='range','range_info'='abcde2,abcde3')
       """.stripMargin)
 

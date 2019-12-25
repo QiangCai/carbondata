@@ -35,15 +35,15 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists iud cascade")
     sql("create database iud")
     sql("use iud")
-    sql("""create table iud.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest""")
-    sql("""create table iud.source2 (c11 string,c22 int,c33 string,c55 string, c66 int) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.source2 (c11 string,c22 int,c33 string,c55 string, c66 int) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/source2.csv' INTO table iud.source2""")
-    sql("""create table iud.other (c1 string,c2 int) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.other (c1 string,c2 int) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/other.csv' INTO table iud.other""")
     sql("""create table iud.hdest (c1 string,c2 int,c3 string,c5 string) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' STORED AS TEXTFILE""").show()
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.hdest""")
-    sql("""CREATE TABLE iud.update_01(imei string,age int,task bigint,num double,level decimal(10,3),name string)STORED BY 'org.apache.carbondata.format' """)
+    sql("""CREATE TABLE iud.update_01(imei string,age int,task bigint,num double,level decimal(10,3),name string)STORED AS carbondata """)
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/update01.csv' INTO TABLE iud.update_01 OPTIONS('BAD_RECORDS_LOGGER_ENABLE' = 'FALSE', 'BAD_RECORDS_ACTION' = 'FORCE') """)
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_HORIZONTAL_COMPACTION_ENABLE , "true")
@@ -54,7 +54,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("test update operation with 0 rows updation.") {
     sql("""drop table if exists iud.zerorows""").show
-    sql("""create table iud.zerorows (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.zerorows (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.zerorows""")
     sql("""update zerorows d  set (d.c2) = (d.c2 + 1) where d.c1 = 'a'""").show()
     sql("""update zerorows d  set (d.c2) = (d.c2 + 1) where d.c1 = 'xxx'""").show()
@@ -70,7 +70,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[select from source table with where and exist]") {
     sql("""drop table if exists iud.dest11""").show
-    sql("""create table iud.dest11 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest11 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest11""")
     sql("""update iud.dest11 d set (d.c3, d.c5 ) = (select s.c33,s.c55 from iud.source2 s where d.c1 = s.c11) where 1 = 1""").show()
     checkAnswer(
@@ -82,7 +82,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table columns with where and exist]") {
     sql("""drop table if exists iud.dest22""")
-    sql("""create table iud.dest22 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest22 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest22""")
     checkAnswer(
       sql("""select c2 from iud.dest22 where c1='a'"""),
@@ -96,9 +96,28 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("""drop table if exists iud.dest22""")
   }
 
+  test("update with subquery with more than one value for key") {
+    sql("drop table if exists t1")
+    sql("drop table if exists t2")
+    sql("create table t1 (age int, name string) stored as carbondata")
+    sql("insert into t1 select 1, 'aa'")
+    sql("insert into t1 select 2, 'aa'")
+    sql("create table t2 (age int, name string) stored as carbondata")
+    sql("insert into t2 select 1, 'Andy'")
+    sql("insert into t2 select 2, 'Andy'")
+    val exception = intercept[RuntimeException] {
+      sql("update t1 set (age) = (select t2.age from t2 where t2.name = 'Andy') where t1.age = 1 ").show(false)
+    }
+    assertResult(
+      "Update operation failed.  update cannot be supported for 1 to N mapping, as more than one " +
+      "value present for the update key")(exception.getMessage)
+    sql("drop table if exists t1")
+    sql("drop table if exists t2")
+  }
+
   test("update carbon table without alias in set columns") {
     sql("""drop table if exists iud.dest33""")
-    sql("""create table iud.dest33 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest33 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33""")
     sql("""update iud.dest33 d set (c3,c5 ) = (select s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11) where d.c1 = 'a'""").show()
     checkAnswer(
@@ -110,7 +129,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table without alias in set columns with mulitple loads") {
     sql("""drop table if exists iud.dest33""")
-    sql("""create table iud.dest33 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest33 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33""")
     sql("""update iud.dest33 d set (c3,c5 ) = (select s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11) where d.c1 = 'a'""").show()
@@ -125,7 +144,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("""drop table if exists iud.dest_opt_segment_parallelism""")
     sql(
       """create table iud.dest_opt_segment_parallelism (c1 string,c2 int,c3 string,c5 string)
-        | STORED BY 'org.apache.carbondata.format'""".stripMargin)
+        | STORED AS carbondata""".stripMargin)
     sql(
       s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv'
          | INTO table iud.dest_opt_segment_parallelism""".stripMargin)
@@ -147,7 +166,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table without alias in set three columns") {
     sql("""drop table if exists iud.dest44""")
-    sql("""create table iud.dest44 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest44 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest44""")
     sql("""update iud.dest44 d set (c1,c3,c5 ) = (select s.c11, s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11) where d.c1 = 'a'""").show()
     checkAnswer(
@@ -159,7 +178,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[single column select from source with where and exist]") {
     sql("""drop table if exists iud.dest55""")
-    sql("""create table iud.dest55 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest55 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest55""")
     sql("""update iud.dest55 d set (c3)  = (select s.c33 from iud.source2 s where d.c1 = s.c11) where 1 = 1""").show()
     checkAnswer(
@@ -171,7 +190,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[single column SELECT from source with where and exist]") {
     sql("""drop table if exists iud.dest55""")
-    sql("""create table iud.dest55 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest55 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest55""")
     sql("""update iud.dest55 d set (c3)  = (SELECT s.c33 from iud.source2 s where d.c1 = s.c11) where 1 = 1""").show()
     checkAnswer(
@@ -183,7 +202,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table columns without where clause]") {
     sql("""drop table if exists iud.dest66""")
-    sql("""create table iud.dest66 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest66 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest66""")
     sql("""update iud.dest66 d set (c2, c5 ) = (c2 + 1, concat(c5 , "z"))""").show()
     checkAnswer(
@@ -195,7 +214,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table columns with where clause]") {
     sql("""drop table if exists iud.dest77""")
-    sql("""create table iud.dest77 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest77 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest77""")
     sql("""update iud.dest77 d set (c2, c5 ) = (c2 + 1, concat(c5 , "z")) where d.c3 = 'dd'""").show()
     checkAnswer(
@@ -207,7 +226,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table( no alias) columns without where clause]") {
     sql("""drop table if exists iud.dest88""")
-    sql("""create table iud.dest88 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest88 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest88""")
     sql("""update iud.dest88  set (c2, c5 ) = (c2 + 1, concat(c5 , "y" ))""").show()
     checkAnswer(
@@ -219,7 +238,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table columns with hard coded value ]") {
     sql("""drop table if exists iud.dest99""")
-    sql("""create table iud.dest99 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest99 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest99""")
     sql("""update iud.dest99 d set (c2, c5 ) = (c2 + 1, "xyx")""").show()
     checkAnswer(
@@ -231,7 +250,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon tableusing destination table columns with hard coded value and where condition]") {
     sql("""drop table if exists iud.dest110""")
-    sql("""create table iud.dest110 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest110 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest110""")
     sql("""update iud.dest110 d set (c2, c5 ) = (c2 + 1, "xyx") where d.c1 = 'e'""").show()
     checkAnswer(
@@ -243,7 +262,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using source  table columns with where and exist and no destination table condition]") {
     sql("""drop table if exists iud.dest120""")
-    sql("""create table iud.dest120 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest120 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest120""")
     sql("""update iud.dest120 d  set (c3, c5 ) = (select s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11)""").show()
     checkAnswer(
@@ -255,7 +274,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table where and exist]") {
     sql("""drop table if exists iud.dest130""")
-    sql("""create table iud.dest130 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest130 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest130""")
     sql("""update iud.dest130 dd  set (c2, c5 ) = (c2 + 1, "xyx")  where dd.c1 = 'a'""").show()
     checkAnswer(
@@ -267,7 +286,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table (concat) where and exist]") {
     sql("""drop table if exists iud.dest140""")
-    sql("""create table iud.dest140 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest140 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest140""")
     sql("""update iud.dest140 d set (c2, c5 ) = (c2 + 1, concat(c5 , "z"))  where d.c1 = 'a'""").show()
     checkAnswer(
@@ -279,7 +298,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update carbon table[using destination table (concat) with  where") {
     sql("""drop table if exists iud.dest150""")
-    sql("""create table iud.dest150 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest150 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest150""")
     sql("""update iud.dest150 d set (c5) = (concat(c5 , "z"))  where d.c1 = 'b'""").show()
     checkAnswer(
@@ -323,7 +342,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("""update carbon [special characters  in value- test parsing logic ]""") {
     sql("""drop table if exists iud.dest160""")
-    sql("""create table iud.dest160 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest160 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest160""")
     sql("""update iud.dest160 set(c1) = ("ab\')$*)(&^)")""").show()
     sql("""update iud.dest160 set(c1) =  ('abd$asjdh$adasj$l;sdf$*)$*)(&^')""").show()
@@ -340,7 +359,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("""update carbon [sub query, between and existing in outer condition.(Customer query ) ]""") {
     sql("""drop table if exists iud.dest170""")
-    sql("""create table iud.dest170 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest170 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest170""")
     sql("""update iud.dest170 d set (c3)=(select s.c33 from iud.source2 s where d.c1 = s.c11 and d.c2 = s.c22) where  d.c2 between 1 and 3""").show()
     checkAnswer(
@@ -352,11 +371,11 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("""update carbon [self join select query ]""") {
     sql("""drop table if exists iud.dest171""")
-    sql("""create table iud.dest171 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest171 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest171""")
     sql("""update iud.dest171 d set (c3)=(select concat(s.c3 , "z") from iud.dest171 s where d.c2 = s.c2)""").show
     sql("""drop table if exists iud.dest172""")
-    sql("""create table iud.dest172 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest172 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest172""")
     sql("""update iud.dest172 d set (c3)=( concat(c3 , "z"))""").show
     checkAnswer(
@@ -391,7 +410,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
           "designation String, doj Timestamp, workgroupcategory int, " +
           "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
           "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-          "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+          "utilization int,salary int) STORED AS carbondata " +
           "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
           "'DICTIONARY_EXCLUDE'='empname')")
     }
@@ -399,7 +418,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("test show segment after updating data : JIRA-1411,JIRA-1414") {
     sql("""drop table if exists iud.show_segment""").show
-    sql("""create table iud.show_segment (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.show_segment (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.show_segment""")
     val before_update = sql("""show segments for table iud.show_segment""").collect()
     sql("""update iud.show_segment d set (d.c3, d.c5 ) = (select s.c33,s.c55 from iud.source2 s where d.c1 = s.c11) where 1 = 1""").show()
@@ -417,7 +436,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
         .addProperty(CarbonCommonConstants.CARBON_BAD_RECORDS_ACTION, "FAIL")
       val errorMessage = intercept[Exception] {
         sql("drop table if exists update_with_bad_record")
-        sql("create table update_with_bad_record(item int, name String) stored by 'carbondata'")
+        sql("create table update_with_bad_record(item int, name String) STORED AS carbondata")
         sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/IUD/bad_record.csv' into table " +
             s"update_with_bad_record")
         sql("update update_with_bad_record set (item)=(3.45)").show()
@@ -470,7 +489,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
            |    stringField3          string,
            |    intField              int,
            |    longField             bigint,
-           |    int2Field             int) STORED BY 'carbondata'""".stripMargin)
+           |    int2Field             int) STORED AS carbondata""".stripMargin)
     df.write
       .format("carbondata")
       .option("tableName", "study_carbondata")
@@ -493,7 +512,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("update table in carbondata with rand() ") {
 
-    sql("""CREATE TABLE iud.rand(imei string,age int,task bigint,num double,level decimal(10,3),name string)STORED BY 'org.apache.carbondata.format' """)
+    sql("""CREATE TABLE iud.rand(imei string,age int,task bigint,num double,level decimal(10,3),name string)STORED AS carbondata """)
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/update01.csv' INTO TABLE iud.rand OPTIONS('DELIMITER'=',' , 'QUOTECHAR'='"','BAD_RECORDS_ACTION'='FORCE','FILEHEADER'='imei,age,task,num,level,name')""").collect
 
     sql("select substring(name,1,2 ) , name ,getTupleId() as tupleId , rand()  from  iud.rand").show(100)
@@ -524,7 +543,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("test if update is unsupported for pre-aggregate tables") {
     sql("drop table if exists preaggMain")
     sql("drop table if exists preaggMain_preagg1")
-    sql("create table preaggMain (a string, b string, c string) stored by 'carbondata'")
+    sql("create table preaggMain (a string, b string, c string) STORED AS carbondata")
     sql("create datamap preagg1 on table PreAggMain using 'preaggregate' as select a,sum(b) from PreAggMain group by a")
     intercept[RuntimeException] {
       sql("update preaggmain set (a)=('a')").show
@@ -542,7 +561,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"create database carbon1 location '$dblocation'")
     sql("use carbon1")
     sql("""CREATE TABLE carbontable(id int, name string, city string, age int)
-         STORED BY 'org.apache.carbondata.format'""")
+         STORED AS carbondata""")
     val testData = s"$resourcesPath/sample.csv"
     sql(s"LOAD DATA LOCAL INPATH '$testData' into table carbontable")
     // update operation
@@ -561,7 +580,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"create database carbon1 location '$dblocation'")
     sql("use carbon1")
     sql("""CREATE TABLE carbontable(id int, name string, city string, age int)
-         STORED BY 'org.apache.carbondata.format'""")
+         STORED AS carbondata""")
     val testData = s"$resourcesPath/sample.csv"
     sql(s"LOAD DATA LOCAL INPATH '$testData' into table carbontable")
     // update operation
@@ -578,7 +597,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition test update operation with 0 rows updation.") {
     sql("""drop table if exists iud.zerorows_part""").show
-    sql("""create table iud.zerorows_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.zerorows_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.zerorows_part""")
     sql("""update iud.zerorows_part d  set (d.c2) = (d.c2 + 1) where d.c1 = 'a'""").show()
     sql("""update iud.zerorows_part d  set (d.c2) = (d.c2 + 1) where d.c1 = 'xxx'""").show()
@@ -593,7 +612,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition update carbon table[select from source table with where and exist]") {
     sql("""drop table if exists iud.dest11_part""").show
-    sql("""create table iud.dest11_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest11_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest11_part""")
     sql("""update iud.dest11_part d set (d.c3, d.c5 ) = (select s.c33,s.c55 from iud.source2 s where d.c1 = s.c11) where 1 = 1""").show()
     checkAnswer(
@@ -605,7 +624,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition update carbon table[using destination table columns with where and exist]") {
     sql("""drop table if exists iud.dest22_part""")
-    sql("""create table iud.dest22_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest22_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest22_part""")
     checkAnswer(
       sql("""select c2 from iud.dest22_part where c1='a'"""),
@@ -621,7 +640,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition update carbon table without alias in set columns") {
     sql("""drop table if exists iud.dest33_part""")
-    sql("""create table iud.dest33_part (c2 int,c3 string,c5 string) PARTITIONED BY(c1 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest33_part (c2 int,c3 string,c5 string) PARTITIONED BY(c1 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33_part""")
     sql("""update iud.dest33_part d set (c3,c5 ) = (select s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11) where d.c1 = 'a'""").show()
     checkAnswer(
@@ -633,7 +652,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition update carbon table without alias in set columns with mulitple loads") {
     sql("""drop table if exists iud.dest33_part""")
-    sql("""create table iud.dest33_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest33_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33_part""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33_part""")
     sql("""update iud.dest33_part d set (c3,c5 ) = (select s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11) where d.c1 = 'a'""").show()
@@ -646,8 +665,8 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("test create table with tupleid as column name") {
     try {
-      sql("create table create_with_tupleid_column(item int, tupleId String) stored by " +
-          "'carbondata'")
+      sql("create table create_with_tupleid_column(item int, tupleId String) STORED AS " +
+          "carbondata")
     } catch {
       case ex: Exception =>
         assert(ex.getMessage.contains("not allowed in column name while creating table"))
@@ -658,7 +677,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     try {
       sql(
         "create table create_with_positionReference_column(item int, positionReference String) " +
-        "stored by 'carbondata'")
+        "STORED AS carbondata")
     } catch {
       case ex: Exception =>
         assert(ex.getMessage.contains("not allowed in column name while creating table"))
@@ -668,8 +687,8 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("test create table with position id as column name") {
     try {
       sql(
-        "create table create_with_positionid_column(item int, positionId String) stored by " +
-        "'carbondata'")
+        "create table create_with_positionid_column(item int, positionId String) STORED AS " +
+        "carbondata")
     } catch {
       case ex: Exception =>
         assert(ex.getMessage.contains("not allowed in column name while creating table"))
@@ -678,7 +697,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("empty folder creation after compaction and update") {
     sql("drop table if exists t")
-    sql("create table t (c1 string, c2 string, c3 int, c4 string) stored by 'carbondata'")
+    sql("create table t (c1 string, c2 string, c3 int, c4 string) STORED AS carbondata")
     sql("insert into t select 'asd','sdf',1,'dfg'")
     sql("insert into t select 'asdf','sadf',2,'dafg'")
     sql("insert into t select 'asdq','sqdf',3,'dqfg'")
@@ -702,7 +721,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   }
   test("test sentences func in update statement") {
     sql("drop table if exists senten")
-    sql("create table senten(name string, comment string) stored by 'carbondata'")
+    sql("create table senten(name string, comment string) STORED AS carbondata")
     sql("insert into senten select 'aaa','comment for aaa'")
     sql("insert into senten select 'bbb','comment for bbb'")
     sql("select * from senten").show()
@@ -719,7 +738,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists test_dm_main")
     sql("drop table if exists test_dm_main_preagg1")
 
-    sql("create table test_dm_main (a string, b string, c string) stored by 'carbondata'")
+    sql("create table test_dm_main (a string, b string, c string) STORED AS carbondata")
     sql("insert into test_dm_main select 'aaa','bbb','ccc'")
     sql("insert into test_dm_main select 'bbb','bbb','ccc'")
     sql("insert into test_dm_main select 'ccc','bbb','ccc'")
@@ -743,7 +762,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("use iud")
     sql("drop table if exists test_dm_index")
 
-    sql("create table test_dm_index (a string, b string, c string) stored by 'carbondata'")
+    sql("create table test_dm_index (a string, b string, c string) STORED AS carbondata")
     sql("insert into test_dm_index select 'ccc','bbb','ccc'")
 
     sql(
@@ -762,7 +781,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("flat folder carbon table without alias in set columns with mulitple loads") {
     sql("""drop table if exists iud.dest33_flat""")
-    sql("""create table iud.dest33_part (c1 string,c2 int,c5 string, c3 string) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES('flat_folder'='true')""")
+    sql("""create table iud.dest33_part (c1 string,c2 int,c5 string, c3 string) STORED AS carbondata TBLPROPERTIES('flat_folder'='true')""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33_part""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest33_part""")
     sql("""update iud.dest33_part d set (c3,c5 ) = (select s.c33 ,s.c55  from iud.source2 s where d.c1 = s.c11) where d.c1 = 'a'""").show()
@@ -776,7 +795,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("check data after update with row.filter pushdown as false") {
     sql("""drop table if exists iud.dest33_flat""")
     sql(
-      """create table iud.dest33_part (c1 int,c2 string, c3 short) STORED BY 'carbondata'"""
+      """create table iud.dest33_part (c1 int,c2 string, c3 short) STORED AS carbondata"""
         .stripMargin)
     sql(
       s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/negativevalue.csv' INTO table iud
@@ -790,7 +809,7 @@ class UpdateCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("[CARBONDATA-3477] deal line break chars correctly after 'select' in 'update ... select columns' sql") {
     sql("""drop table if exists iud.dest11""").show
-    sql("""create table iud.dest11 (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud.dest11 (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud.dest11""")
     sql("""update iud.dest11 d set (d.c3, d.c5 ) = (select
            s.c33,s.c55 from iud.source2 s where d.c1 = s.c11) where 1 = 1""").show()

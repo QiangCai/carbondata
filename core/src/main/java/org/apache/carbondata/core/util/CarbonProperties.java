@@ -203,6 +203,9 @@ public final class CarbonProperties {
       case CarbonCommonConstants.CARBON_INDEX_SERVER_SERIALIZATION_THRESHOLD:
         validateIndexServerSerializationThreshold();
         break;
+      case CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE:
+        validateDMSchemaStorageProvider();
+        break;
       // TODO : Validation for carbon.lock.type should be handled for addProperty flow
       default:
         // none
@@ -393,6 +396,8 @@ public final class CarbonProperties {
         // else validate based on the file system type for LOCAL file system lock will be
         // CARBON_LOCK_TYPE_LOCAL and for the distributed one CARBON_LOCK_TYPE_HDFS
         case CarbonCommonConstants.CARBON_LOCK_TYPE_ZOOKEEPER:
+          break;
+        case  CarbonCommonConstants.CARBON_LOCK_TYPE_CUSTOM:
           break;
         case CarbonCommonConstants.CARBON_LOCK_TYPE_LOCAL:
         case CarbonCommonConstants.CARBON_LOCK_TYPE_HDFS:
@@ -1191,6 +1196,11 @@ public final class CarbonProperties {
         CarbonCommonConstants.ENABLE_VECTOR_READER_DEFAULT).equalsIgnoreCase("true");
   }
 
+  public static boolean isEnableTableStatusBackup() {
+    return getInstance().getProperty(CarbonCommonConstants.ENABLE_TABLE_STATUS_BACKUP,
+        CarbonCommonConstants.ENABLE_TABLE_STATUS_BACKUP_DEFAULT).equalsIgnoreCase("true");
+  }
+
   /**
    * Validate the restrictions
    *
@@ -1725,6 +1735,31 @@ public final class CarbonProperties {
     }
   }
 
+  private void validateDMSchemaStorageProvider() {
+    String provider =
+        carbonProperties.getProperty(CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE);
+    if (provider == null) {
+      carbonProperties.setProperty(
+          CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE,
+          CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DEFAULT);
+    } else {
+      switch (provider.toUpperCase()) {
+        case CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DISK:
+          break;
+        case  CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DATABASE:
+          break;
+        default:
+          LOGGER.warn("The value \"" + provider + "\" configured for key "
+              + CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE
+              + " is invalid for current file system. Use the default value "
+              + CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DEFAULT + " instead.");
+          carbonProperties.setProperty(
+              CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE,
+              CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DEFAULT);
+      }
+    }
+  }
+
   /**
    * Check whether the Distributed Pruning is enabled by the user or not.
    */
@@ -1856,5 +1891,14 @@ public final class CarbonProperties {
         return CarbonCommonConstants.INPUT_METRICS_UPDATE_INTERVAL_DEFAULT;
       }
     }
+  }
+
+  public static String getDataMapStorageProvider() {
+    String provider = CarbonProperties.getInstance()
+        .getProperty(CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE);
+    if (provider == null) {
+      return CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DEFAULT;
+    }
+    return provider.toUpperCase();
   }
 }

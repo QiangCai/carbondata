@@ -47,8 +47,6 @@ class CarbonEnvInitPreEventListener extends OperationEventListener {
      Utils.initCarbonFoldersPermission(storePath, sparkSession)
     // register position ID UDF
     sparkSession.udf.register("getPositionId", () => "")
-    CarbonInternalReflectionUtils
-      .callCreateFunctionCommand(None, "NI", "org.apache.spark.sql.hive.NonIndexUDFExpression",
-        Seq(), true).run(sparkSession)
+    sparkSession.udf.register("NI", (anyRef: AnyRef) => true)
   }
 }

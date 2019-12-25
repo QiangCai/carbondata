@@ -44,7 +44,6 @@ public class TestOcrAPI {
   }
 
   @Ignore
-  @Test
   public void testOcrIdCard() throws IOException {
     String Httpendpoint="https://ocr.cn-north-1.myhuaweicloud.com"; //httpendpoint for the service
     String Region="cn-north-1";   //region name for the service

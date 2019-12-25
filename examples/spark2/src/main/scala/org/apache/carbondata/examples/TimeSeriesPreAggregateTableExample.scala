@@ -32,7 +32,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 object TimeSeriesPreAggregateTableExample {
 
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("TimeSeriesPreAggregateTableExample")
+    val spark = ExampleUtils.createSparkSession("TimeSeriesPreAggregateTableExample")
     exampleBody(spark)
     spark.close()
   }
@@ -53,7 +53,7 @@ object TimeSeriesPreAggregateTableExample {
     // 1. usage for time series Pre-aggregate tables creation and query
     spark.sql("drop table if exists timeSeriesTable")
     spark.sql("CREATE TABLE timeSeriesTable(mytime timestamp," +
-              " name string, age int) STORED BY 'org.apache.carbondata.format'")
+              " name string, age int) STORED AS carbondata")
     spark.sql(
       s"""
          | CREATE DATAMAP agg0_hour ON TABLE timeSeriesTable

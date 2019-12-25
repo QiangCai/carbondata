@@ -139,7 +139,7 @@ class TestSDKWithTransactionalTable extends QueryTest with BeforeAndAfterAll {
 //         |    id int,
 //         |    digit int,
 //         |    image binary)
-//         | STORED AS 'carbondata'
+//         | STORED AS carbondata
 //             """.stripMargin)
 //    sql(
 //      s"""
@@ -155,7 +155,7 @@ class TestSDKWithTransactionalTable extends QueryTest with BeforeAndAfterAll {
 //         |    id int,
 //         |    digit int,
 //         |    image binary)
-//         | STORED AS 'carbondata'
+//         | STORED AS carbondata
 //             """.stripMargin)
 //    sql(
 //      s"""

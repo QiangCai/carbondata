@@ -20,7 +20,7 @@ package org.apache.spark.sql.execution.command.table
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 
-import org.apache.spark.sql.{CarbonEnv, Row, SparkSession}
+import org.apache.spark.sql.{CarbonEnv, EnvHelper, Row, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.analysis.NoSuchTableException
 import org.apache.spark.sql.execution.command.AtomicRunnableCommand
@@ -36,10 +36,8 @@ import org.apache.carbondata.core.exception.ConcurrentOperationException
 import org.apache.carbondata.core.locks.{CarbonLockFactory, CarbonLockUtil, ICarbonLock, LockUsage}
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager
-import org.apache.carbondata.core.util.path.CarbonTablePath
 import org.apache.carbondata.core.util.{CarbonProperties, CarbonUtil}
 import org.apache.carbondata.events._
-import org.apache.hadoop.conf.Configuration
 
 case class CarbonDropTableCommand(
     ifExistsSet: Boolean,
@@ -196,7 +194,7 @@ case class CarbonDropTableCommand(
         }
       } catch {
         case _: Exception =>
-          // Do nothing
+        // Do nothing
       }
     } catch {
       case ex: NoSuchTableException =>
@@ -225,7 +223,9 @@ case class CarbonDropTableCommand(
 
   override def processData(sparkSession: SparkSession): Seq[Row] = {
     // clear driver side index and dictionary cache
-    if (carbonTable != null && !(carbonTable.isChildTable && !dropChildTable)) {
+    if (!EnvHelper.isLuxor(sparkSession) &&
+        carbonTable != null &&
+        !(carbonTable.isChildTable && !dropChildTable)) {
       ManageDictionaryAndBTree.clearBTreeAndDictionaryLRUCache(carbonTable)
       // delete the table folder
       val tablePath = carbonTable.getTablePath
@@ -236,7 +236,7 @@ case class CarbonDropTableCommand(
           !(carbonTable.isExternalTable || carbonTable.isFileLevelFormat)) {
 
         // if it is managed table, we should delete all external segment folders
-        deleteExternalSegments(carbonTable, sparkSession.sessionState.newHadoopConf())
+        // deleteExternalSegments(carbonTable, sparkSession.sessionState.newHadoopConf())
 
         val file = FileFactory.getCarbonFile(tablePath, fileType)
         CarbonUtil.deleteFoldersAndFilesSilent(file)
@@ -257,13 +257,6 @@ case class CarbonDropTableCommand(
       childDropDataMapCommands.foreach(_.processData(sparkSession))
     }
     Seq.empty
-  }
-
-  private def deleteExternalSegments(table: CarbonTable, conf: Configuration): Unit = {
-    val externalSegmentFolders = table.getAllExternalSegmentFolders
-    externalSegmentFolders.asScala.foreach { folder =>
-      CarbonUtil.deleteFoldersAndFilesSilent(FileFactory.getCarbonFile(folder, conf))
-    }
   }
 
   override protected def opName: String = "DROP TABLE"

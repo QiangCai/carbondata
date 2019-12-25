@@ -11,6 +11,8 @@
  */
 package org.apache.spark.sql.hive
 
+import org.apache.hadoop.security.UserGroupInformation
+
 import org.apache.carbondata.common.logging.LogServiceFactory
 import org.apache.spark.sql.CarbonExpressions.{CarbonSubqueryAlias => SubqueryAlias}
 import org.apache.spark.sql.catalyst.catalog.UnresolvedCatalogRelation
@@ -106,6 +108,12 @@ object CarbonInternalMetaUtil {
     * @return
     */
   def getClientUser(sparkSession: SparkSession): String = {
-    sparkSession.sessionState.catalog.asInstanceOf[CarbonACLSessionCatalog].getClientUser
+    sparkSession
+      .sessionState
+      .catalog
+      .extendedProperties
+      .get("owner")
+      .map(_.asInstanceOf[String])
+      .getOrElse(UserGroupInformation.getCurrentUser.getShortUserName)
   }
 }

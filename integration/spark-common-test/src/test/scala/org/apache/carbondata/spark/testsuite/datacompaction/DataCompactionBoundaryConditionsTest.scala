@@ -39,8 +39,7 @@ class DataCompactionBoundaryConditionsTest extends QueryTest with BeforeAndAfter
       "CREATE TABLE IF NOT EXISTS boundarytest (country String, ID Int, date " +
       "Timestamp, name " +
       "String, " +
-      "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-      ".format'"
+      "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
 
   }

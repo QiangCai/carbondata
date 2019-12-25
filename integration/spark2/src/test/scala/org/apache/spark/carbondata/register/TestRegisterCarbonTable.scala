@@ -64,7 +64,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("register tables test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     backUpData(dblocation, "carbontable")
     sql("drop table carbontable")
@@ -79,7 +79,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("register table test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     backUpData(dblocation, "carbontable")
     sql("drop table carbontable")
@@ -94,7 +94,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
    test("register pre aggregate tables test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'aa','aaa'")
     sql("insert into carbontable select 'a',10,'aa','aaa'")
@@ -116,7 +116,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("register pre aggregate table test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'aa','aaa'")
     sql("insert into carbontable select 'a',10,'aa','aaa'")
@@ -138,7 +138,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("register pre aggregate table should fail if the aggregate table not copied") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'aa','aaa'")
     sql("insert into carbontable select 'a',10,'aa','aaa'")
@@ -159,7 +159,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
     sql(s"create database carbon1 location '$dblocation'")
     sql("use carbon1")
     sql("drop table if exists carbontable")
-    sql("""create table carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     backUpData(dblocation, "carbontable")
@@ -183,7 +183,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
     sql(
       """
          CREATE TABLE automerge(id int, name string, city string, age int)
-         STORED BY 'org.apache.carbondata.format'
+         STORED AS carbondata
       """)
     val testData = s"$resourcesPath/sample.csv"
     sql(s"LOAD DATA LOCAL INPATH '$testData' into table automerge")
@@ -204,7 +204,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("Delete operation on carbon table") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     backUpData(dblocation, "carbontable")
@@ -225,7 +225,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("Alter table add column test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     backUpData(dblocation, "carbontable")
@@ -246,7 +246,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("Alter table change column datatype test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     backUpData(dblocation, "carbontable")
@@ -266,7 +266,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterEach {
   test("Alter table drop column test") {
     sql(s"create database carbon location '$dblocation'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     backUpData(dblocation, "carbontable")

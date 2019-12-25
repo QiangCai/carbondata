@@ -46,12 +46,14 @@ import org.apache.carbondata.core.util.CarbonMetadataUtil;
 import org.apache.carbondata.core.util.CarbonProperties;
 import org.apache.carbondata.core.util.CarbonThreadFactory;
 import org.apache.carbondata.core.util.CarbonUtil;
+import org.apache.carbondata.core.util.OutputFilesInfoHolder;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 import org.apache.carbondata.core.writer.CarbonIndexFileWriter;
 import org.apache.carbondata.format.BlockIndex;
 import org.apache.carbondata.format.BlockletInfo3;
 import org.apache.carbondata.format.IndexHeader;
 import org.apache.carbondata.processing.datamap.DataMapWriterListener;
+import org.apache.carbondata.core.stats.LoadStats;
 import org.apache.carbondata.processing.store.CarbonFactDataHandlerModel;
 
 import static org.apache.carbondata.core.constants.SortScopeOptions.SortScope.NO_SORT;
@@ -154,6 +156,10 @@ public abstract class AbstractFactDataWriter implements CarbonFactDataWriter {
 
   protected ExecutorService fallbackExecutorService;
 
+  protected LoadStats loadStats;
+
+  private OutputFilesInfoHolder outputFilesInfoHolder;
+
   public AbstractFactDataWriter(CarbonFactDataHandlerModel model) {
     this.model = model;
     blockIndexInfoList = new ArrayList<>();
@@ -212,6 +218,8 @@ public abstract class AbstractFactDataWriter implements CarbonFactDataWriter {
           "FallbackPool:" + model.getTableName() + ", range: " + model.getBucketId(),
               true));
     }
+    this.loadStats = this.model.getLoadStats();
+    this.outputFilesInfoHolder = this.model.getOutputFilesInfoHolder();
   }
 
   /**
@@ -281,7 +289,7 @@ public abstract class AbstractFactDataWriter implements CarbonFactDataWriter {
         } else {
           if (copyInCurrentThread) {
             CarbonUtil.copyCarbonDataFileToCarbonStorePath(carbonDataFileTempPath,
-                model.getCarbonDataDirectoryPath(), fileSizeInBytes);
+                model.getCarbonDataDirectoryPath(), fileSizeInBytes, outputFilesInfoHolder);
             FileFactory.deleteFile(carbonDataFileTempPath,
                 FileFactory.getFileType(carbonDataFileTempPath));
           } else {
@@ -441,10 +449,14 @@ public abstract class AbstractFactDataWriter implements CarbonFactDataWriter {
       writer.writeThrift(blockIndex);
     }
     writer.close();
+    if (loadStats != null) {
+      loadStats.addOutputBytes(FileFactory.getCarbonFile(indexFileName).getSize());
+      loadStats.addFiles(1);
+    }
     if (!enableDirectlyWriteDataToStorePath) {
       CarbonUtil
           .copyCarbonDataFileToCarbonStorePath(indexFileName, model.getCarbonDataDirectoryPath(),
-              fileSizeInBytes);
+              fileSizeInBytes, outputFilesInfoHolder);
       FileFactory.deleteFile(indexFileName, FileFactory.getFileType(indexFileName));
     }
   }
@@ -510,7 +522,7 @@ public abstract class AbstractFactDataWriter implements CarbonFactDataWriter {
     @Override
     public Void call() throws Exception {
       CarbonUtil.copyCarbonDataFileToCarbonStorePath(fileName, model.getCarbonDataDirectoryPath(),
-          fileSizeInBytes);
+          fileSizeInBytes, outputFilesInfoHolder);
       FileFactory.deleteFile(fileName, FileFactory.getFileType(fileName));
       return null;
     }

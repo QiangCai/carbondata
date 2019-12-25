@@ -46,8 +46,7 @@ class MajorCompactionIgnoreInMinorTest extends QueryTest with BeforeAndAfterAll 
     sql(
       "CREATE TABLE IF NOT EXISTS ignoremajor (country String, ID Int, date Timestamp, name " +
         "String, " +
-        "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-        ".format'"
+        "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
     sql("LOAD DATA LOCAL INPATH '" + csvFilePath1 + "' INTO TABLE ignoremajor OPTIONS" +
       "('DELIMITER'= ',', 'QUOTECHAR'= '\"')"
@@ -144,8 +143,7 @@ class MajorCompactionIgnoreInMinorTest extends QueryTest with BeforeAndAfterAll 
     sql(
       "CREATE TABLE IF NOT EXISTS testmajor (country String, ID Int, date Timestamp, name " +
       "String, " +
-      "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-      ".format'"
+      "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
     sql("LOAD DATA LOCAL INPATH '" + csvFilePath1 + "' INTO TABLE testmajor OPTIONS" +
         "('DELIMITER'= ',', 'QUOTECHAR'= '\"')"

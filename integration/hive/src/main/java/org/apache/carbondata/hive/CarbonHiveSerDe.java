@@ -23,7 +23,16 @@ import java.util.List;
 import java.util.Properties;
 import javax.annotation.Nullable;
 
+import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
+import org.apache.carbondata.core.metadata.schema.SchemaReader;
+import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
+import org.apache.carbondata.core.metadata.schema.table.TableInfo;
+import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
+import org.apache.carbondata.core.util.path.CarbonTablePath;
+
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.AbstractSerDe;
 import org.apache.hadoop.hive.serde2.SerDeException;
@@ -97,7 +106,7 @@ public class CarbonHiveSerDe extends AbstractSerDe {
       columnTypes = TypeInfoUtils.getTypeInfosFromTypeString(columnTypeProperty);
     }
 
-
+    inferSchema(tbl, columnNames, columnTypes);
 
     // Create row related objects
     rowTypeInfo = TypeInfoFactory.getStructTypeInfo(columnNames, columnTypes);
@@ -107,6 +116,44 @@ public class CarbonHiveSerDe extends AbstractSerDe {
     serializedSize = 0;
     deserializedSize = 0;
     status = LAST_OPERATION.UNKNOWN;
+  }
+
+  private void inferSchema(Properties tbl, List<String> columnNames, List<TypeInfo> columnTypes) {
+    if (columnNames.size() == 0
+        && columnTypes.size() == 0) {
+      String external = tbl.getProperty("EXTERNAL");
+      String location = tbl.getProperty(hive_metastoreConstants.META_TABLE_LOCATION);
+      if (external != null
+          && "TRUE".equals(external)
+          && location != null) {
+        String[] names =
+            tbl.getProperty(hive_metastoreConstants.META_TABLE_NAME).split("\\.");
+        if (names.length == 2) {
+          AbsoluteTableIdentifier identifier =
+              AbsoluteTableIdentifier.from(location, names[0], names[1]);
+          String schemaPath = CarbonTablePath.getSchemaFilePath(identifier.getTablePath());
+          try {
+            TableInfo tableInfo = null;
+            if (!FileFactory.isFileExist(schemaPath, FileFactory.getFileType(schemaPath))) {
+              tableInfo = SchemaReader.inferSchema(identifier, false);
+            } else {
+              tableInfo = SchemaReader.getTableInfo(identifier);
+            }
+            if (tableInfo != null) {
+              CarbonTable carbonTable = CarbonTable.buildFromTableInfo(tableInfo);
+              List<CarbonColumn> columns =
+                  carbonTable.getCreateOrderColumn(carbonTable.getTableName());
+              for(CarbonColumn column : columns) {
+                columnNames.add(column.getColName());
+                columnTypes.add(HiveDataTypeUtils.convertCarbonDataTypeToHive(column));
+              }
+            }
+          } catch(Exception ex) {
+
+          }
+        }
+      }
+    }
   }
 
   @Override public Class<? extends Writable> getSerializedClass() {

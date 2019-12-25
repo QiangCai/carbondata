@@ -30,11 +30,11 @@
 		<delete dir="release"/>
 		<exec dir = "./../" executable = "sh"  failifexecutionfails="true" failonerror="true">
 
-			<arg line="-c 'mvn -s ./.build_config/carbon_settings.xml clean install -U -Pbuild-with-format -Pspark-2.3 -Pmv -DskipTests -Dfindbugs.skip=true -Dcheckstyle.skip=true -Dscalastyle.skip=true -Dspark.version=${SPARK_VERSION} -Dhadoop.version=${HADOOP_VERSION} -Dbuild.version=${BUILD_VERSION}'"/>
+			<arg line="-c 'mvn -s ./.build_config/carbon_settings.xml clean install -U -Pbuild-with-format -Pbuild-with-source -Pspark-2.3 -DskipTests -Dfindbugs.skip=true -Dcheckstyle.skip=true -Dscalastyle.skip=true -Dspark.version=${SPARK_VERSION} -Dhadoop.version=${HADOOP_VERSION} -Dbuild.version=${BUILD_VERSION}'"/>
 
 		</exec>
 
-		<echo message="MVN command=mvn -s ./.build_config/carbon_settings.xml clean install -U -Pbuild-with-format -Pspark-2.3 -Pmv -DskipTests -Dfindbugs.skip=true -Dcheckstyle.skip=true -Dscalastyle.skip=true -Dspark.version=${SPARK_VERSION} -Dhadoop.version=${HADOOP_VERSION} -Dbuild.version=${BUILD_VERSION}"/>
+		<echo message="MVN command=mvn -s ./.build_config/carbon_settings.xml clean install -U -Pbuild-with-format -Pbuild-with-source -Pspark-2.3 -DskipTests -Dfindbugs.skip=true -Dcheckstyle.skip=true -Dscalastyle.skip=true -Dspark.version=${SPARK_VERSION} -Dhadoop.version=${HADOOP_VERSION} -Dbuild.version=${BUILD_VERSION}"/>
 	</target>
 
 	<target name="package" depends = "exec" description="Creates the package.">
@@ -58,6 +58,8 @@
 		<copy file="../integration/spark-common/target/carbondata-spark-common-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
 		<copy file="../integration/spark2/target/carbondata-spark2-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
 		<copy file="../integration/flink/target/carbondata-flink-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
+		<copy file="../integration/flink-package/target/carbondata-flink-package-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
+		<copy file="../integration/flink-proxy/target/carbondata-flink-proxy-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
 		<copy file="../processing/target/carbondata-processing-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
 		<copy file="../secondary_index/target/carbondata-secondary_index-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>
 		<copy file="../store/sdk/target/carbondata-store-sdk-${BUILD_VERSION}.jar" toDir="${libDir}" overwrite="true"/>

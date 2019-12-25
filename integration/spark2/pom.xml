@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.apache.carbondata</groupId>
     <artifactId>carbondata-parent</artifactId>
-    <version>1.6.1.0100</version>
+    <version>1.6.1.01010201-hw-2.0.0.dli-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -63,7 +63,16 @@
           <groupId>net.jpountz.lz4</groupId>
           <artifactId>lz4</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.huawei.storage</groupId>
+          <artifactId>esdk-obs-java</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -141,6 +150,7 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <source>1.7</source>
@@ -154,7 +164,7 @@
         <!-- Note config is repeated in scalatest config -->
         <configuration>
           <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-          <argLine>-Xmx3g -XX:MaxPermSize=512m -XX:ReservedCodeCacheSize=512m</argLine>
+          <argLine>-Xmx5g -XX:MaxPermSize=512m -XX:ReservedCodeCacheSize=512m</argLine>
           <systemProperties>
             <java.awt.headless>true</java.awt.headless>
             <spark.carbon.hive.schema.store>${carbon.hive.based.metastore}</spark.carbon.hive.schema.store>
@@ -171,7 +181,7 @@
           <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
           <junitxml>.</junitxml>
           <filereports>CarbonTestSuite.txt</filereports>
-          <argLine> ${argLine} -ea -Xmx3g -XX:MaxPermSize=512m -XX:ReservedCodeCacheSize=512m
+          <argLine> ${argLine} -ea -Xmx5g -XX:MaxPermSize=512m -XX:ReservedCodeCacheSize=512m
           </argLine>
           <stderr />
           <environmentVariables>
@@ -300,7 +310,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <spark.version>2.3.2.0100</spark.version>
+        <spark.version>2.3.2.0101-hw-2.0.0.dli-SNAPSHOT</spark.version>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>2.11.8</scala.version>
       </properties>
@@ -366,7 +376,7 @@
         </dependency>
       </dependencies>
       <properties>
-        <spark.version>2.3.2.0100</spark.version>
+        <spark.version>2.3.2.0101-hw-2.0.0.dli-SNAPSHOT</spark.version>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>2.11.8</scala.version>
       </properties>

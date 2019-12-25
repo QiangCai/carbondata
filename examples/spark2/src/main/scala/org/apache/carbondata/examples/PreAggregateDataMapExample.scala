@@ -30,7 +30,7 @@ import org.apache.carbondata.examples.util.ExampleUtils
 object PreAggregateDataMapExample {
 
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("PreAggregateTableExample")
+    val spark = ExampleUtils.createSparkSession("PreAggregateTableExample")
     exampleBody(spark)
     spark.close()
   }
@@ -49,7 +49,7 @@ object PreAggregateDataMapExample {
                 | name String,
                 | city String,
                 | age Int)
-                | STORED BY 'org.apache.carbondata.format'
+                | STORED AS carbondata
               """.stripMargin)
 
     spark.sql("""
@@ -58,7 +58,7 @@ object PreAggregateDataMapExample {
                 | name String,
                 | city String,
                 | age Int)
-                | STORED BY 'org.apache.carbondata.format'
+                | STORED AS carbondata
               """.stripMargin)
 
     spark.sql(s"""

@@ -70,7 +70,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
       "CREATE table carbontable (empno int, empname String, designation String, doj String, " +
           "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String, " +
           "projectcode int, projectjoindate String, projectenddate String, attendance int," +
-          "utilization int,salary int) STORED BY 'org.apache.carbondata.format'"
+          "utilization int,salary int) STORED AS carbondata"
     )
     sql(
       "create table hivetable(empno int, empname String, designation string, doj String, " +
@@ -81,7 +81,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql(
       """
         | CREATE TABLE decimal_varlength(id string, value decimal(30,10))
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin
     )
     sql(
@@ -100,7 +100,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
           "doj String, workgroupcategory int, workgroupcategoryname String,deptno int, " +
           "deptname String, projectcode int, projectjoindate String,projectenddate String, " +
           "attendance String, utilization String,salary String)" +
-          "STORED BY 'org.apache.carbondata.format'"
+          "STORED AS carbondata"
     )
 
     sql(
@@ -132,7 +132,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
       "CREATE table testtable (empno string, empname String, designation String, doj String, " +
           "workgroupcategory string, workgroupcategoryname String, deptno string, deptname String, " +
           "projectcode string, projectjoindate String, projectenddate String,attendance double," +
-          "utilization double,salary double) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+          "utilization double,salary double) STORED AS carbondata TBLPROPERTIES" +
           "('DICTIONARY_EXCLUDE'='empno,empname,designation,doj,workgroupcategory," +
           "workgroupcategoryname,deptno,deptname,projectcode,projectjoindate,projectenddate')"
     )
@@ -175,7 +175,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
       "CREATE table testtable1 (empno string, empname String, designation String, doj String, " +
           "workgroupcategory string, workgroupcategoryname String, deptno string, deptname String, " +
           "projectcode string, projectjoindate String, projectenddate String,attendance double," +
-          "utilization double,salary double) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+          "utilization double,salary double) STORED AS carbondata TBLPROPERTIES" +
           "('DICTIONARY_EXCLUDE'='empno,empname,designation,doj,workgroupcategory," +
           "workgroupcategoryname,deptno,deptname,projectcode,projectjoindate,projectenddate')"
     )
@@ -246,7 +246,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
         "ActiveProvince:string, Activecity:string, ActiveDistrict:string, ActiveStreet:string>>," +
         "proddate struct<productionDate:string,activeDeactivedate:array<string>>, gamePointId " +
         "double,contractNumber double) " +
-        "STORED BY 'org.apache.carbondata.format' " +
+        "STORED AS carbondata " +
         "TBLPROPERTIES ('DICTIONARY_INCLUDE'='deviceInformationId')"
     )
     sql(
@@ -270,7 +270,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
         "ActiveProvince:string, Activecity:string, ActiveDistrict:string, ActiveStreet:string>>," +
         "proddate struct<productionDate:string,activeDeactivedate:array<string>>, gamePointId " +
         "double,contractNumber double) " +
-        "STORED BY 'org.apache.carbondata.format' " +
+        "STORED AS carbondata " +
         "TBLPROPERTIES ('DICTIONARY_INCLUDE'='deviceInformationId','DICTIONARY_EXCLUDE'='channelsId')"
     )
     sql(
@@ -290,7 +290,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
       "create table header_test(empno int, empname String, designation string, doj String, " +
           "workgroupcategory int, workgroupcategoryname String,deptno int, deptname String, " +
           "projectcode int, projectjoindate String,projectenddate String, attendance String," +
-          "utilization String,salary String) STORED BY 'org.apache.carbondata.format'"
+          "utilization String,salary String) STORED AS carbondata"
     )
     val csvFilePath = s"$resourcesPath/data_withCAPSHeader.csv"
     sql("LOAD DATA local inpath '" + csvFilePath + "' INTO table header_test OPTIONS " +
@@ -321,7 +321,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
       "create table mixed_header_test(empno int, empname String, Designation string, doj String, " +
           "Workgroupcategory int, workgroupcategoryname String,deptno int, deptname String, " +
           "projectcode int, projectjoindate String,projectenddate String, attendance String," +
-          "utilization String,salary String) STORED BY 'org.apache.carbondata.format'"
+          "utilization String,salary String) STORED AS carbondata"
     )
     val csvFilePath = s"$resourcesPath/data_withMixedHeader.csv"
     sql("LOAD DATA local inpath '" + csvFilePath + "' INTO table mixed_header_test OPTIONS " +
@@ -340,7 +340,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
         "ActiveProvince:string, Activecity:string, ActiveDistrict:string, ActiveStreet:string>>," +
         "proddate struct<productionDate:string,activeDeactivedate:array<string>>, gamePointId " +
         "double,contractNumber double) " +
-        "STORED BY 'org.apache.carbondata.format' " +
+        "STORED AS carbondata " +
         "TBLPROPERTIES ('DICTIONARY_INCLUDE'='deviceInformationId')"
     )
     sql(
@@ -361,7 +361,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
         "ActiveProvince:string, Activecity:string, ActiveDistrict:string, ActiveStreet:string>>," +
         "proddate struct<productionDate:string,activeDeactivedate:array<string>>, gamePointId " +
         "double,contractNumber double) " +
-        "STORED BY 'org.apache.carbondata.format' " +
+        "STORED AS carbondata " +
         "TBLPROPERTIES ('DICTIONARY_INCLUDE'='deviceInformationId', 'DICTIONARY_EXCLUDE'='ROMSize," +
         "purchasedate')"
     )
@@ -378,14 +378,14 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
   test("array<string> and string datatype for same column is not working properly") {
     sql("drop table if exists complexcarbontable")
     sql("create table complexcarbontable(deviceInformationId int, MAC array<string>, channelsId string, "+
-        "ROMSize string, purchasedate string, gamePointId double,contractNumber double) STORED BY 'org.apache.carbondata.format' "+
+        "ROMSize string, purchasedate string, gamePointId double,contractNumber double) STORED AS carbondata "+
         "TBLPROPERTIES ('DICTIONARY_INCLUDE'='deviceInformationId')")
     sql(s"LOAD DATA local inpath '$resourcesPath/complexdatareordered.csv' INTO table complexcarbontable "+
         "OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"', 'FILEHEADER'='deviceInformationId,MAC,channelsId,ROMSize,purchasedate,gamePointId,contractNumber',"+
         "'COMPLEX_DELIMITER_LEVEL_1'='$', 'COMPLEX_DELIMITER_LEVEL_2'=':')")
     sql("drop table if exists complexcarbontable")
     sql("create table primitivecarbontable(deviceInformationId int, MAC string, channelsId string, "+
-        "ROMSize string, purchasedate string, gamePointId double,contractNumber double) STORED BY 'org.apache.carbondata.format' "+
+        "ROMSize string, purchasedate string, gamePointId double,contractNumber double) STORED AS carbondata "+
         "TBLPROPERTIES ('DICTIONARY_INCLUDE'='deviceInformationId')")
     sql(s"LOAD DATA local inpath '$resourcesPath/complexdatareordered.csv' INTO table primitivecarbontable "+
         "OPTIONS('DELIMITER'=',', 'QUOTECHAR'='\"', 'FILEHEADER'='deviceInformationId,MAC,channelsId,ROMSize,purchasedate,gamePointId,contractNumber',"+
@@ -401,7 +401,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql("create table UPPERCASEcube(empno Int, empname String, designation String, " +
         "doj String, workgroupcategory Int, workgroupcategoryname String, deptno Int, " +
         "deptname String, projectcode Int, projectjoindate String, projectenddate String, " +
-        "attendance Int,utilization Double,salary Double) STORED BY 'org.apache.carbondata.format'"
+        "attendance Int,utilization Double,salary Double) STORED AS carbondata"
     )
     sql(
       s"LOAD DATA local inpath '$resourcesPath/data.csv' INTO table uppercasecube OPTIONS" +
@@ -418,7 +418,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql("create table lowercaseCUBE(empno Int, empname String, designation String, " +
         "doj String, workgroupcategory Int, workgroupcategoryname String, deptno Int, " +
         "deptname String, projectcode Int, projectjoindate String, projectenddate String, " +
-        "attendance Int,utilization Double,salary Double) STORED BY 'org.apache.carbondata.format'"
+        "attendance Int,utilization Double,salary Double) STORED AS carbondata"
     )
     sql(
       s"LOAD DATA local inpath '$resourcesPath/data.csv' INTO table LOWERCASECUBE OPTIONS" +
@@ -435,7 +435,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
            CREATE TABLE IF NOT EXISTS escapechar1
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
       """
     )
     CarbonProperties.getInstance()
@@ -458,7 +458,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql(
       """
          CREATE TABLE escapechar2(imei string,specialchar string)
-         STORED BY 'org.apache.carbondata.format'
+         STORED AS carbondata
       """
     )
 
@@ -479,7 +479,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql(
       """
          CREATE TABLE escapechar3(imei string,specialchar string)
-         STORED BY 'org.apache.carbondata.format'
+         STORED AS carbondata
       """
     )
 
@@ -503,7 +503,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql(
       """
          CREATE TABLE specialcharacter1(imei string,specialchar string)
-         STORED BY 'org.apache.carbondata.format'
+         STORED AS carbondata
       """
     )
 
@@ -530,7 +530,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
         String, member_card String, occupation String, houseowner String, fullname String,
         numeric_level double, account_num double, customer_region_id int, total_children int,
         num_children_at_home int, num_cars_owned int)
-        STORED BY 'org.apache.carbondata.format'
+        STORED AS carbondata
       """
     )
 
@@ -555,7 +555,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
            CREATE TABLE IF NOT EXISTS collessthanschema
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
       """)
 
     CarbonProperties.getInstance()
@@ -576,7 +576,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
            (ID decimal(5,5), date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int, complex
            array<decimal(4,2)>)
-           STORED BY 'org.apache.carbondata.format' tblproperties('dictionary_include'='complex')
+           STORED AS carbondata tblproperties('dictionary_include'='complex')
       """
     )
 
@@ -598,7 +598,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
            (ID decimal(5,5), date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int, complex
            struct<a:decimal(4,2)>)
-           STORED BY 'org.apache.carbondata.format' tblproperties('dictionary_include'='complex')
+           STORED AS carbondata tblproperties('dictionary_include'='complex')
       """
     )
 
@@ -621,7 +621,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
            (ID decimal, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int, complex
            array<struct<a:decimal(4,2),str:string>>)
-           STORED BY 'org.apache.carbondata.format' tblproperties('dictionary_include'='complex')
+           STORED AS carbondata tblproperties('dictionary_include'='complex')
       """
     )
     sql(
@@ -651,7 +651,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
       "CREATE table carbontable1 (empno string, empname String, designation String, doj String, " +
           "workgroupcategory string, workgroupcategoryname String, deptno string, deptname String, " +
           "projectcode string, projectjoindate String, projectenddate String,attendance double," +
-          "utilization double,salary double) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES" +
+          "utilization double,salary double) STORED AS carbondata TBLPROPERTIES" +
           "('DICTIONARY_EXCLUDE'='empno,empname,designation,doj,workgroupcategory," +
           "workgroupcategoryname,deptno,deptname,projectcode,projectjoindate,projectenddate')"
     )
@@ -676,7 +676,7 @@ class TestLoadDataWithHiveSyntaxUnsafe extends QueryTest with BeforeAndAfterAll 
     sql("drop table if exists comment_test")
     sql(
       "create table comment_test(imei string, age int, task bigint, num double, level decimal(10," +
-          "3), productdate timestamp, mark int, name string) STORED BY 'org.apache.carbondata.format'"
+          "3), productdate timestamp, mark int, name string) STORED AS carbondata"
     )
     sql(
       s"LOAD DATA local inpath '$resourcesPath/comment.csv' INTO TABLE comment_test " +

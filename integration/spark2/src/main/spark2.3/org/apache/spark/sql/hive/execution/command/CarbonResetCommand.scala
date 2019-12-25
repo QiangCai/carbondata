@@ -23,11 +23,11 @@ import org.apache.spark.sql.execution.command.{ResetCommand, RunnableCommand}
 
 case class CarbonResetCommand()
   extends RunnableCommand {
-  override val output = ResetCommand().output
+  override val output = ResetCommand.output
 
   override def run(sparkSession: SparkSession): Seq[Row] = {
     CarbonEnv.getInstance(sparkSession).carbonSessionInfo.getSessionParams.clear()
-    ResetCommand().run(sparkSession)
+    ResetCommand.run(sparkSession)
   }
 }
 
@@ -37,7 +37,7 @@ case class CarbonResetCommand()
 object MatchResetCommand {
   def unapply(plan: LogicalPlan): Option[LogicalPlan] = {
     plan match {
-      case ResetCommand() =>
+      case r@ResetCommand =>
         Some(plan)
       case _ =>
         None

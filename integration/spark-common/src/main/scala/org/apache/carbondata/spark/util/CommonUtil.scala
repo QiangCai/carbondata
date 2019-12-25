@@ -716,7 +716,7 @@ object CommonUtil {
             if (tableFolder.isDirectory) {
               val tablePath = databaseLocation +
                               CarbonCommonConstants.FILE_SEPARATOR + tableFolder.getName
-              val tableUniqueName = dbName + "_" + tableFolder.getName
+              val tableUniqueName = CarbonTable.buildUniqueName(dbName, tableFolder.getName)
               val tableStatusFile =
                 CarbonTablePath.getTableStatusFilePath(tablePath)
               if (FileFactory.isFileExist(tableStatusFile, fileType)) {

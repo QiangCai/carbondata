@@ -59,8 +59,7 @@ class DataCompactionLockTest extends QueryTest with BeforeAndAfterAll {
       "CREATE TABLE IF NOT EXISTS compactionlocktesttable (country String, ID Int, date " +
         "Timestamp, name " +
         "String, " +
-        "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-        ".format'"
+        "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
 
     var csvFilePath1 = s"$resourcesPath/compaction/compaction1.csv"

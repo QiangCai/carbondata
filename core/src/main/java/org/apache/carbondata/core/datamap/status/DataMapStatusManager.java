@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.carbondata.common.exceptions.sql.NoSuchDataMapException;
 import org.apache.carbondata.common.logging.LogServiceFactory;
+import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datamap.DataMapStoreManager;
 import org.apache.carbondata.core.locks.ICarbonLock;
 import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
@@ -33,6 +34,7 @@ import org.apache.carbondata.core.metadata.schema.table.RelationIdentifier;
 import org.apache.carbondata.core.statusmanager.LoadMetadataDetails;
 import org.apache.carbondata.core.statusmanager.SegmentStatus;
 import org.apache.carbondata.core.statusmanager.SegmentStatusManager;
+import org.apache.carbondata.core.util.CarbonProperties;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 
 import org.apache.log4j.Logger;
@@ -55,7 +57,7 @@ public class DataMapStatusManager {
    * TODO Use factory when we have more storage providers
    */
   private static DataMapStatusStorageProvider storageProvider =
-      new DiskBasedDataMapStatusProvider();
+      getDataMapStatusStorageProvider();
 
   /**
    * Reads all datamap status file
@@ -188,6 +190,17 @@ public class DataMapStatusManager {
                   + " during table status updation");
         }
       }
+    }
+  }
+
+  public static DataMapStatusStorageProvider getDataMapStatusStorageProvider() {
+    String providerProperties = CarbonProperties.getDataMapStorageProvider();
+    switch (providerProperties) {
+      case CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DATABASE:
+        return new DatabaseDataMapStatusProvider();
+      case CarbonCommonConstants.CARBON_DATAMAP_SCHEMA_STORAGE_DISK:
+      default:
+        return new DiskBasedDataMapStatusProvider();
     }
   }
 }

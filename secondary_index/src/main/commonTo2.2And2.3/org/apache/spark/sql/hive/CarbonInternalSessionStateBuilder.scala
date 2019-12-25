@@ -17,12 +17,12 @@ import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.util.CarbonProperties
 import org.apache.carbondata.spark.acl.CarbonUserGroupInformation
 import org.apache.carbondata.spark.util.CarbonScalaUtil
-import org.apache.carbondata.core.metadata.schema.table.column.{ColumnSchema => ColumnSchema}
+import org.apache.carbondata.core.metadata.schema.table.column.ColumnSchema
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.spark.sql._
 import org.apache.spark.sql.acl._
-import org.apache.spark.sql.catalyst.{QualifiedTableName,TableIdentifier}
+import org.apache.spark.sql.catalyst.{CarbonParserUtil, QualifiedTableName, TableIdentifier}
 import org.apache.spark.sql.catalyst.analysis.{Analyzer, FunctionRegistry}
 import org.apache.spark.sql.catalyst.catalog._
 import org.apache.spark.sql.catalyst.expressions.Expression
@@ -313,14 +313,7 @@ class CarbonACLInternalSessionStateBuilder(sparkSession: SparkSession,
 
   // Register all the required listeners using the singleton instance as the listeners
   // need to be registered only once
-  CarbonCommonInitializer.init
-
-  class CarbonPreOptimizerRule extends Rule[LogicalPlan] {
-
-    override def apply(plan: LogicalPlan): LogicalPlan = {
-      CarbonOptimizerUtil.transformForScalarSubQuery(plan)
-    }
-  }
+  CarbonCommonInitializer.init()
 
   /**
    * Listener on session to handle clean during close session.
@@ -390,9 +383,9 @@ class CarbonACLSqlAstBuilder(conf: SQLConf, parser: CarbonSpark2SqlParser,
     }
 
     val alterTableChangeDataTypeModel =
-      AlterTableDataTypeChangeModel(new CarbonSpark2SqlParser()
-        .parseDataType(typeString, values, isColumnRename), new CarbonSpark2SqlParser()
-          .convertDbNameToLowerCase(Option(ctx.tableIdentifier().db).map(_.getText)),
+      AlterTableDataTypeChangeModel(
+        CarbonParserUtil.parseDataType(typeString, values, isColumnRename),
+        CarbonParserUtil.convertDbNameToLowerCase(Option(ctx.tableIdentifier().db).map(_.getText)),
         ctx.tableIdentifier().table.getText.toLowerCase,
         ctx.identifier.getText.toLowerCase,
         newColumn.name.toLowerCase,
@@ -408,9 +401,8 @@ class CarbonACLSqlAstBuilder(conf: SQLConf, parser: CarbonSpark2SqlParser,
     val cols = Option(ctx.columns).toSeq.flatMap(visitColTypeList)
     val fields = parser.getFields(cols)
     val tblProperties = scala.collection.mutable.Map.empty[String, String]
-    val tableModel = new CarbonSpark2SqlParser().prepareTableModel(false,
-      new CarbonSpark2SqlParser().convertDbNameToLowerCase(Option(ctx.tableIdentifier().db)
-        .map(_.getText)
+    val tableModel = CarbonParserUtil.prepareTableModel(false,
+      CarbonParserUtil.convertDbNameToLowerCase(Option(ctx.tableIdentifier().db).map(_.getText)
       ),
       ctx.tableIdentifier.table.getText.toLowerCase,
       fields,

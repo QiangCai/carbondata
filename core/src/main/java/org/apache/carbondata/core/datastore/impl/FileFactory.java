@@ -130,7 +130,8 @@ public final class FileFactory {
         .startsWith(CarbonCommonConstants.S3A_PREFIX) || lowerCase
         .startsWith(CarbonCommonConstants.S3_PREFIX)) {
       return FileType.S3;
-    } else if (lowerCase.startsWith(CarbonCommonConstants.OBS_PREFIX)) {
+    } else if (lowerCase.startsWith(CarbonCommonConstants.OBS_PREFIX)
+        || lowerCase.startsWith(CarbonCommonConstants.LUXORFS_PREFIX) ) {
       return FileType.OBS;
     }
     return null;
@@ -147,7 +148,8 @@ public final class FileFactory {
         .startsWith(CarbonCommonConstants.S3A_PREFIX) || path
         .startsWith(CarbonCommonConstants.S3_PREFIX)) {
       return FileType.S3;
-    } else if (path.startsWith(CarbonCommonConstants.OBS_PREFIX)) {
+    } else if (path.startsWith(CarbonCommonConstants.OBS_PREFIX)
+        || path.startsWith(CarbonCommonConstants.LUXORFS_PREFIX)) {
       return FileType.OBS;
     }
     return null;

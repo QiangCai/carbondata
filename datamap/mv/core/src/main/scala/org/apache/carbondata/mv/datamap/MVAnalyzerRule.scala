@@ -51,7 +51,7 @@ class MVAnalyzerRule(sparkSession: SparkSession) extends Rule[LogicalPlan] {
 
   override def apply(plan: LogicalPlan): LogicalPlan = {
     var needAnalysis = true
-    plan.transformAllExpressions {
+    plan.transformAllExpressions  {
       // first check if any preAgg scala function is applied it is present is in plan
       // then call is from create preaggregate table class so no need to transform the query plan
       // TODO Add different UDF name
@@ -82,19 +82,23 @@ class MVAnalyzerRule(sparkSession: SparkSession) extends Rule[LogicalPlan] {
         }
         Aggregate(grp, aExp, child)
     }
-    val catalog = DataMapStoreManager.getInstance().getDataMapCatalog(dataMapProvider,
-      DataMapClassProvider.MV.getShortName).asInstanceOf[SummaryDatasetCatalog]
-    if (needAnalysis && catalog != null && isValidPlan(plan, catalog)) {
-      val modularPlan = catalog.mvSession.sessionState.rewritePlan(plan).withMVTable
-      if (modularPlan.find(_.rewritten).isDefined) {
-        val compactSQL = modularPlan.asCompactSQL
-        val analyzed = sparkSession.sql(compactSQL).queryExecution.analyzed
-        analyzed
+    if (needAnalysis) {
+      val catalog = DataMapStoreManager.getInstance().getDataMapCatalog(dataMapProvider,
+        DataMapClassProvider.MV.getShortName).asInstanceOf[SummaryDatasetCatalog]
+      if (catalog != null && isValidPlan(plan, catalog)) {
+        val modularPlan = catalog.mvSession.sessionState.rewritePlan(plan).withMVTable
+        if (modularPlan.find(_.rewritten).isDefined) {
+          val compactSQL = modularPlan.asCompactSQL
+          val analyzed = sparkSession.sql(compactSQL).queryExecution.analyzed
+          analyzed
+        } else {
+          plan
+        }
       } else {
         plan
       }
     } else {
-      plan
+        plan
     }
   }
 

@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.apache.carbondata</groupId>
     <artifactId>carbondata-parent</artifactId>
-    <version>1.6.1.0100</version>
+    <version>1.6.1.01010201-hw-2.0.0.dli-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -38,6 +38,12 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-om_${scala.binary.version}</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.huawei.storage</groupId>
+          <artifactId>esdk-obs-java</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.carbondata</groupId>
@@ -47,10 +53,22 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-hive-thriftserver_${scala.binary.version}</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.huawei.storage</groupId>
+          <artifactId>esdk-obs-java</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-repl_${scala.binary.version}</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.huawei.storage</groupId>
+          <artifactId>esdk-obs-java</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -117,6 +135,7 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <source>1.7</source>
@@ -315,10 +334,10 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <spark.version>2.3.2.0100</spark.version>
+        <spark.version>2.3.2.0101-hw-2.0.0.dli-SNAPSHOT</spark.version>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>2.11.8</scala.version>
-        <hadoop.version>3.1.1.0100</hadoop.version>
+        <hadoop.version>2.7.2.0100-dplatform</hadoop.version>
       </properties>
       <build>
         <plugins>
@@ -359,10 +378,10 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <spark.version>2.3.2.0100</spark.version>
+        <spark.version>2.3.2.0101-hw-2.0.0.dli-SNAPSHOT</spark.version>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>2.11.8</scala.version>
-        <hadoop.version>2.7.2.0100</hadoop.version>
+        <hadoop.version>2.7.2.0100-dplatform</hadoop.version>
       </properties>
       <build>
         <plugins>

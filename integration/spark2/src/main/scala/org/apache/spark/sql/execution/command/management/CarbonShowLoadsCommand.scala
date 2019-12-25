@@ -19,7 +19,7 @@ package org.apache.spark.sql.execution.command.management
 
 import scala.collection.mutable.ArrayBuffer
 
-import org.apache.spark.sql.{CarbonEnv, Row, SparkSession}
+import org.apache.spark.sql.{CarbonEnv, EnvHelper, Row, SparkSession}
 import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference}
 import org.apache.spark.sql.execution.command.{Checker, DataCommand}
 import org.apache.spark.sql.types.StringType
@@ -74,7 +74,8 @@ case class CarbonShowLoadsCommand(
       limit,
       carbonTable.getTablePath,
       showHistory,
-      extended
+      extended,
+      EnvHelper.isPrivacy(sparkSession, carbonTable.isExternalTable)
     )
   }
 

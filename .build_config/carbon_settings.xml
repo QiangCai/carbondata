@@ -36,6 +36,17 @@
                         <updatePolicy>always</updatePolicy>
                     </snapshots>
                 </repository>
+                <repository>
+                    <id>cbusnapshot</id>
+                    <url>http://wlg1.artifactory.cd-cloud-artifact.tools.huawei.com/artifactory/Product-CBUCommon-snapshot/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                        <updatePolicy>always</updatePolicy>
+                    </snapshots>
+                </repository>
             </repositories>
         </profile>
     </profiles>

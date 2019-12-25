@@ -58,6 +58,15 @@ public class LoadOption {
     optionsFinal.put("delimiter", Maps.getOrDefault(options, "delimiter", ","));
     optionsFinal.put("quotechar", Maps.getOrDefault(options, "quotechar", "\""));
     optionsFinal.put("fileheader", Maps.getOrDefault(options, "fileheader", ""));
+    String headerOption = options.get("header");
+    if (headerOption != null) {
+      if (!headerOption.equalsIgnoreCase("true") &&
+          !headerOption.equalsIgnoreCase("false")) {
+        throw new InvalidLoadOptionException(
+            "'header' option should be either 'true' or 'false'.");
+      }
+    }
+    optionsFinal.put("header", Maps.getOrDefault(options, "header", ""));
     optionsFinal.put("commentchar", Maps.getOrDefault(options, "commentchar", "#"));
     optionsFinal.put("columndict", Maps.getOrDefault(options, "columndict", null));
 

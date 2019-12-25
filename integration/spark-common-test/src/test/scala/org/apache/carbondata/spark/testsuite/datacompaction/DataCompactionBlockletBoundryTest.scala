@@ -39,8 +39,7 @@ class DataCompactionBlockletBoundryTest extends QueryTest with BeforeAndAfterAll
     sql(
       "CREATE TABLE IF NOT EXISTS blocklettest (country String, ID String, date Timestamp, name " +
         "String, " +
-        "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-        ".format'"
+        "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
 
 

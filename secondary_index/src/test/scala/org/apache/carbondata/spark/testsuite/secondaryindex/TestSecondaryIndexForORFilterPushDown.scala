@@ -40,7 +40,7 @@ class TestSecondaryIndexForORFilterPushDown extends QueryTest with BeforeAndAfte
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+        "utilization int,salary int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_EXCLUDE'='empno,empname,designation,workgroupcategoryname," +
         "workgroupcategory,deptno,projectcode')")
     // load table
@@ -49,11 +49,11 @@ class TestSecondaryIndexForORFilterPushDown extends QueryTest with BeforeAndAfte
         "'BAD_RECORDS_LOGGER_ENABLE'='FALSE','BAD_RECORDS_ACTION'='FORCE')")
 
     // create index tables
-    sql("create index index_i1 on table or_filter_pushDownValidation (empname) AS 'org.apache.carbondata.format'")
-    sql("create index index_i2 on table or_filter_pushDownValidation (designation) AS 'org.apache.carbondata.format'")
-    sql("create index index_i3 on table or_filter_pushDownValidation (workgroupcategoryname) AS 'org.apache.carbondata.format'")
-    sql("create index index_i4 on table or_filter_pushDownValidation (deptno) AS 'org.apache.carbondata.format'")
-    sql("create index index_i5 on table or_filter_pushDownValidation (deptname) AS 'org.apache.carbondata.format'")
+    sql("create index index_i1 on table or_filter_pushDownValidation (empname) AS 'carbondata'")
+    sql("create index index_i2 on table or_filter_pushDownValidation (designation) AS 'carbondata'")
+    sql("create index index_i3 on table or_filter_pushDownValidation (workgroupcategoryname) AS 'carbondata'")
+    sql("create index index_i4 on table or_filter_pushDownValidation (deptno) AS 'carbondata'")
+    sql("create index index_i5 on table or_filter_pushDownValidation (deptname) AS 'carbondata'")
   }
 
   test("test OR filter pushdown when left and right subtree have index table") {

@@ -725,7 +725,8 @@ class CarbonScanRDD[T: ClassTag](
           carbonSessionInfo.getThreadParams
             .getProperty(inputSegmentsKey, carbonSessionInfo.getSessionParams
               .getProperty(inputSegmentsKey,
-              CarbonProperties.getInstance().getProperty(inputSegmentsKey, "*"))))
+                CarbonProperties.getInstance()
+                  .getProperty(inputSegmentsKey, conf.get(inputSegmentsKey, "*")))))
       if (queryOnPreAggStreaming) {
         CarbonInputFormat.setAccessStreamingSegments(conf, queryOnPreAggStreaming)
         // union for streaming preaggregate can happen concurrently from spark.

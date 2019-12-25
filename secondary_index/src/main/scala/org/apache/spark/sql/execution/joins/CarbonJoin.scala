@@ -29,7 +29,7 @@ import org.apache.spark.sql.catalyst.expressions.codegen.{CodegenContext, ExprCo
 import org.apache.spark.sql.catalyst.plans._
 import org.apache.spark.sql.catalyst.plans.physical.{BroadcastDistribution, BroadcastMode, Distribution, UnspecifiedDistribution}
 import org.apache.spark.sql.execution._
-import org.apache.spark.sql.execution.exchange.{BroadcastExchangeExec, ReusedExchangeExec}
+import org.apache.spark.sql.execution.exchange.BroadcastExchangeExec
 import org.apache.spark.sql.execution.metric.SQLMetrics
 import org.apache.spark.sql.execution.strategy.CarbonDataSourceScan
 import org.apache.spark.sql.optimizer.CarbonFilters
@@ -66,18 +66,7 @@ case class BroadCastFilterPushJoin(
     // 1. BroadcastExchange
     // 2. BroadcastExchangeExec
     // Both the relations to be removed to execute and get the output
-    val buildPlanOutput =
-      buildPlan match {
-        case b@CarbonBroadcastExchangeExec(_, _) => b.asInstanceOf[BroadcastExchangeExec].child
-          .execute()
-        case others => buildPlan.children(0) match {
-          case a@CarbonBroadcastExchangeExec(_, _) => a.asInstanceOf[BroadcastExchangeExec].child
-            .execute()
-          case ReusedExchangeExec(_, broadcast@CarbonBroadcastExchangeExec(_, _)) =>
-            broadcast.asInstanceOf[BroadcastExchangeExec].child.execute()
-          case others => buildPlan.execute
-        }
-    }
+    val buildPlanOutput = getBuildPlan
 
     val input: Array[InternalRow] = buildPlanOutput.map(_.copy()).collect()
     val inputCopy: Array[InternalRow] = input.clone()

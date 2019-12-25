@@ -64,7 +64,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -76,7 +76,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE indexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         |  TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE indexmerge OPTIONS('header'='false', " +
@@ -93,7 +93,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -118,7 +118,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -142,7 +142,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -170,7 +170,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -195,7 +195,7 @@ class CarbonIndexFileMergeTestCase
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_MERGE_INDEX_IN_SEGMENT, "true")
     sql("drop table if exists mitable")
-    sql("create table mitable(id int, issue date) stored by 'carbondata'")
+    sql("create table mitable(id int, issue date) STORED AS carbondata")
     sql("insert into table mitable select '1','2000-02-01'")
     sql("update mitable set(id)=(2) where issue = '2000-02-01'").show()
     sql("clean files for table mitable")
@@ -211,7 +211,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -246,7 +246,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE fileSize(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE fileSize OPTIONS('header'='false')")
@@ -277,7 +277,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -315,7 +315,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -359,7 +359,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -407,29 +407,11 @@ class CarbonIndexFileMergeTestCase
       """
         | CREATE TABLE partitionTable(id INT, name STRING, city STRING)
         | PARTITIONED BY(age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE partitionTable OPTIONS('header'='false')")
     assert(getIndexFileCount("default_partitionTable", "0") == 0)
-    sql("DROP TABLE IF EXISTS partitionTable")
-  }
-
-  test("Verify index merge for pre-aggregate table") {
-    CarbonProperties.getInstance()
-      .addProperty(CarbonCommonConstants.CARBON_MERGE_INDEX_IN_SEGMENT, "true")
-    sql("DROP TABLE IF EXISTS preAggTable")
-    sql(
-      """
-        | CREATE TABLE preAggTable(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
-        | TBLPROPERTIES('SORT_COLUMNS'='city,name')
-      """.stripMargin)
-    sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE preAggTable OPTIONS('header'='false')")
-    assert(getIndexFileCount("default_preAggTable", "0") == 0)
-    sql("create datamap preAggSum on table preAggTable using 'preaggregate' as " +
-        "select city,sum(age) as sum from preAggTable group by city")
-    assert(getIndexFileCount("default_preAggTable_preAggSum", "0") == 0)
     sql("DROP TABLE IF EXISTS partitionTable")
   }
 
@@ -440,7 +422,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE streamingTable(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'streaming'='true')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE streamingTable OPTIONS('header'='false')")
@@ -459,7 +441,7 @@ class CarbonIndexFileMergeTestCase
     sql(
       """
         | CREATE TABLE merge_index_cache(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE merge_index_cache OPTIONS('header'='false')")

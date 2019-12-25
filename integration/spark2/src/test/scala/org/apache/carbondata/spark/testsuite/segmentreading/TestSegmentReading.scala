@@ -17,7 +17,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
       "create table carbon_table(empno int, empname String, designation String, doj Timestamp," +
       "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
       "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-      "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+      "utilization int,salary int) STORED AS carbondata")
     sql(
       s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table OPTIONS
           |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".stripMargin)
@@ -143,7 +143,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
         "create table carbon_table_join(empno int, empname String, designation String, doj Timestamp," +
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql("insert into carbon_table_join select * from carbon_table").show()
       checkAnswer(sql("select count(a.empno) from carbon_table a inner join carbon_table_join b on a.empno = b.empno"),Seq(Row(22)))
       sql("SET carbon.input.segments.default.carbon_table=1")
@@ -171,7 +171,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
         "create table carbon_table_update(empno int, empname String, designation String, doj Timestamp," +
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql(
         s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_update OPTIONS
             |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".stripMargin)
@@ -204,7 +204,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
         "create table carbon_table_delete(empno int, empname String, designation String, doj Timestamp," +
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql(
         s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_delete OPTIONS
             |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".stripMargin)
@@ -224,7 +224,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
       sql("SET carbon.input.segments.default.carbon_table=*")
       sql("SET carbon.input.segments.default.carbon_table_delete=*")
       checkAnswer(sql("select count(*) from carbon_table_delete"), Seq(Row(20)))
-      sql("delete from carbon_table_delete where empno IN (select empno from carbon_table where empname='ayushi')").show()
+      sql("delete from carbon_table_delete where empno IN (select empno from carbon_table  where empname='ayushi')").show()
       checkAnswer(sql("select count(*) from carbon_table_delete"), Seq(Row(18)))
     }
     finally {
@@ -238,7 +238,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
         "create table carbon_table_show_seg(empno int, empname String, designation String, doj Timestamp," +
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql(
         s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_show_seg OPTIONS
             |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".stripMargin)
@@ -268,7 +268,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
       "create table carbon_table_compact(empno int, empname String, designation String, doj Timestamp," +
       "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
       "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-      "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+      "utilization int,salary int) STORED AS carbondata")
     sql(
       s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_compact OPTIONS
           |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".stripMargin)
@@ -293,7 +293,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
 
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql(
         s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_alter OPTIONS
             |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".
@@ -329,7 +329,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
 
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql(
         s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_recreate OPTIONS
             |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".
@@ -351,7 +351,7 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
 
         "workgroupcategory int, workgroupcategoryname String, deptno int, deptname String," +
         "projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int," +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
       sql(
         s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE carbon_table_recreate OPTIONS
             |('DELIMITER'= ',', 'QUOTECHAR'= '\"')""".
@@ -382,5 +382,18 @@ class TestSegmentReading extends QueryTest with BeforeAndAfterAll {
     checkAnswer(sql("select count(*) from carbon_table"), Seq(Row(10)))
 
     sql("set spark.sql.adaptive.enabled=false")
+  }
+
+  test("test set input segments to spark configuration") {
+    sql("drop table if exists source")
+    sql("create table source(a int) stored as carbondata")
+    sql("insert into source select 1")
+    sql("insert into source select 2")
+    sql("insert into source select 3")
+    sqlContext.sparkSession.conf.set("carbon.input.segments.default.source", "1")
+    checkAnswer(sql("select * from source"), Seq(Row(2)))
+    sqlContext.sparkSession.conf.set("carbon.input.segments.default.source", "*")
+    checkAnswer(sql("select * from source"), Seq(Row(1),Row(2),Row(3)))
+    sql("drop table if exists source")
   }
 }

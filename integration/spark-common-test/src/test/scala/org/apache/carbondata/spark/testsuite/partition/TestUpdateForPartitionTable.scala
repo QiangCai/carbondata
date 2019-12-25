@@ -25,13 +25,13 @@ class TestUpdateForPartitionTable extends QueryTest with BeforeAndAfterAll {
     dropTable
 
     sql("create table test_range_partition_table (id int) partitioned by (name string) " +
-      "stored by 'carbondata' TBLPROPERTIES('PARTITION_TYPE' = 'RANGE','RANGE_INFO' = 'a,e,f')")
+      "STORED AS carbondata TBLPROPERTIES('PARTITION_TYPE' = 'RANGE','RANGE_INFO' = 'a,e,f')")
     sql("create table test_hive_partition_table (id int) partitioned by (name string) " +
-      "stored by 'carbondata'")
+      "STORED AS carbondata")
     sql("create table test_hash_partition_table (id int) partitioned by (name string) " +
-      "stored by 'carbondata' TBLPROPERTIES('PARTITION_TYPE' = 'HASH','NUM_PARTITIONS' = '2')")
+      "STORED AS carbondata TBLPROPERTIES('PARTITION_TYPE' = 'HASH','NUM_PARTITIONS' = '2')")
     sql("create table test_list_partition_table (id int) partitioned by (name string) " +
-      "stored by 'carbondata' TBLPROPERTIES('PARTITION_TYPE' = 'LIST','LIST_INFO' = 'a,e,f')")
+      "STORED AS carbondata TBLPROPERTIES('PARTITION_TYPE' = 'LIST','LIST_INFO' = 'a,e,f')")
   }
 
   def dropTable = {

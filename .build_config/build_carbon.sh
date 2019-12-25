@@ -23,19 +23,25 @@ echo "Carbon branch: ${CARBON_BRANCH}"
 export COMPONENT_NAME=${COMPONENT_NAME:-EI_CarbonData_Kernel_Component}
 # origin version
 export COMPONENT_VERSION=${COMPONENT_VERSION:-1.6.1.0100}
-export DP_VERSION=${DP_VERSION:-dplatform}
+export DP_VERSION=${DP_VERSION:hw-dplatform}
 # HW_internal_version, tag name, eg. EI_CarbonData_Kernel_Component_1.6.0.0100.B001
 export INTERNAL_VERSION=${CARBON_BRANCH:-1.6.0.0100.B001}
 export HADOOP_VERSION=${HADOOP_VERSION:-3.1.1.0100}
 export SPARK_VERSION=${SPARK_VERSION:-2.3.2.0101}
 export HADOOP_ARM_VERSION=${HADOOP_ARM_VERSION:$HADOOP_VERSION-aarch64}
 export SPARK_ARM_VERSION=${SPARK_ARM_VERSION:$SPARK_VERSION-aarch64}
+export IS_SNAPSHOT=${IS_SNAPSHOT:true}
 echo "Carbon Build Platform: $CID_BUILD_PLATFORM"
 if [[ $CID_BUILD_PLATFORM = 'aarch64' ]]; then
-  DP_VERSION=${CID_BUILD_PLATFORM}-${DP_VERSION}
+  DP_VERSION=${DP_VERSION}-${CID_BUILD_PLATFORM}
   HADOOP_VERSION=$HADOOP_ARM_VERSION
   SPARK_VERSION=$SPARK_ARM_VERSION
 fi
+# add SNAPSHOT postfix
+if [[ $IS_SNAPSHOT = 'true' ]]; then
+  DP_VERSION=${DP_VERSION}-SNAPSHOT
+fi
+
 # HW_display_version
 export DISPLAY_VERSION=${COMPONENT_VERSION}-${DP_VERSION}
 export BUILD_VERSION=${DISPLAY_VERSION}
@@ -104,7 +110,8 @@ cd ${Carbon_FOLDER}
 mkdir -p ${Carbon_FOLDER}/org/apache/
 cp -r ${CI_LOCAL_REPOSITORY}/org/apache/carbondata ${Carbon_FOLDER}/org/apache/
 cd ${Carbon_FOLDER}
-find ./org -regex '.*\.repositories\|.*\.zip\|.*\.sha1\|.*\.md5\|.*\.xml\|.*javadoc\.jar\|.*sources\.jar' > list.txt
+# collect jar,-tests jar, -sources jar, pom
+find ./org -regex '.*\.repositories\|.*\.zip\|.*\.sha1\|.*\.md5\|.*\.xml\|.*javadoc\.jar' > list.txt
 cat list.txt | while read line
 do
 rm -rf $line

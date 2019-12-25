@@ -18,8 +18,6 @@ package org.apache.carbondata.mv.rewrite
 
 import java.io.File
 
-import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
-import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.test.util.QueryTest
 import org.scalatest.BeforeAndAfterAll
 
@@ -52,7 +50,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds1")
     sql(s"create datamap datamap_tpcds1 using 'mv' as ${tpcds_1_4_testCases(0)._2}")
     val df = sql(tpcds_1_4_testCases(0)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds1"))
     sql(s"drop datamap datamap_tpcds1")
   }
@@ -61,7 +59,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds3")
     sql(s"create datamap datamap_tpcds3 using 'mv' as ${tpcds_1_4_testCases(2)._2}")
     val df = sql(tpcds_1_4_testCases(2)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds3"))
     sql(s"drop datamap datamap_tpcds3")
   }
@@ -70,7 +68,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds4")
     sql(s"create datamap datamap_tpcds4 using 'mv' as ${tpcds_1_4_testCases(3)._2}")
     val df = sql(tpcds_1_4_testCases(3)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds4"))
     sql(s"drop datamap datamap_tpcds4")
   }
@@ -79,7 +77,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds5")
     sql(s"create datamap datamap_tpcds5 using 'mv' as ${tpcds_1_4_testCases(4)._2}")
     val df = sql(tpcds_1_4_testCases(4)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds5"))
     sql(s"drop datamap datamap_tpcds5")
   }
@@ -88,7 +86,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds6")
     sql(s"create datamap datamap_tpcds6 using 'mv' as ${tpcds_1_4_testCases(5)._2}")
     val df = sql(tpcds_1_4_testCases(5)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds6"))
     sql(s"drop datamap datamap_tpcds6")
   }
@@ -97,7 +95,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds8")
     sql(s"create datamap datamap_tpcds8 using 'mv' as ${tpcds_1_4_testCases(7)._2}")
     val df = sql(tpcds_1_4_testCases(7)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds8"))
     sql(s"drop datamap datamap_tpcds8")
   }
@@ -106,7 +104,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds11")
     sql(s"create datamap datamap_tpcds11 using 'mv' as ${tpcds_1_4_testCases(10)._2}")
     val df = sql(tpcds_1_4_testCases(10)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds11"))
     sql(s"drop datamap datamap_tpcds11")
   }
@@ -115,7 +113,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds15")
     sql(s"create datamap datamap_tpcds15 using 'mv' as ${tpcds_1_4_testCases(14)._2}")
     val df = sql(tpcds_1_4_testCases(14)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds15"))
     sql(s"drop datamap datamap_tpcds15")
   }
@@ -124,7 +122,7 @@ class MVTPCDSTestCase extends QueryTest with BeforeAndAfterAll {
     sql(s"drop datamap if exists datamap_tpcds16")
     sql(s"create datamap datamap_tpcds16 using 'mv' as ${tpcds_1_4_testCases(15)._2}")
     val df = sql(tpcds_1_4_testCases(15)._3)
-    val analyzed = df.queryExecution.analyzed
+    val analyzed = df.queryExecution.optimizedPlan
     assert(TestUtil.verifyMVDataMap(analyzed, "datamap_tpcds16"))
     sql(s"drop datamap datamap_tpcds16")
   }

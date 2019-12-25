@@ -151,7 +151,7 @@ class TestCarbonSegmentUtil extends QueryTest {
   // Verify merged load name with one segment
   def test_getMergedLoadName_with_one_segment() {
     sql(s"drop table if exists $tableName")
-    sql(s"CREATE TABLE $tableName(c1 string, c2 string, c3 string) STORED BY 'carbondata'")
+    sql(s"CREATE TABLE $tableName(c1 string, c2 string, c3 string) STORED AS carbondata")
     sql(s"INSERT INTO $tableName SELECT 'c1v1', '1', 'c3v1'")
     val carbonTable = CarbonEnv
       .getCarbonTable(Option(databaseName), tableName)(Spark2TestQueryExecutor.spark)
@@ -207,13 +207,13 @@ class TestCarbonSegmentUtil extends QueryTest {
   // Test get Filtered Segments using the carbonScanRDD with SI
   def test_getFilteredSegments_with_secondary_index() {
     sql(s"drop table if exists $tableName")
-    sql(s"CREATE TABLE $tableName(c1 string, c2 string, c3 string) STORED BY 'carbondata'")
+    sql(s"CREATE TABLE $tableName(c1 string, c2 string, c3 string) STORED AS carbondata")
     sql(s"INSERT INTO $tableName SELECT 'c1v1', '1', 'c3v1'")
     sql(s"INSERT INTO $tableName SELECT 'c1v2', '2', 'c3v2'")
     sql(s"INSERT INTO $tableName SELECT 'c1v1', '1', 'c3v1'")
     sql(s"INSERT INTO $tableName SELECT 'c1v2', '2', 'c3v2'")
-    sql(s"create index si_index_table on table $tableName(c3) as 'carbondata' ")
-    sql(s"create index si_index_table1 on table $tableName(c2) as 'carbondata' ")
+    sql(s"create index si_index_table on table $tableName(c3) AS 'carbondata' ")
+    sql(s"create index si_index_table1 on table $tableName(c2) AS 'carbondata' ")
     assert(CarbonSegmentUtil
              .getFilteredSegments(s"select * from $tableName where c3='c3v1'",
                Spark2TestQueryExecutor.spark).length == 2)
@@ -263,8 +263,7 @@ class TestCarbonSegmentUtil extends QueryTest {
       "string,TIME_OUT int,LOGIN_TIME timestamp,USER_IMPU string,OPPO_IMPU string,USER_LAST_IMPI " +
       "string,USER_CURR_IMPI string,SUPSERVICE_TYPE bigint,SUPSERVICE_TYPE_SUBCODE bigint," +
       "SMS_CENTERNUM string,USER_LAST_LONGITUDE double,USER_LAST_LATITUDE double,USER_LAST_MSC " +
-      "string,USER_LAST_BASE_STATION string,LOAD_ID bigint,P_CAP_TIME string) STORED BY 'org" +
-      ".apache.carbondata.format' ")
+      "string,USER_LAST_BASE_STATION string,LOAD_ID bigint,P_CAP_TIME string) STORED AS carbondata")
     sql(
       s"load data inpath '$csvPath/datafile_100.csv' into table $tableName options( " +
       "'delimiter'= ',','fileheader'='RECORD_ID,CDR_ID,LOCATION_CODE,SYSTEM_ID,CLUE_ID," +
@@ -293,7 +292,7 @@ class TestCarbonSegmentUtil extends QueryTest {
 
   def createTable(tableName: String) {
     sql(s"drop table if exists $tableName")
-    sql(s"CREATE TABLE $tableName(c1 string, c2 int, c3 string) STORED BY 'carbondata'")
+    sql(s"CREATE TABLE $tableName(c1 string, c2 int, c3 string) STORED AS carbondata")
     sql(s"INSERT INTO $tableName SELECT 'c1v1', 1, 'c3v1'")
     sql(s"INSERT INTO $tableName SELECT 'c1v2', 2, 'c3v2'")
     sql(s"INSERT INTO $tableName SELECT 'c1v1', 1, 'c3v1'")

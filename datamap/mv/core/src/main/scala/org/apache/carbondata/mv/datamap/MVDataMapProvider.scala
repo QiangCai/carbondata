@@ -20,13 +20,13 @@ import java.io.IOException
 
 import scala.collection.JavaConverters._
 
-import org.apache.spark.sql.{CarbonSession, SparkSession}
+import org.apache.spark.sql.{CarbonUtils, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.plans.logical.SubqueryAlias
 import org.apache.spark.sql.execution.command.management.CarbonLoadDataCommand
 import org.apache.spark.sql.execution.command.table.CarbonDropTableCommand
 import org.apache.spark.sql.execution.datasources.FindDataSourceTable
-import org.apache.spark.sql.parser.CarbonSpark2SqlParser
+import org.apache.spark.sql.parser.{CarbonSpark2SqlParser, CarbonSparkSqlParserUtil}
 import org.apache.spark.sql.util.SparkSQLUtil
 
 import org.apache.carbondata.common.annotations.InterfaceAudience
@@ -116,10 +116,7 @@ class MVDataMapProvider(
           case s: SubqueryAlias => s.child
           case other => other
         }
-      val updatedQuery = new CarbonSpark2SqlParser().addPreAggFunction(ctasQuery)
-      val queryPlan = SparkSQLUtil.execute(
-        sparkSession.sql(updatedQuery).queryExecution.analyzed,
-        sparkSession).drop("preAgg")
+      val updatedQuery = CarbonSparkSqlParserUtil.getPreAggQuery(ctasQuery, sparkSession)
       var isOverwriteTable = false
       val isFullRefresh =
         if (null != dataMapSchema.getProperties.get("full_refresh")) {
@@ -149,7 +146,7 @@ class MVDataMapProvider(
         options = scala.collection.immutable.Map("fileheader" -> header),
         isOverwriteTable,
         inputSqlString = null,
-        dataFrame = Some(queryPlan),
+        dataFrame = Some(updatedQuery),
         updateModel = None,
         tableInfoOp = None,
         internalOptions = Map("mergedSegmentName" -> newLoadName,
@@ -157,7 +154,7 @@ class MVDataMapProvider(
         partition = Map.empty)
 
       try {
-        SparkSQLUtil.execute(loadCommand, sparkSession)
+        SparkSQLUtil.execute(loadCommand, sparkSession).collect()
       } catch {
         case ex: Exception =>
           // If load to dataMap table fails, disable the dataMap and if newLoad is still
@@ -184,7 +181,7 @@ class MVDataMapProvider(
    */
   private def setSegmentsToLoadDataMap(tableUniqueName: String,
       mainTableSegmentList: java.util.List[String]): Unit = {
-    CarbonSession
+    CarbonUtils
       .threadSet(CarbonCommonConstants.CARBON_INPUT_SEGMENTS +
                  tableUniqueName, mainTableSegmentList.asScala.mkString(","))
   }
@@ -192,7 +189,7 @@ class MVDataMapProvider(
   private def unsetMainTableSegments(): Unit = {
     val relationIdentifiers = dataMapSchema.getParentTables.asScala
     for (relationIdentifier <- relationIdentifiers) {
-      CarbonSession
+      CarbonUtils
         .threadUnset(CarbonCommonConstants.CARBON_INPUT_SEGMENTS +
                      relationIdentifier.getDatabaseName + "." +
                      relationIdentifier.getTableName)

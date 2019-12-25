@@ -64,9 +64,9 @@ class StoredAsCarbondataSuite extends QueryTest with BeforeAndAfterEach {
     res3.foreach(row => assert(row.getString(1).trim.substring(0, 3).toDouble > 0))
   }
 
-  test("CARBONDATA-2262: Don't Support the syntax of 'STORED AS 'carbondata''") {
+  test("CARBONDATA-2262: Don't Support the syntax of 'STORED AS carbondata'") {
     try {
-      sql("CREATE TABLE carbon_table(key INT, value STRING) STORED AS 'carbondata'")
+      sql("CREATE TABLE carbon_table(key INT, value STRING) STORED AS carbondata")
     } catch {
       case e: Exception =>
         assert(e.getMessage.contains("mismatched input"))

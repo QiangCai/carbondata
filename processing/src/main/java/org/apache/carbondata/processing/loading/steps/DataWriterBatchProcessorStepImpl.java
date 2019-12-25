@@ -181,6 +181,9 @@ public class DataWriterBatchProcessorStepImpl extends AbstractDataLoadProcessorS
   @Override public void close() {
     if (!closed) {
       super.close();
+      if (configuration.getLoadStats() != null) {
+        configuration.getLoadStats().addOutputRows(rowCounter.get());
+      }
       if (null != this.carbonFactHandler) {
         carbonFactHandler.finish();
         carbonFactHandler.closeHandler();

@@ -43,7 +43,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Date,attendance int,
         |  utilization int,salary int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE originTable OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
@@ -58,7 +58,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  projectcode int, projectjoindate Timestamp, projectenddate Date,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE partitionone OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
 
@@ -102,7 +102,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  projectcode int, projectjoindate Timestamp, projectenddate Date,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (deptname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE partitiontwo OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
 
@@ -139,7 +139,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  projectjoindate Timestamp, projectenddate Date,attendance int,
         |  utilization int,salary int)
         | PARTITIONED BY (deptname String,doj Timestamp,projectcode int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE partitionmany OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
 
@@ -159,7 +159,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  deptname String,doj Timestamp,projectcode int,
         |  utilization int,salary int)
         | PARTITIONED BY (projectenddate Date)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE partitiondate OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
     val frame = sql("select  empno, empname, designation, doj, workgroupcategory, workgroupcategoryname, deptno, deptname, projectcode, projectjoindate, projectenddate, attendance, utilization, salary from partitiondate where projectenddate = cast('2016-11-30' as date)")
@@ -178,7 +178,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  deptname String,projectcode int,
         |  utilization int,salary int)
         | PARTITIONED BY (projectenddate Date,doj Timestamp)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"""insert into partitiondateinsert select empno, empname,designation,workgroupcategory,workgroupcategoryname,deptno,projectjoindate,attendance,deptname,projectcode,utilization,salary,projectenddate,doj from originTable""")
     val frame = sql("select  empno, empname, designation, doj, workgroupcategory, workgroupcategoryname, deptno, deptname, projectcode, projectjoindate, projectenddate, attendance, utilization, salary from partitiondateinsert where projectenddate = cast('2016-11-30' as date)")
@@ -210,7 +210,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
   }
 
   test("badrecords on partition column") {
-    sql("create table badrecordsPartition(intField1 int, stringField1 string) partitioned by (intField2 int) stored by 'carbondata'")
+    sql("create table badrecordsPartition(intField1 int, stringField1 string) partitioned by (intField2 int) STORED AS carbondata")
     sql(s"load data local inpath '$resourcesPath/data_partition_badrecords.csv' into table badrecordsPartition options('bad_records_action'='force')")
     sql("select count(*) from badrecordsPartition").show()
     checkAnswer(sql("select count(*) cnt from badrecordsPartition where intfield2 is null"), Seq(Row(9)))
@@ -218,7 +218,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
   }
 
   test("badrecords fail on partition column") {
-    sql("create table badrecordsPartitionfail(intField1 int, stringField1 string) partitioned by (intField2 int) stored by 'carbondata'")
+    sql("create table badrecordsPartitionfail(intField1 int, stringField1 string) partitioned by (intField2 int) STORED AS carbondata")
     intercept[Exception] {
       sql(s"load data local inpath '$resourcesPath/data_partition_badrecords.csv' into table badrecordsPartitionfail options('bad_records_action'='fail')")
 
@@ -226,8 +226,8 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
   }
 
   test("badrecords ignore on partition column") {
-    sql("create table badrecordsPartitionignore(intField1 int, stringField1 string) partitioned by (intField2 int) stored by 'carbondata'")
-    sql("create table badrecordsignore(intField1 int,intField2 int, stringField1 string) stored by 'carbondata'")
+    sql("create table badrecordsPartitionignore(intField1 int, stringField1 string) partitioned by (intField2 int) STORED AS carbondata")
+    sql("create table badrecordsignore(intField1 int,intField2 int, stringField1 string) STORED AS carbondata")
     sql(s"load data local inpath '$resourcesPath/data_partition_badrecords.csv' into table badrecordsPartitionignore options('bad_records_action'='ignore')")
     sql(s"load data local inpath '$resourcesPath/data_partition_badrecords.csv' into table badrecordsignore options('bad_records_action'='ignore')")
     checkAnswer(sql("select count(*) cnt from badrecordsPartitionignore where intfield2 is null"), sql("select count(*) cnt from badrecordsignore where intfield2 is null"))
@@ -236,14 +236,14 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
 
 
   test("test partition fails on int null partition") {
-    sql("create table badrecordsPartitionintnull(intField1 int, stringField1 string) partitioned by (intField2 int) stored by 'carbondata'")
+    sql("create table badrecordsPartitionintnull(intField1 int, stringField1 string) partitioned by (intField2 int) STORED AS carbondata")
     sql(s"load data local inpath '$resourcesPath/data_partition_badrecords.csv' into table badrecordsPartitionintnull options('bad_records_action'='force')")
     checkAnswer(sql("select count(*) cnt from badrecordsPartitionintnull where intfield2 = 13"), Seq(Row(1)))
   }
 
   test("test partition fails on int null partition read alternate") {
     CarbonProperties.getInstance().addProperty(CarbonCommonConstants.CARBON_READ_PARTITION_HIVE_DIRECT, "false")
-    sql("create table badrecordsPartitionintnullalt(intField1 int, stringField1 string) partitioned by (intField2 int) stored by 'carbondata'")
+    sql("create table badrecordsPartitionintnullalt(intField1 int, stringField1 string) partitioned by (intField2 int) STORED AS carbondata")
     sql(s"load data local inpath '$resourcesPath/data_partition_badrecords.csv' into table badrecordsPartitionintnullalt options('bad_records_action'='force')")
     checkAnswer(sql("select count(*) cnt from badrecordsPartitionintnullalt where intfield2 = 13"), Seq(Row(1)))
     CarbonProperties.getInstance().addProperty(CarbonCommonConstants.CARBON_READ_PARTITION_HIVE_DIRECT, CarbonCommonConstants.CARBON_READ_PARTITION_HIVE_DIRECT_DEFAULT)
@@ -258,7 +258,7 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
         |  deptname String,projectcode int,
         |  utilization int,salary int,projectenddate Date,doj Timestamp)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE staticpartitionload partition(empname='ravi') OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
     val frame = sql("select empno,empname,designation,workgroupcategory,workgroupcategoryname,deptno,projectjoindate,attendance,deptname,projectcode,utilization,salary,projectenddate,doj from staticpartitionload")
@@ -269,26 +269,26 @@ class StandardPartitionTableQueryTestCase extends QueryTest with BeforeAndAfterA
 test("Creation of partition table should fail if the colname in table schema and partition column is same even if both are case sensitive"){
 
   val exception = intercept[Exception]{
-    sql("CREATE TABLE uniqdata_char2(name char(10),id int) partitioned by (NAME char(10))stored by 'carbondata' ")
+    sql("CREATE TABLE uniqdata_char2(name char(10),id int) partitioned by (NAME char(10))STORED AS carbondata ")
   }
-    assert(exception.getMessage.contains("Operation not allowed: Partition columns should not be " +
-                                         "specified in the schema: [\"name\"]"))
+  assert(exception.getMessage.contains(
+    "Found duplicate column(s) in the table definition of `default`.`uniqdata_char2`: `name`"))
 }
 
   test("Creation of partition table should fail for both spark version with same exception when char data type is created with specified digit and colname in table schema and partition column is same even if both are case sensitive"){
 
     sql("DROP TABLE IF EXISTS UNIQDATA_CHAR2")
     val exception = intercept[Exception]{
-      sql("CREATE TABLE uniqdata_char2(name char(10),id int) partitioned by (NAME char(10))stored by 'carbondata' ")
+      sql("CREATE TABLE uniqdata_char2(name char(10),id int) partitioned by (NAME char(10))STORED AS carbondata ")
     }
-    assert(exception.getMessage.contains("Operation not allowed: Partition columns should not be " +
-                                         "specified in the schema: [\"name\"]"))
+    assert(exception.getMessage.contains(
+      "Found duplicate column(s) in the table definition of `default`.`uniqdata_char2`: `name`"))
   }
 
   test("Renaming a partition table should fail"){
     sql("drop table if exists partitionTable")
     sql(
-      """create table partitionTable (id int,name String) partitioned by(email string) stored by 'carbondata'
+      """create table partitionTable (id int,name String) partitioned by(email string) STORED AS carbondata
       """.stripMargin)
     sql("insert into partitionTable select 1,'huawei','abc'")
     checkAnswer(sql("show partitions partitionTable"), Seq(Row("email=abc")))
@@ -301,7 +301,7 @@ test("Creation of partition table should fail if the colname in table schema and
   test("add partition based on location on partition table"){
     sql("drop table if exists partitionTable")
     sql(
-      """create table partitionTable (id int,name String) partitioned by(email string) stored by 'carbondata'
+      """create table partitionTable (id int,name String) partitioned by(email string) STORED AS carbondata
       """.stripMargin)
     sql("insert into partitionTable select 1,'huawei','abc'")
     val location = metaStoreDB +"/" +"def"
@@ -321,7 +321,7 @@ test("Creation of partition table should fail if the colname in table schema and
         |  deptname String,projectcode int,
         |  utilization int,salary int,projectenddate Date,doj Timestamp)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     val location = metaStoreDB +"/" +"ravi"
     sql(s"""alter table staticpartitionlocload add partition (empname='ravi') location '$location'""")
@@ -346,7 +346,7 @@ test("Creation of partition table should fail if the colname in table schema and
         |  deptname String,projectcode int,
         |  utilization int,salary int,projectenddate Date,doj Timestamp)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     val location = metaStoreDB +"/" +"ravi1"
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE staticpartitionsetloc partition(empname='ravi') OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
@@ -367,7 +367,7 @@ test("Creation of partition table should fail if the colname in table schema and
         |  deptname String,projectcode int,
         |  utilization int,salary int,projectenddate Date,doj Timestamp)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     val location = metaStoreDB +"/" +"ravi"
     sql(s"""alter table staticpartitionlocloadother add partition (empname='ravi') location '$location'""")
@@ -381,7 +381,7 @@ test("Creation of partition table should fail if the colname in table schema and
         |  deptname String,projectcode int,
         |  utilization int,salary int,projectenddate Date,doj Timestamp)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     intercept[Exception] {
       sql(s"""alter table staticpartitionextlocload add partition (empname='ravi') location '$location'""")
@@ -403,9 +403,13 @@ test("Creation of partition table should fail if the colname in table schema and
         |  deptname String,projectcode int,
         |  utilization int,salary int,projectenddate Date,doj Timestamp)
         | PARTITIONED BY (empname String)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
     val location = metaStoreDB +"/" +"ravi1"
+    val file1 = FileFactory.getCarbonFile(location)
+    if(file1.exists()) {
+      FileFactory.deleteAllCarbonFilesOfDir(file1)
+    }
     sql(s"""alter table staticpartitionlocloadother_new add partition (empname='ravi') location '$location'""")
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE staticpartitionlocloadother_new partition(empname='ravi') OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE staticpartitionlocloadother_new partition(empname='indra') OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
@@ -424,7 +428,7 @@ test("Creation of partition table should fail if the colname in table schema and
 
   ignore("drop partition on preAggregate table should fail"){
     sql("drop table if exists partitionTable")
-    sql("create table partitionTable (id int,city string,age int) partitioned by(name string) stored by 'carbondata'".stripMargin)
+    sql("create table partitionTable (id int,city string,age int) partitioned by(name string) STORED AS carbondata".stripMargin)
     sql(
     s"""create datamap preaggTable on table partitionTable using 'preaggregate' as select id,sum(age) from partitionTable group by id"""
       .stripMargin)
@@ -439,8 +443,8 @@ test("Creation of partition table should fail if the colname in table schema and
 
   test("validate data in partition table after dropping and adding a column") {
     sql("drop table if exists par")
-    sql("create table par(name string) partitioned by (age double) stored by " +
-              "'carbondata' TBLPROPERTIES('cache_level'='blocklet')")
+    sql("create table par(name string) partitioned by (age double) STORED AS " +
+              "carbondata TBLPROPERTIES('cache_level'='blocklet')")
     sql(s"load data local inpath '$resourcesPath/uniqwithoutheader.csv' into table par options" +
         s"('header'='false')")
     sql("alter table par drop columns(name)")

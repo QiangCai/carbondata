@@ -42,7 +42,7 @@ class RangeFilterTestCase extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists carbontest")
     sql("drop table if exists carbontest_hive")
     sql(
-      "create table carbontest(c1 string, c2 string, c3 int) stored by 'carbondata' tblproperties" +
+      "create table carbontest(c1 string, c2 string, c3 int) STORED AS carbondata tblproperties" +
       "('sort_columns'='c3')")
     (0 to 10).foreach { index =>
       sql(s"insert into carbontest select '$index','$index',$index")
@@ -65,7 +65,7 @@ class RangeFilterTestCase extends QueryTest with BeforeAndAfterAll {
       "string, DOB " +
       "timestamp, DOJ timestamp, BIGINT_COLUMN1 bigint,BIGINT_COLUMN2 bigint,DECIMAL_COLUMN1 " +
       "decimal(30,10), DECIMAL_COLUMN2 decimal(36,10),Double_COLUMN1 double, Double_COLUMN2 " +
-      "double,INTEGER_COLUMN1 int) STORED BY 'org.apache.carbondata.format' TBLPROPERTIES " +
+      "double,INTEGER_COLUMN1 int) STORED AS carbondata TBLPROPERTIES " +
       "('DICTIONARY_EXCLUDE'='CUST_NAME')")
 
     sql(
@@ -100,7 +100,7 @@ class RangeFilterTestCase extends QueryTest with BeforeAndAfterAll {
         "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
         "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
         "projectenddate Timestamp, designation String,attendance Int,utilization " +
-        "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+        "Int,salary Int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='workgroupcategory','DICTIONARY_EXCLUDE'='empno, empname,designation')"
     )
     sql(
@@ -113,7 +113,7 @@ class RangeFilterTestCase extends QueryTest with BeforeAndAfterAll {
         "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
         "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
         "projectenddate Timestamp, designation String,attendance Int,utilization " +
-        "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+        "Int,salary Int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='workgroupcategory','DICTIONARY_EXCLUDE'='empname,designation')"
     )
     sql(
@@ -126,7 +126,7 @@ class RangeFilterTestCase extends QueryTest with BeforeAndAfterAll {
         "doj Timestamp, workgroupcategory Int, empname String,workgroupcategoryname String, " +
         "deptno Int, deptname String, projectcode Int, projectjoindate Timestamp, " +
         "projectenddate Timestamp, designation String,attendance Int,utilization " +
-        "Int,salary Int) STORED BY 'org.apache.carbondata.format' " +
+        "Int,salary Int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_EXCLUDE'='empno,empname,designation')"
     )
     sql(
@@ -151,7 +151,7 @@ class RangeFilterTestCase extends QueryTest with BeforeAndAfterAll {
 
     sql("CREATE TABLE filtertestTable (ID string,date Timestamp, country String, " +
         "name String, phonetype String, serialname String, salary Int) " +
-        "STORED BY 'org.apache.carbondata.format' " +  "TBLPROPERTIES('DICTIONARY_EXCLUDE'='ID')"
+        "STORED AS carbondata " +  "TBLPROPERTIES('DICTIONARY_EXCLUDE'='ID')"
     )
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT, "yyyy-MM-dd HH:mm:ss")

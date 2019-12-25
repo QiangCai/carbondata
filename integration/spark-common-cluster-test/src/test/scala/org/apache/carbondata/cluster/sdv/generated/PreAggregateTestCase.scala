@@ -36,10 +36,10 @@ class PreAggregateTestCase extends QueryTest with BeforeAndAfterEach {
     CarbonProperties.getInstance()
       .addProperty(CarbonCommonConstants.CARBON_DATE_FORMAT, "yyyy/MM/dd")
     sql("CREATE TABLE PreAggMain (id Int, date date, country string, phonetype string, " +
-        "serialname String,salary int ) STORED BY 'org.apache.carbondata.format' " +
+        "serialname String,salary int ) STORED AS carbondata " +
         "tblproperties('dictionary_include'='country')")
     sql("CREATE TABLE AggMain (id Int, date date, country string, phonetype string, " +
-        "serialname String,salary int ) STORED BY 'org.apache.carbondata.format'" +
+        "serialname String,salary int ) STORED AS carbondata" +
         "tblproperties('dictionary_include'='country')")
     sql("create datamap PreAggSum on table PreAggMain using 'preaggregate' as " +
         "select country,sum(salary) as sum from PreAggMain group by country")
@@ -212,7 +212,7 @@ class PreAggregateTestCase extends QueryTest with BeforeAndAfterEach {
 
   test("Test CleanUp of Pre_aggregate tables") {
     sql("drop table if exists maintable")
-    sql("create table maintable(name string, c_code int, price int) stored by 'carbondata'")
+    sql("create table maintable(name string, c_code int, price int) STORED AS carbondata")
     sql("insert into table maintable select 'abc',21,2000")
     sql("create datamap ag1 on table maintable using 'preaggregate' as select name,sum(price) from maintable group by name")
     sql("insert into table maintable select 'abcd',22,3000")

@@ -26,6 +26,7 @@ import org.apache.spark.sql.{AnalysisException, CarbonEnv, Row}
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.datastore.impl.FileFactory
+import org.apache.carbondata.core.metadata.DatabaseNameProvider
 import org.apache.carbondata.spark.exception.ProcessMetaDataException
 
 /**
@@ -33,7 +34,7 @@ import org.apache.carbondata.spark.exception.ProcessMetaDataException
  */
 class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
   var dbLocationCustom = TestQueryExecutor.warehouse +
-                         CarbonCommonConstants.FILE_SEPARATOR + "dbName"
+                         CarbonCommonConstants.FILE_SEPARATOR + DatabaseNameProvider.get().provide("dbName")
   override def beforeAll {
     sql("drop database if exists carbon cascade")
   }
@@ -81,7 +82,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {
       backUpData(dbLocationCustom, "carbontable")
@@ -97,7 +98,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {
       backUpData(dbLocationCustom, "carbontable")
@@ -113,7 +114,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'aa','aaa'")
     sql("insert into carbontable select 'a',10,'aa','aaa'")
@@ -136,7 +137,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'aa','aaa'")
     sql("insert into carbontable select 'a',10,'aa','aaa'")
@@ -159,7 +160,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'aa','aaa'")
     sql("insert into carbontable select 'a',10,'aa','aaa'")
@@ -180,7 +181,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {
@@ -202,7 +203,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {
@@ -224,7 +225,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {
@@ -246,7 +247,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {
@@ -267,7 +268,7 @@ class TestRegisterCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("drop database if exists carbon cascade")
     sql(s"create database carbon location '$dbLocationCustom'")
     sql("use carbon")
-    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table carbon.carbontable (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql("insert into carbontable select 'a',1,'aa','aaa'")
     sql("insert into carbontable select 'b',1,'bb','bbb'")
     if (!CarbonEnv.getInstance(sqlContext.sparkSession).carbonMetaStore.isReadFromHiveMetaStore) {

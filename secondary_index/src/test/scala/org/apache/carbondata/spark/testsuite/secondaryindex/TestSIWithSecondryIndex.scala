@@ -37,12 +37,12 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
       .addProperty(CarbonCommonConstants.CARBON_TIMESTAMP_FORMAT,
         CarbonCommonConstants.CARBON_TIMESTAMP_DEFAULT_FORMAT)
       .addProperty(CarbonCommonConstants.ENABLE_UNSAFE_COLUMN_PAGE, "true")
-    sql("create table table_WithSIAndAlter(c1 string, c2 date,c3 timestamp) stored by 'carbondata'")
+    sql("create table table_WithSIAndAlter(c1 string, c2 date,c3 timestamp) STORED AS carbondata")
     sql("insert into table_WithSIAndAlter select 'xx',current_date, current_timestamp")
     sql("alter table table_WithSIAndAlter add columns(date1 date, time timestamp)")
     sql("update table_WithSIAndAlter set(date1) = (c2)").show
     sql("update table_WithSIAndAlter set(time) = (c3)").show
-    sql("create index si_altercolumn on table table_WithSIAndAlter(date1,time) as 'carbondata'")
+    sql("create index si_altercolumn on table table_WithSIAndAlter(date1,time) AS 'carbondata'")
   }
 
   private def isExpectedValueValid(dbName: String,
@@ -66,13 +66,13 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
 
   test("test create secondary index when all records are deleted from table") {
     sql("drop table if exists delete_records")
-    sql("create table delete_records (a string,b string) stored by 'carbondata'")
+    sql("create table delete_records (a string,b string) STORED AS carbondata")
     sql("insert into delete_records values('k','r')")
     sql("insert into delete_records values('k','r')")
     sql("insert into delete_records values('k','r')")
     sql("delete from delete_records where a='k'").show()
     sql("alter table delete_records compact 'minor'")
-    sql("create index index1 on table delete_records(b) as 'carbondata'")
+    sql("create index index1 on table delete_records(b) AS 'carbondata'")
     checkAnswer(sql("select count(*) from index1"), Row(0))
     sql("drop table if exists delete_records")
   }
@@ -80,10 +80,10 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
   test("test secondary index data after parent table rename") {
     sql("drop table if exists maintable")
     sql("drop table if exists maintableeee")
-    sql("create table maintable (a string,b string, c int) stored by 'carbondata'")
+    sql("create table maintable (a string,b string, c int) STORED AS carbondata")
     sql("insert into maintable values('k','x',2)")
     sql("insert into maintable values('k','r',1)")
-    sql("create index index21 on table maintable(b) as 'carbondata'")
+    sql("create index index21 on table maintable(b) AS 'carbondata'")
     checkAnswer(sql("select * from maintable where c>1"), Seq(Row("k","x",2)))
     sql("ALTER TABLE maintable RENAME TO maintableeee")
     checkAnswer(sql("select * from maintableeee where c>1"), Seq(Row("k","x",2)))
@@ -91,16 +91,16 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
 
   test("validate column_meta_cache and cache_level on SI table") {
     sql("drop table if exists column_meta_cache")
-    sql("create table column_meta_cache(c1 String, c2 String, c3 int, c4 double) stored by 'carbondata'")
-    sql("create index indexCache on table column_meta_cache(c2,c1) as 'carbondata' TBLPROPERTIES('COLUMN_meta_CachE'='c2','cache_level'='BLOCK')")
+    sql("create table column_meta_cache(c1 String, c2 String, c3 int, c4 double) STORED AS carbondata")
+    sql("create index indexCache on table column_meta_cache(c2,c1) AS 'carbondata' TBLPROPERTIES('COLUMN_meta_CachE'='c2','cache_level'='BLOCK')")
     assert(isExpectedValueValid("default", "indexCache", "column_meta_cache", "c2"))
     assert(isExpectedValueValid("default", "indexCache", "cache_level", "BLOCK"))
     // set invalid values for SI table for column_meta_cache and cache_level and verify
     intercept[MalformedCarbonCommandException] {
-      sql("create index indexCache1 on table column_meta_cache(c2) as 'carbondata' TBLPROPERTIES('COLUMN_meta_CachE'='abc')")
+      sql("create index indexCache1 on table column_meta_cache(c2) AS 'carbondata' TBLPROPERTIES('COLUMN_meta_CachE'='abc')")
     }
     intercept[MalformedCarbonCommandException] {
-      sql("create index indexCache1 on table column_meta_cache(c2) as 'carbondata' TBLPROPERTIES('cache_level'='abc')")
+      sql("create index indexCache1 on table column_meta_cache(c2) AS 'carbondata' TBLPROPERTIES('cache_level'='abc')")
     }
     intercept[Exception] {
       sql("Alter table indexCache SET TBLPROPERTIES('column_meta_cache'='abc')")
@@ -132,7 +132,7 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
     sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/data.csv' INTO " +
         "TABLE uniqdata OPTIONS('DELIMITER'=',', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
     sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/data.csv' INTO " +
@@ -143,7 +143,7 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
         "TABLE uniqdata OPTIONS('DELIMITER'=',', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
     sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/data.csv' INTO " +
         "TABLE uniqdata OPTIONS('DELIMITER'=',', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
-    sql("create index index1 on table uniqdata (workgroupcategoryname) AS 'org.apache.carbondata.format'")
+    sql("create index index1 on table uniqdata (workgroupcategoryname) AS 'carbondata'")
     val indexTable = CarbonEnv.getCarbonTable(Some("default"), "index1")(sqlContext.sparkSession)
     val carbontable = CarbonEnv.getCarbonTable(Some("default"), "uniqdata")(sqlContext.sparkSession)
     val details = SegmentStatusManager.readLoadMetadata(indexTable.getMetadataPath)
@@ -186,9 +186,9 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
     sql(
-      "create index uniqdataindex1 on table uniqdataTable (workgroupcategoryname) AS 'org.apache.carbondata.format'")
+      "create index uniqdataindex1 on table uniqdataTable (workgroupcategoryname) AS 'carbondata'")
     sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/data.csv' INTO " +
         "TABLE uniqdataTable OPTIONS('DELIMITER'=',', 'BAD_RECORDS_LOGGER_ENABLE'='FALSE', 'BAD_RECORDS_ACTION'='FORCE')")
     val errorMessage = intercept[Exception] {
@@ -205,18 +205,18 @@ class TestSIWithSecondryIndex extends QueryTest with BeforeAndAfterAll {
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
     sql(
-      "create index uniqdataidxtable on table uniqdataTable1 (workgroupcategoryname) AS 'org.apache.carbondata.format'")
+      "create index uniqdataidxtable on table uniqdataTable1 (workgroupcategoryname) AS 'carbondata'")
 
     sql("CREATE table uniqdataTable2 (empno int, empname String, " +
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format'")
+        "utilization int,salary int) STORED AS carbondata")
     val errorMessage = intercept[Exception] {
       sql(
-        "create index uniqdataidxtable on table uniqdataTable2 (workgroupcategoryname) AS 'org.apache.carbondata.format'")
+        "create index uniqdataidxtable on table uniqdataTable2 (workgroupcategoryname) AS 'carbondata'")
     }.getMessage
     assert(errorMessage.contains("Index [uniqdataidxtable] already exists under database [default]"))
   }

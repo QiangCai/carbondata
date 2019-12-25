@@ -26,6 +26,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspect
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.WritableHiveVarcharObjectInspector;
+import org.apache.hadoop.hive.serde2.typeinfo.CharTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.DecimalTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.ListTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.MapTypeInfo;
@@ -61,11 +62,15 @@ class CarbonObjectInspector extends SettableStructObjectInspector {
   private ObjectInspector getObjectInspector(final TypeInfo typeInfo) {
     if (typeInfo.equals(TypeInfoFactory.doubleTypeInfo)) {
       return PrimitiveObjectInspectorFactory.writableDoubleObjectInspector;
+    }if (typeInfo.equals(TypeInfoFactory.floatTypeInfo)) {
+      return PrimitiveObjectInspectorFactory.writableFloatObjectInspector;
     } else if (typeInfo.equals(TypeInfoFactory.intTypeInfo)) {
       return PrimitiveObjectInspectorFactory.writableIntObjectInspector;
     } else if (typeInfo.equals(TypeInfoFactory.longTypeInfo)) {
       return PrimitiveObjectInspectorFactory.writableLongObjectInspector;
     } else if (typeInfo.equals(TypeInfoFactory.stringTypeInfo)) {
+      return PrimitiveObjectInspectorFactory.writableStringObjectInspector;
+    } else if (typeInfo instanceof CharTypeInfo) {
       return PrimitiveObjectInspectorFactory.writableStringObjectInspector;
     } else if (typeInfo instanceof DecimalTypeInfo) {
       return PrimitiveObjectInspectorFactory

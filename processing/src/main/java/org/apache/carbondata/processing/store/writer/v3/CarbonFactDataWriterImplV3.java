@@ -124,6 +124,10 @@ public class CarbonFactDataWriterImplV3 extends AbstractFactDataWriter {
       buffer.putLong(footerOffset);
       buffer.flip();
       currentOffsetInFile += fileChannel.write(buffer);
+      if (loadStats != null) {
+        loadStats.addOutputBytes(currentOffsetInFile);
+        loadStats.addFiles(1);
+      }
       // fill the carbon index details
       fillBlockIndexInfoDetails(
           convertFileMeta.getNum_rows(), carbonDataFileName, footerOffset, currentOffsetInFile);

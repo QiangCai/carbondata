@@ -27,7 +27,7 @@ import org.apache.carbondata.examples.util.{AllDictionaryUtil, ExampleUtils}
 object AllDictionaryExample {
 
   def main(args: Array[String]) {
-    val spark = ExampleUtils.createCarbonSession("AllDictionaryExample")
+    val spark = ExampleUtils.createSparkSession("AllDictionaryExample")
     exampleBody(spark)
     spark.close()
   }
@@ -58,7 +58,7 @@ object AllDictionaryExample {
          | serialname String,
          | salary Int,
          | floatField float
-         | ) STORED BY 'carbondata'
+         | ) STORED AS carbondata
        """.stripMargin)
 
     spark.sql(s"""

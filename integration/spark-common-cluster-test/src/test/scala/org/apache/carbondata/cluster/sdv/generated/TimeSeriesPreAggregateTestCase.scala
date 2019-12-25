@@ -40,8 +40,7 @@ class TimeSeriesPreAggregateTestCase extends QueryTest with BeforeAndAfterAll {
     TimeZone.setDefault(TimeZone.getTimeZone(System.getProperty("user.timezone")))
     sql("drop table if exists mainTable")
     sql(
-      "CREATE TABLE mainTable(mytime timestamp, name string, age int) STORED BY 'org.apache" +
-      ".carbondata.format'")
+      "CREATE TABLE mainTable(mytime timestamp, name string, age int) STORED AS carbondata")
     sql(
       s"""
          | CREATE DATAMAP agg0_second ON TABLE mainTable

@@ -50,7 +50,8 @@ object CarbonStore {
       limit: Option[String],
       tablePath: String,
       showHistory: Boolean,
-      extended: Boolean): Seq[Row] = {
+      extended: Boolean,
+      isPrivacy: Boolean = false): Seq[Row] = {
     val metaFolder = CarbonTablePath.getMetadataPath(tablePath)
     val loadMetadataDetailsArray = if (showHistory) {
       SegmentStatusManager.readLoadMetadata(metaFolder) ++
@@ -120,7 +121,10 @@ object CarbonStore {
               if (load.getIndexSize == null) -1L else load.getIndexSize.toLong)
           }
 
-          val segmentLocation = CarbonTablePath.getSegmentPath(tablePath, load)
+          val segmentLocation = isPrivacy match {
+            case true => ""
+            case false => CarbonTablePath.getSegmentPath(tablePath, load)
+          }
 
           var values = ArrayBuffer(
             load.getLoadName,
@@ -137,6 +141,7 @@ object CarbonStore {
           }
 
           values = if (extended) {
+            val segmentLocation = CarbonTablePath.getSegmentPath(tablePath, load)
             values ++= Seq(
               mergedTo,
               load.getFileFormat.toString,
@@ -170,7 +175,8 @@ object CarbonStore {
       tablePath: String,
       carbonTable: CarbonTable,
       forceTableClean: Boolean,
-      currentTablePartitions: Option[Seq[PartitionSpec]] = None): Unit = {
+      currentTablePartitions: Option[Seq[PartitionSpec]] = None,
+      truncateTable: Boolean = false): Unit = {
     var carbonCleanFilesLock: ICarbonLock = null
     val absoluteTableIdentifier = if (forceTableClean) {
       AbsoluteTableIdentifier.from(tablePath, dbName, tableName, tableName)
@@ -191,8 +197,11 @@ object CarbonStore {
         carbonCleanFilesLock =
           CarbonLockUtil
             .getLockObject(absoluteTableIdentifier, LockUsage.CLEAN_FILES_LOCK, errorMsg)
+        if (truncateTable) {
+          SegmentStatusManager.truncateTable(carbonTable)
+        }
         SegmentStatusManager.deleteLoadsAndUpdateMetadata(
-          carbonTable, true, currentTablePartitions.map(_.asJava).orNull)
+          carbonTable,true, currentTablePartitions.map(_.asJava).orNull)
         CarbonUpdateUtil.cleanUpDeltaFiles(carbonTable, true)
         currentTablePartitions match {
           case Some(partitions) =>

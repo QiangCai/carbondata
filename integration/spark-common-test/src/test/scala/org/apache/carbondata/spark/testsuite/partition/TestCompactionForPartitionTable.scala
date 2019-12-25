@@ -35,14 +35,14 @@ class TestCompactionForPartitionTable extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Timestamp,attendance int,
         |  utilization int,salary int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE originTable OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")
   }
 
   test("minor compaction") {
-    sql("create table part_minor_compact(a String, b int) partitioned by (c int) stored by 'carbondata' tblproperties('PARTITION_TYPE'='LIST','LIST_INFO'='1,2')")
+    sql("create table part_minor_compact(a String, b int) partitioned by (c int) STORED AS carbondata tblproperties('PARTITION_TYPE'='LIST','LIST_INFO'='1,2')")
     sql("insert into part_minor_compact select 'a', 2, 3 from originTable limit 1")
     sql("insert into part_minor_compact select 'b', 3, 4 from originTable limit 1")
     sql("insert into part_minor_compact select 'c', 4, 5 from originTable limit 1")
@@ -56,7 +56,7 @@ class TestCompactionForPartitionTable extends QueryTest with BeforeAndAfterAll {
   }
 
   test("major compaction") {
-    sql("create table part_major_compact(a String, b int) partitioned by (c int) stored by 'carbondata' tblproperties('PARTITION_TYPE'='LIST','LIST_INFO'='1,2')")
+    sql("create table part_major_compact(a String, b int) partitioned by (c int) STORED AS carbondata tblproperties('PARTITION_TYPE'='LIST','LIST_INFO'='1,2')")
     sql("insert into part_major_compact select 'a', 2, 3 from originTable limit 1")
     sql("insert into part_major_compact select 'b', 3, 4 from originTable limit 1")
     sql("insert into part_major_compact select 'c', 4, 5 from originTable limit 1")

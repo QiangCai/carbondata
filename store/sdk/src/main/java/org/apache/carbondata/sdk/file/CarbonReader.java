@@ -183,7 +183,7 @@ public class CarbonReader<T> {
 
   /**
    * Breaks the list of CarbonRecordReader in CarbonReader into multiple
-   * CarbonReader objects, each iterating through some 'carbondata' files
+   * CarbonReader objects, each iterating through some carbondata files
    * and return that list of CarbonReader objects
    *
    * If the no. of files is greater than maxSplits, then break the

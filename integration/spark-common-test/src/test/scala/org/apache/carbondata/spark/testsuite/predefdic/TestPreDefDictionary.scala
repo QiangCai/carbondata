@@ -45,7 +45,7 @@ class TestPreDefDictionary extends QueryTest with BeforeAndAfterAll {
     val allDictFile = s"$resourcesPath/predefdic/allpredefdictionary.csv"
     sql(
       """CREATE TABLE IF NOT EXISTS predefdictable (ID Int, phonetype String)
-       STORED BY 'carbondata'""")
+       STORED AS carbondata""")
     sql(
       s"""LOAD DATA LOCAL INPATH '$testData' into table predefdictable
            options('ALL_DICTIONARY_PATH'='$allDictFile','single_pass'='true')""")
@@ -62,7 +62,7 @@ class TestPreDefDictionary extends QueryTest with BeforeAndAfterAll {
     val allDictFile = s"$resourcesPath/predefdic/allpredefdictionary.csv"
     sql(
       """CREATE TABLE IF NOT EXISTS predefdictable1 (ID Int, phonetype String)
-       STORED BY 'carbondata'""")
+       STORED AS carbondata""")
     sql(
       s"""LOAD DATA LOCAL INPATH '$testData' into table predefdictable1
            options('ALL_DICTIONARY_PATH'='$allDictFile', 'SINGLE_PASS'='true')""")
@@ -79,7 +79,7 @@ class TestPreDefDictionary extends QueryTest with BeforeAndAfterAll {
     val dicFilePath = s"$resourcesPath/predefdic/dicfilepath.csv"
     sql(
       """CREATE TABLE IF NOT EXISTS columndicTable (ID Int, phonetype String)
-       STORED BY 'carbondata'""")
+       STORED AS carbondata""")
     sql(
       s"""LOAD DATA LOCAL INPATH '$testData' into table columndicTable
            options('COLUMNDICT'='phonetype:$dicFilePath', 'SINGLE_PASS'='true')""")
@@ -96,7 +96,7 @@ class TestPreDefDictionary extends QueryTest with BeforeAndAfterAll {
     val dicFilePath = s"$resourcesPath/predefdic/dicfilepath.csv"
     sql(
       """CREATE TABLE IF NOT EXISTS columndicValidationTable (ID Int, phonetype String)
-       STORED BY 'carbondata'""")
+       STORED AS carbondata""")
     try {
       sql(
         s"""LOAD DATA LOCAL INPATH '$testData' into table columndicValidationTable
@@ -115,7 +115,7 @@ class TestPreDefDictionary extends QueryTest with BeforeAndAfterAll {
     val allDictFile = s"$resourcesPath/predefdic/allpredefdictionary.csv"
     sql(
       """CREATE TABLE IF NOT EXISTS predefdictableval (ID Int, phonetype String)
-       STORED BY 'carbondata'""")
+       STORED AS carbondata""")
     try {
     sql(
       s"""LOAD DATA LOCAL INPATH '$testData' into table predefdictableval

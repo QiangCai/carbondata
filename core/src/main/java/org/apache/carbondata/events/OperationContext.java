@@ -28,7 +28,7 @@ public class OperationContext implements Serializable {
 
   private static final long serialVersionUID = -8808813829717624986L;
 
-  private Map<String, Object> operationProperties = new HashMap<String, Object>();
+  transient private Map<String, Object> operationProperties = new HashMap<String, Object>();
 
   public Map<String, Object> getProperties() {
     return operationProperties;

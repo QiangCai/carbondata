@@ -53,7 +53,7 @@ case class CarbonExplainCommand(
       val rows = if (newCmd.logicalPlan.isStreaming || isCommand) {
         newCmd.run(sparkSession)
       } else {
-        collectProfiler(sparkSession) ++ newCmd.run(sparkSession)
+        CarbonExplainCommand.collectProfiler(newCmd, sparkSession) ++ newCmd.run(sparkSession)
       }
       val env = CarbonEnv.getInstance(sparkSession)
       rows.map { row =>
@@ -72,17 +72,37 @@ case class CarbonExplainCommand(
       if (explainCommand.logicalPlan.isStreaming || isCommand) {
         explainCommand.run(sparkSession)
       } else {
-        collectProfiler(sparkSession) ++ explainCommand.run(sparkSession)
+        CarbonExplainCommand
+          .collectProfiler(explainCommand, sparkSession) ++ explainCommand.run(sparkSession)
       }
     }
   }
 
-  private def collectProfiler(sparkSession: SparkSession): Seq[Row] = {
+  override protected def opName: String = "EXPLAIN"
+}
+
+case class CarbonInternalExplainCommand(
+    explainCommand: ExplainCommand,
+    override val output: Seq[Attribute] =
+    Seq(AttributeReference("plan", StringType, nullable = true)())
+) extends MetadataCommand {
+  override def processMetadata(sparkSession: SparkSession): Seq[Row] = {
+    CarbonExplainCommand
+      .collectProfiler(explainCommand, sparkSession) ++ explainCommand.run(sparkSession)
+  }
+
+  override protected def opName: String = "Carbon EXPLAIN"
+}
+
+object CarbonExplainCommand {
+  def collectProfiler(
+      explain: ExplainCommand,
+      sparkSession: SparkSession): Seq[Row] = {
     try {
       ExplainCollector.setup()
       if (ExplainCollector.enabled()) {
         val queryExecution =
-          sparkSession.sessionState.executePlan(child.asInstanceOf[ExplainCommand].logicalPlan)
+          sparkSession.sessionState.executePlan(explain.logicalPlan)
         queryExecution.toRdd.partitions
         // For count(*) queries the explain collector will be disabled, so profiler
         // informations not required in such scenarios.
@@ -97,7 +117,4 @@ case class CarbonExplainCommand(
       ExplainCollector.remove()
     }
   }
-
-  override protected def opName: String = "EXPLAIN"
 }
-

@@ -273,12 +273,12 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql(
       s"""
          | CREATE EXTERNAL TABLE sdkOutputTable
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | LOCATION '$writerPath'
       """.stripMargin)
 
     sql("drop table if exists t1")
-    sql("create table if not exists t1 (name string, age int, height double) STORED BY 'org.apache.carbondata.format'")
+    sql("create table if not exists t1 (name string, age int, height double) STORED AS carbondata")
     var i =0
     while (i<50){
       sql (s"""insert into t1 values ("aaaaa", 12, 20)""").show(200,false)
@@ -312,7 +312,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("SELECT name,name FROM sdkOutputTable"), Seq(
@@ -349,7 +349,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("SELECT name,name FROM sdkOutputTable"), Seq(
@@ -376,7 +376,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql(s"""select count(*) from sdkOutputTable """), Seq(Row(3)))
     buildTestDataWithSameUUID(3, null, List("name"))
@@ -395,8 +395,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkExistence(sql("describe formatted sdkOutputTable"), true, writerPath)
@@ -406,8 +406,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkExistence(sql("describe formatted sdkOutputTable"), true, "Sort Columns age")
@@ -418,8 +418,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkExistence(sql("describe formatted sdkOutputTable"), true, "Sort Columns name")
@@ -430,8 +430,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkExistence(sql("describe formatted sdkOutputTable"),false,"Sort Columns name")
@@ -458,12 +458,12 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     // Empty carbon files must not create in no_sort flow
     var exception = intercept[AnalysisException] {
       sql(
-        s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-           |'carbondata' LOCATION
+        s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+           |carbondata LOCATION
            |'$writerPath' """.stripMargin)
     }
     assert(exception.getMessage()
-      .contains("Invalid table path provided"))
+      .contains("Unable to infer the schema"))
     cleanTestData()
   }
 
@@ -474,8 +474,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("robot0", 0, 0.0),
@@ -497,15 +497,15 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("robot0", 0, 0.0),
       Row("robot1", 1, 0.5),
       Row("robot2", 2, 1.0)))
 
-    sql("create table if not exists t1 (name string, age int, height double) STORED BY 'org.apache.carbondata.format'")
+    sql("create table if not exists t1 (name string, age int, height double) STORED AS carbondata")
     sql (s"""insert into t1 values ("aaaaa", 12, 20)""").show(200,false)
     sql("insert into sdkOutputTable select * from t1").show(200,false)
 
@@ -530,15 +530,15 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("robot0", 0, 0.0),
       Row("robot1", 1, 0.5),
       Row("robot2", 2, 1.0)))
 
-    sql("create table if not exists t1 (name string, age int, height double) STORED BY 'org.apache.carbondata.format'")
+    sql("create table if not exists t1 (name string, age int, height double) STORED AS carbondata")
     sql (s"""insert into t1 values ("aaaaa", 12, 20)""").show(200,false)
 
     checkAnswer(sql(s"""select count(*) from sdkOutputTable where age = 1"""),
@@ -568,15 +568,15 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with partition
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("robot0", 0, 0.0),
       Row("robot1", 1, 0.5),
       Row("robot2", 2, 1.0)))
 
-    sql("create table if not exists t1 (name string, age int, height double) STORED BY 'org.apache.carbondata.format'")
+    sql("create table if not exists t1 (name string, age int, height double) STORED AS carbondata")
     sql (s"""insert into t1 values ("aaaaa", 12, 20)""").show(200,false)
 
     checkAnswer(sql(s"""select count(*) from sdkOutputTable where age = 1"""),
@@ -607,7 +607,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable1")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable1 STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable1 STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable1"), Seq(Row("robot0", 0, 0.0),
@@ -648,7 +648,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     //1. alter datatype
@@ -757,8 +757,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     // with schema
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("robot0", 0, 0.0),
@@ -780,11 +780,11 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     val exception = intercept[Exception] {
       //    data source file format
       sql(
-        s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+        s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
            |'$writerPath' """.stripMargin)
     }
     assert(exception.getMessage()
-      .contains("Operation not allowed: Invalid table path provided:"))
+      .contains("Unable to infer the schema"))
 
     cleanTestData()
   }
@@ -800,12 +800,12 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     val exception = intercept[Exception] {
       //data source file format
       sql(
-        s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+        s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
            |'$writerPath' """.stripMargin)
 
     }
     assert(exception.getMessage()
-      .contains("Operation not allowed: Invalid table path provided:"))
+      .contains("Unable to infer the schema"))
 
     cleanTestData()
   }
@@ -827,7 +827,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS t1")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select count(*) from sdkOutputTable"), Seq(Row(1000000)))
@@ -846,7 +846,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
 
@@ -920,7 +920,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
 
@@ -951,7 +951,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(
       Row("robot0", null, null),
@@ -969,7 +969,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(
@@ -984,7 +984,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(
       Row("robot3", 3, 1.5)))
@@ -1018,7 +1018,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
 
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(
@@ -1047,7 +1047,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(true, 0, 0.0),
@@ -1081,7 +1081,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS sdkOutputTable")
 
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("robot0", 0, 0.0),
@@ -1109,8 +1109,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
   test("test SDK Read with merge index file") {
     sql("DROP TABLE IF EXISTS normalTable1")
     sql(
-      "create table if not exists normalTable1(name string, age int, height double) STORED BY " +
-      "'carbondata'")
+      "create table if not exists normalTable1(name string, age int, height double) STORED AS " +
+      "carbondata")
     sql(s"""insert into normalTable1 values ("aaaaa", 12, 20)""").show(200, false)
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     val carbonTable = CarbonEnv
@@ -1118,7 +1118,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     sql("describe formatted normalTable1").show(200, false)
     val fileLocation = carbonTable.getSegmentPath("0")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$fileLocation' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row("aaaaa", 12, 20)))
     sql("DROP TABLE sdkOutputTable")
@@ -1442,7 +1442,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("desc formatted sdkOutputTable").show(false)
@@ -1467,7 +1467,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     checkAnswer(sql("select * from sdkOutputTable"), Seq(
@@ -1485,7 +1485,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable").show(200,false)
@@ -1550,7 +1550,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     /*assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable").show(200,false)
@@ -1572,7 +1572,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     /*
@@ -1600,7 +1600,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable").show(false)
@@ -1627,7 +1627,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("SELECT name,name FROM sdkOutputTable").show()
@@ -1743,7 +1743,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable").show(false)
@@ -1862,7 +1862,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable").show(false)
@@ -1943,7 +1943,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable limit 1").show(false)
@@ -2060,7 +2060,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(new File(writerPath).exists())
     sql("DROP TABLE IF EXISTS sdkOutputTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
 
     sql("select * from sdkOutputTable").show(false)
@@ -2275,8 +2275,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(java.sql.Date.valueOf("1970-04-12"), Row(java.sql.Date.valueOf("1970-01-11")))))
   }
@@ -2321,8 +2321,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Timestamp.valueOf("1970-01-02 16:00:00"), Row(Timestamp.valueOf("1970-01-02 16:00:00")))))
   }
@@ -2368,8 +2368,8 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     writer.write(record)
     writer.close()
     sql(
-      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED BY
-         |'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkOutputTable STORED AS
+         |carbondata LOCATION
          |'$writerPath' """.stripMargin)
     checkAnswer(sql("select * from sdkOutputTable"), Seq(Row(Timestamp.valueOf("1970-01-02 16:00:00"), Row(Timestamp.valueOf("1970-01-02 16:00:00")))))
   }
@@ -2394,7 +2394,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     // read no sort data
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION '$writerPath' """
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION '$writerPath' """
         .stripMargin)
     checkAnswer(sql("select * from sdkTable"),
       Seq(Row("carbon", 1), Row("hydrogen", 10), Row("boron", 4), Row("zirconium", 5)))
@@ -2424,7 +2424,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(testUtil.checkForLocalDictionary(testUtil.getDimRawChunk(0,writerPath)))
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     val descLoc = sql("describe formatted sdkTable").collect
     descLoc.find(_.get(0).toString.contains("Local Dictionary Enabled")) match {
@@ -2450,7 +2450,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(testUtil.checkForLocalDictionary(testUtil.getDimRawChunk(0,writerPath)))
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     val df = sql("describe formatted sdkTable")
     checkExistence(df, true, "Local Dictionary Enabled true")
@@ -2468,7 +2468,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(!testUtil.checkForLocalDictionary(testUtil.getDimRawChunk(0,writerPath)))
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     val df = sql("describe formatted sdkTable")
     checkExistence(df, true, "Local Dictionary Enabled true")
@@ -2486,7 +2486,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(testUtil.checkForLocalDictionary(testUtil.getDimRawChunk(0,writerPath)))
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     FileUtils.deleteDirectory(new File(writerPath))
     sql("insert into sdkTable select 's1','s2',23 ")
@@ -2510,7 +2510,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     generateCarbonData(builder)
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     FileUtils.deleteDirectory(new File(writerPath))
     sql("insert into sdkTable select 's1','s2',23 ")
@@ -2530,7 +2530,7 @@ class TestNonTransactionalCarbonTable extends QueryTest with BeforeAndAfterAll {
     assert(testUtil.checkForLocalDictionary(testUtil.getDimRawChunk(0,writerPath)))
     sql("DROP TABLE IF EXISTS sdkTable")
     sql(
-      s"""CREATE EXTERNAL TABLE sdkTable STORED BY 'carbondata' LOCATION
+      s"""CREATE EXTERNAL TABLE sdkTable STORED AS carbondata LOCATION
          |'$writerPath' """.stripMargin)
     val descLoc = sql("describe formatted sdkTable").collect
     descLoc.find(_.get(0).toString.contains("Local Dictionary Enabled")) match {

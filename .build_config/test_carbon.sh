@@ -16,8 +16,8 @@ echo "Carbon branch: ${CARBON_BRANCH}"
 
 export COMPONENT_VERSION=${COMPONENT_VERSION:-1.6.1.0100}
 export DP_VERSION=${DP_VERSION:-dplatform}
-export HADOOP_VERSION=${HADOOP_VERSION:-3.1.1.0200-dplatform}
-export SPARK_VERSION=${SPARK_VERSION:-2.3.2.0100-dplatform}
+export HADOOP_VERSION=${HADOOP_VERSION:-2.7.2.0100-dplatform}
+export SPARK_VERSION=${SPARK_VERSION:-2.3.2.0101-hw-2.0.0.dli-SNAPSHOT}
 export BUILD_VERSION=${COMPONENT_VERSION}-${DP_VERSION}
 export CI_LOCAL_REPOSITORY="carbon_local_repository"
 #mvn -s /home/tool/apache-maven-3.3.3/conf/carbon_settings.xml clean install -U -Pbuild-with-format -Pspark-2.3 -Pmv -DskipTests -Dfindbugs.skip=true -Dcheckstyle.skip=true

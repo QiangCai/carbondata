@@ -30,7 +30,7 @@ class TestNIQueryWithSecondaryIndex extends QueryTest with BeforeAndAfterAll{
 
   override def beforeAll: Unit = {
     sql("drop table if exists seccust")
-    sql("create table seccust (id string, c_custkey string, c_name string, c_address string, c_nationkey string, c_phone string,c_acctbal decimal, c_mktsegment string, c_comment string) STORED BY 'org.apache.carbondata.format'")
+    sql("create table seccust (id string, c_custkey string, c_name string, c_address string, c_nationkey string, c_phone string,c_acctbal decimal, c_mktsegment string, c_comment string) STORED AS carbondata")
     sql(s"""load data  inpath '${pluginResourcesPath}/secindex/firstunique.csv' into table seccust options('DELIMITER'='|','QUOTECHAR'='\"','FILEHEADER'='id,c_custkey,c_name,c_address,c_nationkey,c_phone,c_acctbal,c_mktsegment,c_comment')""")
     sql(s"""load data  inpath '${pluginResourcesPath}/secindex/secondunique.csv' into table seccust options('DELIMITER'='|','QUOTECHAR'='\"','FILEHEADER'='id,c_custkey,c_name,c_address,c_nationkey,c_phone,c_acctbal,c_mktsegment,c_comment')""")
 
@@ -40,8 +40,8 @@ class TestNIQueryWithSecondaryIndex extends QueryTest with BeforeAndAfterAll{
     sql("drop index if exists sc_indx5 on seccust")
     sql("drop index if exists sc_indx6 on seccust")
 
-    sql("create index sc_indx6 on table seccust(c_phone,c_mktsegment) as 'org.apache.carbondata.format'")
-    sql("create index sc_indx5 on table seccust(c_phone) as 'org.apache.carbondata.format'")
+    sql("create index sc_indx6 on table seccust(c_phone,c_mktsegment) AS 'carbondata'")
+    sql("create index sc_indx5 on table seccust(c_phone) AS 'carbondata'")
     sql("set carbon.si.lookup.partialstring=true")
   }
 
@@ -212,10 +212,10 @@ class TestNIQueryWithSecondaryIndex extends QueryTest with BeforeAndAfterAll{
     sql(s"CREATE TABLE testOrderBy(empno int, empname String, designation String, " +
         s"doj Timestamp, workgroupcategory int, workgroupcategoryname String, deptno int, " +
         s"deptname String, projectcode int, projectjoindate Timestamp, projectenddate Timestamp," +
-        s"attendance int, utilization int, salary int) stored by 'carbondata'")
+        s"attendance int, utilization int, salary int) STORED AS carbondata")
     sql(s"LOAD DATA INPATH '$resourcesPath/data.csv' INTO TABLE testOrderBy")
-    sql("CREATE INDEX index_orderBy ON TABLE testOrderBy (workgroupcategoryname) AS 'org.apache.carbondata.format'")
-    sql("CREATE INDEX index1_orderBy ON TABLE testOrderBy (deptname) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX index_orderBy ON TABLE testOrderBy (workgroupcategoryname) AS 'carbondata'")
+    sql("CREATE INDEX index1_orderBy ON TABLE testOrderBy (deptname) AS 'carbondata'")
     sql(
       "select designation from testOrderBy where deptname IN ('network', " +
       "'protocol','security') OR workgroupcategoryname IN ('developer','tester','manager') " +

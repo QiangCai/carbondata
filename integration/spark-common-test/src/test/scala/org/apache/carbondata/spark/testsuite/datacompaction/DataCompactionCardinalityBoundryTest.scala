@@ -40,8 +40,7 @@ class DataCompactionCardinalityBoundryTest extends QueryTest with BeforeAndAfter
     sql(
       "CREATE TABLE IF NOT EXISTS cardinalityTest (country String, ID String, date Timestamp, name " +
         "String, " +
-        "phonetype String, serialname String, salary Int) STORED BY 'org.apache.carbondata" +
-        ".format'"
+        "phonetype String, serialname String, salary Int) STORED AS carbondata"
     )
 
 

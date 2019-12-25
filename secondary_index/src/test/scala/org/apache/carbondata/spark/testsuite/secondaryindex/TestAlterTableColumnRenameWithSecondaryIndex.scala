@@ -25,7 +25,7 @@ class TestAlterTableColumnRenameWithSecondaryIndex extends QueryTest with Before
 
   test("test direct rename on SI table") {
     createTable()
-    sql("create index index1 on table si_rename(c) as 'carbondata' ")
+    sql("create index index1 on table si_rename(c) AS 'carbondata' ")
     val ex = intercept[ProcessMetaDataException] {
       sql("alter table index1 change c test string")
     }
@@ -35,7 +35,7 @@ class TestAlterTableColumnRenameWithSecondaryIndex extends QueryTest with Before
   test("test column rename with SI table") {
     dropTable()
     createTable()
-    sql("create index index1 on table si_rename(c) as 'carbondata' ")
+    sql("create index index1 on table si_rename(c) AS 'carbondata' ")
     sql("alter table si_rename change c test string")
     val carbonTable = CarbonMetadata.getInstance().getCarbonTable("default", "index1")
     assert(null != carbonTable.getColumnByName("index1", "test"))
@@ -45,8 +45,8 @@ class TestAlterTableColumnRenameWithSecondaryIndex extends QueryTest with Before
   test("test column rename with multiple SI table table") {
     dropTable()
     createTable()
-    sql("create index index1 on table si_rename(c) as 'carbondata' ")
-    sql("create index index2 on table si_rename(c,d) as 'carbondata' ")
+    sql("create index index1 on table si_rename(c) AS 'carbondata' ")
+    sql("create index index2 on table si_rename(c,d) AS 'carbondata' ")
     sql("alter table si_rename change c test string")
     sql("alter table si_rename change d testSI string")
     val carbonTable1 = CarbonMetadata.getInstance().getCarbonTable("default", "index1")
@@ -57,16 +57,17 @@ class TestAlterTableColumnRenameWithSecondaryIndex extends QueryTest with Before
     assert(null == carbonTable2.getColumnByName("index2", "d"))
   }
 
-  ignore("test column rename with SI tables load and query") {
+  test("test column rename with SI tables load and query") {
     dropTable()
     createTable()
-    sql("create index index1 on table si_rename(c) as 'carbondata'")
-    sql("create index index2 on table si_rename(c,d) as 'carbondata'")
+    sql("create index index1 on table si_rename(c) AS 'carbondata'")
+    sql("create index index2 on table si_rename(c,d) AS 'carbondata'")
     sql("insert into si_rename select 'abc',3,'def','mno'")
     sql("insert into si_rename select 'def',4,'xyz','pqr'")
     val query1 = sql("select c,d from si_rename where d = 'pqr' or c = 'def'").count()
     sql("alter table si_rename change c test string")
     sql("alter table si_rename change d testSI string")
+    sql("show indexes on si_rename").collect
     val query2 = sql("select test,testsi from si_rename where testsi = 'pqr' or test = 'def'").count()
     assert(query1 == query2)
     val df = sql("select test,testsi from si_rename where testsi = 'pqr' or test = 'def'").queryExecution.sparkPlan
@@ -86,7 +87,7 @@ class TestAlterTableColumnRenameWithSecondaryIndex extends QueryTest with Before
   }
 
   private def createTable(): Unit = {
-    sql("create table si_rename (a string,b int, c string, d string) stored by 'carbondata'")
+    sql("create table si_rename (a string,b int, c string, d string) STORED AS carbondata")
   }
 
   /**

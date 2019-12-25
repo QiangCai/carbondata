@@ -28,7 +28,7 @@ class TestLoadOptions extends QueryTest with BeforeAndAfterAll{
   override def beforeAll {
     sql("drop table if exists TestLoadTableOptions")
     sql("CREATE table TestLoadTableOptions (ID int, date String, country String, name String," +
-        "phonetype String, serialname String, salary int) stored by 'org.apache.carbondata.format'")
+        "phonetype String, serialname String, salary int) STORED AS carbondata")
   }
 
   override def afterAll {
@@ -39,7 +39,7 @@ class TestLoadOptions extends QueryTest with BeforeAndAfterAll{
   test("test load data with more than one char in quotechar option") {
     val errorMessage = intercept[MalformedCarbonCommandException] {
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/dataretention1.csv' INTO TABLE " +
-          s"TestLoadTableOptions OPTIONS('QUOTECHAR'='\\\\')")
+          s"TestLoadTableOptions OPTIONS('QUOTECHAR'='//')")
     }.getMessage
     assert(errorMessage.equals("QUOTECHAR cannot be more than one character."))
   }
@@ -56,7 +56,7 @@ class TestLoadOptions extends QueryTest with BeforeAndAfterAll{
   test("test load data with more than one char in escapechar option") {
     val errorMessage = intercept[MalformedCarbonCommandException] {
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/dataretention1.csv' INTO TABLE " +
-          s"TestLoadTableOptions OPTIONS('ESCAPECHAR'='\\\\')")
+          s"TestLoadTableOptions OPTIONS('ESCAPECHAR'='//')")
       assert(false)
     }.getMessage
     assert(errorMessage.equals("ESCAPECHAR cannot be more than one character."))
@@ -65,7 +65,7 @@ class TestLoadOptions extends QueryTest with BeforeAndAfterAll{
   test("test load data with invalid escape sequence in escapechar option") {
     val errorMessage = intercept[MalformedCarbonCommandException] {
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/dataretention1.csv' INTO TABLE " +
-          s"TestLoadTableOptions OPTIONS('ESCAPECHAR'='\\y')")
+          s"TestLoadTableOptions OPTIONS('ESCAPECHAR'='/y')")
     }.getMessage
     assert(errorMessage.equals("ESCAPECHAR cannot be more than one character."))
   }

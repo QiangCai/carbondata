@@ -22,7 +22,7 @@ import java.util.UUID
 
 import scala.util.Random
 
-import org.apache.spark.sql.{CarbonSession, DataFrame, Row}
+import org.apache.spark.sql.{CarbonUtils, DataFrame, Row}
 import org.apache.spark.sql.test.util.QueryTest
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
@@ -32,7 +32,7 @@ import org.apache.carbondata.core.datamap.status.DataMapStatusManager
 import org.apache.carbondata.core.util.CarbonProperties
 
 class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with BeforeAndAfterEach {
-  val carbonSession = sqlContext.sparkSession.asInstanceOf[CarbonSession]
+  val carbonSession = sqlContext.sparkSession
   val bigFile = s"$resourcesPath/bloom_datamap_input_big.csv"
   val smallFile = s"$resourcesPath/bloom_datamap_input_small.csv"
   val normalTable = "carbon_normal"
@@ -138,13 +138,13 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     sql(
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     sql(
       s"""
@@ -186,7 +186,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     val deferredRebuildException = intercept[MalformedDataMapCommandException] {
       sql(
@@ -217,13 +217,13 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     sql(
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
 
     // load two segments
@@ -259,13 +259,13 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     sql(
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
 
     sql(
@@ -337,13 +337,13 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     sql(
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
 
     sql(
@@ -387,7 +387,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128', 'SORT_COLUMNS'='s1')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128', 'SORT_COLUMNS'='s1')
          |  """.stripMargin)
     sql(
       s"""
@@ -413,7 +413,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128', 'SORT_COLUMNS'='s1')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128', 'SORT_COLUMNS'='s1')
          |  """.stripMargin)
     sql(
       s"""
@@ -463,7 +463,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
     sql(
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT)
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          |  """.stripMargin)
     sql(
       s"""
@@ -495,7 +495,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          | """.stripMargin)
 
     sql(
@@ -521,7 +521,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128')
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128')
          |  """.stripMargin)
     sql(
       s"""
@@ -540,13 +540,13 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
     sql(
       s"""
          | CREATE TABLE $normalTable(c1 string, c2 int, c3 string)
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | """.stripMargin)
     // c1 is local dictionary and will create bloom index on it
     sql(
       s"""
          | CREATE TABLE $bloomDMSampleTable(c1 string, c2 int, c3 string)
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('local_dictionary_include'='c1', 'local_dictionary_threshold'='1000')
          | """.stripMargin)
     sql(
@@ -576,7 +576,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $normalTable(id INT, name STRING, city Array<INT>, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | """.stripMargin)
     val exception: MalformedDataMapCommandException = intercept[MalformedDataMapCommandException] {
       sql(
@@ -600,7 +600,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
       s"""
          | CREATE TABLE $bloomDMSampleTable(id INT, name STRING, city STRING, age INT,
          | s1 STRING, s2 STRING, s3 STRING, s4 STRING, s5 STRING, s6 STRING, s7 STRING, s8 STRING)
-         | STORED BY 'carbondata' TBLPROPERTIES('table_blocksize'='128',
+         | STORED AS carbondata TBLPROPERTIES('table_blocksize'='128',
          | 'DICTIONARY_INCLUDE'='s1,s2', 'CACHE_LEVEL'='BLOCKLET')
          |  """.stripMargin)
 
@@ -729,7 +729,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
          |    charField string,
          |    floatField float
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
        """.stripMargin)
 
     sql(
@@ -747,7 +747,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
          |    charField string,
          |    floatField float
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
        """.stripMargin)
 
     // first data load
@@ -879,7 +879,7 @@ class BloomCoarseGrainDataMapSuite extends QueryTest with BeforeAndAfterAll with
              | est_paid_app_download LONG,
              | est_revenue LONG
              | )
-             | STORED BY 'carbondata'
+             | STORED AS carbondata
              | TBLPROPERTIES(
              | 'SORT_COLUMNS'='market_code, device_code, country_code, category_id, date,product_id',
              | 'NO_INVERTED_INDEX'='est_free_app_download, est_paid_app_download,est_revenue',

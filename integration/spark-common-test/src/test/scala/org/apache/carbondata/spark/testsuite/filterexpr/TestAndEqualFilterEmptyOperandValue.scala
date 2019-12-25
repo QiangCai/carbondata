@@ -37,8 +37,7 @@ class TestAndEqualFilterEmptyOperandValue extends QueryTest with BeforeAndAfterA
     val csvFilePath = s"$resourcesPath/filter/datagrtlrt.csv"
     sql(
       "CREATE TABLE IF NOT EXISTS carbonTable(date Timestamp, country String, salary Int) STORED " +
-      "BY " +
-      "'carbondata'"
+      "AS carbondata"
     )
     sql(
       "create table if not exists hiveTable(date Timestamp, country String, salary Int)row format" +

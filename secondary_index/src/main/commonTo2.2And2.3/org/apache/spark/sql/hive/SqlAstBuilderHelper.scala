@@ -14,6 +14,7 @@ package org.apache.spark.sql.hive
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.util.CarbonProperties
 import org.apache.spark.sql.SparkACLSqlAstBuilder
+import org.apache.spark.sql.catalyst.CarbonParserUtil
 import org.apache.spark.sql.catalyst.parser.ParserUtils._
 import org.apache.spark.sql.catalyst.parser.SqlBaseParser._
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -40,9 +41,9 @@ trait SqlAstBuilderHelper extends SparkACLSqlAstBuilder {
     }
 
     val alterTableChangeDataTypeModel =
-      AlterTableDataTypeChangeModel(new CarbonSpark2SqlParser()
-        .parseDataType(typeString, values, isColumnRename), new CarbonSpark2SqlParser()
-          .convertDbNameToLowerCase(Option(ctx.tableIdentifier().db).map(_.getText)),
+      AlterTableDataTypeChangeModel(
+        CarbonParserUtil.parseDataType(typeString, values, isColumnRename),
+        CarbonParserUtil.convertDbNameToLowerCase(Option(ctx.tableIdentifier().db).map(_.getText)),
         ctx.tableIdentifier().table.getText.toLowerCase,
         ctx.identifier.getText.toLowerCase,
         newColumn.name.toLowerCase,
@@ -58,9 +59,8 @@ trait SqlAstBuilderHelper extends SparkACLSqlAstBuilder {
     val cols = Option(ctx.columns).toSeq.flatMap(visitColTypeList)
     val fields = parser.getFields(cols)
     val tblProperties = scala.collection.mutable.Map.empty[String, String]
-    val tableModel = new CarbonSpark2SqlParser().prepareTableModel(false,
-      new CarbonSpark2SqlParser().convertDbNameToLowerCase(Option(ctx.tableIdentifier().db)
-        .map(_.getText)
+    val tableModel = CarbonParserUtil.prepareTableModel(false,
+      CarbonParserUtil.convertDbNameToLowerCase(Option(ctx.tableIdentifier().db).map(_.getText)
       ),
       ctx.tableIdentifier.table.getText.toLowerCase,
       fields,

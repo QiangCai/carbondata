@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
-import org.apache.spark.sql.{CarbonDatasourceHadoopRelation, CarbonEnv, CarbonSession, SparkSession, _}
+import org.apache.spark.sql.{CarbonDatasourceHadoopRelation, CarbonEnv, CarbonUtils, SparkSession, _}
 import org.apache.spark.sql.CarbonExpressions.{CarbonSubqueryAlias => SubqueryAlias}
 import org.apache.spark.sql.CarbonExpressions.MatchCastExpression
 import org.apache.spark.sql.catalyst.TableIdentifier
@@ -32,7 +32,7 @@ import org.apache.spark.sql.execution.command.{ColumnTableRelation, DataMapField
 import org.apache.spark.sql.execution.command.management.CarbonLoadDataCommand
 import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.hive.{CarbonMetaStore, CarbonRelation}
-import org.apache.spark.sql.parser.CarbonSpark2SqlParser
+import org.apache.spark.sql.parser.{CarbonSpark2SqlParser, CarbonSparkSqlParserUtil}
 import org.apache.spark.sql.types.DataType
 
 import org.apache.carbondata.common.exceptions.MetadataProcessException
@@ -573,16 +573,16 @@ object PreAggregateUtil {
       loadCommand: CarbonLoadDataCommand,
       isOverwrite: Boolean,
       sparkSession: SparkSession): Boolean = {
-    CarbonSession.threadSet(
+    CarbonUtils.threadSet(
       CarbonCommonConstants.CARBON_INPUT_SEGMENTS +
       parentTableIdentifier.database.getOrElse(sparkSession.catalog.currentDatabase) + "." +
       parentTableIdentifier.table,
       segmentToLoad)
-    CarbonSession.threadSet(
+    CarbonUtils.threadSet(
       CarbonCommonConstants.VALIDATE_CARBON_INPUT_SEGMENTS +
       parentTableIdentifier.database.getOrElse(sparkSession.catalog.currentDatabase) + "." +
       parentTableIdentifier.table, validateSegments.toString)
-    CarbonSession.threadSet(CarbonCommonConstants.SUPPORT_DIRECT_QUERY_ON_DATAMAP,
+    CarbonUtils.threadSet(CarbonCommonConstants.SUPPORT_DIRECT_QUERY_ON_DATAMAP,
       "true")
     try {
       loadCommand.processData(sparkSession)
@@ -592,11 +592,11 @@ object PreAggregateUtil {
         LOGGER.error("Data Load failed for DataMap: ", ex)
         false
     } finally {
-      CarbonSession.threadUnset(
+      CarbonUtils.threadUnset(
         CarbonCommonConstants.CARBON_INPUT_SEGMENTS +
         parentTableIdentifier.database.getOrElse(sparkSession.catalog.currentDatabase) + "." +
         parentTableIdentifier.table)
-      CarbonSession.threadUnset(
+      CarbonUtils.threadUnset(
         CarbonCommonConstants.VALIDATE_CARBON_INPUT_SEGMENTS +
         parentTableIdentifier.database.getOrElse(sparkSession.catalog.currentDatabase) + "." +
         parentTableIdentifier.table)
@@ -820,10 +820,13 @@ object PreAggregateUtil {
       parser: CarbonSpark2SqlParser): LogicalPlan = {
     // adding the preAGG UDF, so pre aggregate data loading rule and query rule will not
     // be applied
-    val query = parser.addPreAggFunction(s"Select ${ aggExp.sql } from $databaseName.$tableName")
+    val query = CarbonSparkSqlParserUtil.getPreAggPlan(
+      s"Select ${ aggExp.sql } from $databaseName.$tableName",
+      sparkSession
+    )
     // updating the logical relation of logical plan to so when two logical plan
     // will be compared it will not consider relation
-    updateLogicalRelation(sparkSession.sql(query).logicalPlan, logicalRelation)
+    updateLogicalRelation(query, logicalRelation)
   }
 
   /**

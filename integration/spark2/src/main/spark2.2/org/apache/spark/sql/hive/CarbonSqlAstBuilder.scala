@@ -33,10 +33,10 @@ class CarbonSqlAstBuilder(conf: SQLConf, parser: CarbonSpark2SqlParser, sparkSes
   override def visitCreateHiveTable(ctx: CreateHiveTableContext): LogicalPlan = {
     val fileStorage = CarbonSparkSqlParserUtil.getFileStorage(ctx.createFileFormat)
 
-    if (fileStorage.equalsIgnoreCase("'carbondata'") ||
+    if (fileStorage.equalsIgnoreCase("carbondata") ||
         fileStorage.equalsIgnoreCase("carbondata") ||
         fileStorage.equalsIgnoreCase("'carbonfile'") ||
-        fileStorage.equalsIgnoreCase("'org.apache.carbondata.format'")) {
+        fileStorage.equalsIgnoreCase("carbondata")) {
       val createTableTuple = (ctx.createTableHeader, ctx.skewSpec,
         ctx.bucketSpec, ctx.partitionColumns, ctx.columns, ctx.tablePropertyList,ctx.locationSpec(),
         Option(ctx.STRING()).map(string), ctx.AS, ctx.query, fileStorage)

@@ -24,7 +24,7 @@ import org.apache.spark.sql.catalyst.TableIdentifier
 import org.apache.spark.sql.catalyst.expressions.Attribute
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.execution.datasources.FindDataSourceTable
-import org.apache.spark.sql.parser.CarbonSpark2SqlParser
+import org.apache.spark.sql.parser.{CarbonSpark2SqlParser, CarbonSparkSqlParserUtil}
 import org.apache.spark.sql.util.SparkSQLUtil
 
 import org.apache.carbondata.core.datamap.DataMapCatalog
@@ -108,9 +108,8 @@ private[mv] class SummaryDatasetCatalog(sparkSession: SparkSession)
   private[mv] def registerSchema(dataMapSchema: DataMapSchema): Unit = {
     writeLock {
       // TODO Add mvfunction here, don't use preagg function
-      val updatedQuery = parser.addPreAggFunction(dataMapSchema.getCtasQuery)
-      val query = sparkSession.sql(updatedQuery)
-      val planToRegister = MVHelper.dropDummFuc(query.queryExecution.analyzed)
+      val planToRegister = MVHelper.dropDummFuc(
+        CarbonSparkSqlParserUtil.getPreAggPlan(dataMapSchema.getCtasQuery, sparkSession))
       val modularPlan =
         mvSession.sessionState.modularizer.modularize(
           mvSession.sessionState.optimizer.execute(planToRegister)).next().semiHarmonized

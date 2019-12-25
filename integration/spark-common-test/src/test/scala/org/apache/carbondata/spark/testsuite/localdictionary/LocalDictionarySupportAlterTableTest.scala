@@ -35,7 +35,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','local_dictionary_include'='city','no_inverted_index'='name')
       """.stripMargin)
     sql("alter table local1 add columns (alt string) tblproperties('local_dictionary_include'='alt')")
@@ -59,7 +59,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name')
       """.stripMargin)
     sql("alter table local1 add columns (alt string)")
@@ -83,7 +83,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','local_dictionary_include'='city','no_inverted_index'='name')
       """.stripMargin)
     val exception = intercept[MalformedCarbonCommandException] {
@@ -102,7 +102,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','local_dictionary_include'='city','no_inverted_index'='name')
       """.stripMargin)
     val exception = intercept[MalformedCarbonCommandException] {
@@ -120,7 +120,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','local_dictionary_include'='city',
         | 'no_inverted_index'='name')
       """.stripMargin)
@@ -148,7 +148,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql("drop table if exists local1")
     sql(
       """ | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_include'='city', 'no_inverted_index'='name')
       """.stripMargin)
     val exception = intercept[MalformedCarbonCommandException] {
@@ -168,7 +168,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_include'='city', 'no_inverted_index'='name')
       """.stripMargin)
     val exception = intercept[MalformedCarbonCommandException] {
@@ -187,7 +187,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_include'='city', 'no_inverted_index'='name')
       """.stripMargin)
     val exception = intercept[MalformedCarbonCommandException] {
@@ -213,7 +213,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='false',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='false',
         | 'local_dictionary_include'='city', 'no_inverted_index'='name')
       """.stripMargin)
     sql(
@@ -234,7 +234,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='300000')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='300000')
       """.stripMargin)
     val descLoc = sql("describe formatted local1").collect
     descLoc.find(_.get(0).toString.contains("Local Dictionary Threshold")) match {
@@ -245,7 +245,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='500')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='500')
       """.stripMargin)
     val descLoc1 = sql("describe formatted local1").collect
     descLoc1.find(_.get(0).toString.contains("Local Dictionary Threshold")) match {
@@ -259,7 +259,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_include'='city', 'no_inverted_index'='name')
       """.stripMargin)
     sql(
@@ -285,7 +285,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='city',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='city',
         | 'LONG_STRING_COLUMNS'='city')
       """.stripMargin)
     val descLoc = sql("describe formatted local1").collect
@@ -304,7 +304,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true')
       """.stripMargin)
 
     val descLoc = sql("describe formatted local1").collect
@@ -327,7 +327,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='300000')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='300000')
       """.stripMargin)
 
     val descLoc = sql("describe formatted local1").collect
@@ -342,7 +342,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='300000')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_threshold'='300000')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -369,7 +369,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -395,7 +395,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -420,7 +420,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -449,7 +449,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -475,7 +475,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -501,7 +501,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -531,7 +531,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -553,7 +553,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -572,7 +572,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -591,7 +591,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -610,7 +610,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_exclude'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_exclude'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -639,7 +639,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_exclude'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_exclude'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -658,7 +658,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -677,7 +677,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -696,7 +696,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -717,7 +717,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='false')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='false')
       """.stripMargin)
 
     sql("alter table local1 set tblproperties('local_dictionary_include'='name')")
@@ -733,7 +733,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_include'='name','local_dictionary_exclude'='city')
+        | STORED AS carbondata tblproperties('local_dictionary_include'='name','local_dictionary_exclude'='city')
       """.stripMargin)
 
     val exception1 = intercept[Exception] {
@@ -747,7 +747,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name','local_dictionary_exclude'='city')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='name','local_dictionary_exclude'='city')
       """.stripMargin)
 
     sql("alter table local1 unset tblproperties('local_dictionary_exclude')")
@@ -763,7 +763,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='false','local_dictionary_threshold'='300000')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='false','local_dictionary_threshold'='300000')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -790,7 +790,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_exclude'='city')
+        | STORED AS carbondata tblproperties('local_dictionary_exclude'='city')
       """.stripMargin)
     intercept[Exception] {
       sql(
@@ -805,7 +805,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_name:string,s_city:array<string>>, dcity array<string>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_exclude'='name','local_dictionary_include'='city,dcity',
         | 'local_dictionary_enable'='true')
       """.
@@ -852,7 +852,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_name:int,s_city:array<int>>, dcity array<int>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_exclude'='name',
         | 'local_dictionary_enable'='true')
       """.
@@ -869,7 +869,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int,add string)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='false')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='false')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -890,7 +890,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int,add string)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='city')
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='city')
       """.stripMargin)
 
     val descLoc1 = sql("describe formatted local1").collect
@@ -911,7 +911,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int,add string)
-        | STORED BY 'carbondata' tblproperties('local_dictionary_enable'='true','local_dictionary_include'='city',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true','local_dictionary_include'='city',
         | 'local_dictionary_exclude'='name')
       """.stripMargin)
 
@@ -934,7 +934,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_name:string,s_city:array<int>>, dcity array<string>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_exclude'='st','local_dictionary_include'='city',
         | 'local_dictionary_enable'='true')
       """.
@@ -963,7 +963,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name struct<n:int,m:string>, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name',
         | 'local_dictionary_include'='name,city')
       """.stripMargin)
@@ -988,7 +988,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name',
         | 'local_dictionary_exclude'='name,city')
       """.stripMargin)
@@ -1013,7 +1013,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name',
         | 'local_dictionary_include'='city')
       """.stripMargin)
@@ -1030,7 +1030,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name')
       """.stripMargin)
     sql("alter table local1 add columns(add1 string,add2 string) tblproperties('local_dictionary_exclude'='add1')")
@@ -1056,7 +1056,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name')
       """.stripMargin)
     sql("alter table local1 add columns(add1 string) tblproperties('local_dictionary_include'='add1')")
@@ -1081,7 +1081,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','no_inverted_index'='name')
       """.stripMargin)
     sql("alter table local1 add columns(add1 string) tblproperties('local_dictionary_include'='add1')")
@@ -1099,7 +1099,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_name:string,s_city:array<string>>, dcity array<string>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_enable'='true')
       """.
         stripMargin)
@@ -1145,7 +1145,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_name:string,s_city:array<string>>, dcity array<string>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_include'='st','local_dictionary_enable'='true')
       """.
         stripMargin)
@@ -1170,7 +1170,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_city:array<string>,s_name:string>, dcity array<string>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_include'='st','local_dictionary_enable'='true')
       """.
         stripMargin)
@@ -1200,7 +1200,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
       """
         | CREATE TABLE local1(id int, name string, city string, age int,st struct<s_id:int,
         | s_city:array<string>,s_name:string>, dcity array<string>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('local_dictionary_include'='st,city,name','local_dictionary_exclude'='dcity','local_dictionary_enable'='true')
       """.
         stripMargin)
@@ -1223,7 +1223,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st array<struct<si:string,sd:int>>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true')
       """.stripMargin)
     sql("alter table local1 set tblproperties('local_dictionary_exclude'='st,name')")
@@ -1247,7 +1247,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st array<struct<si:string,sd:int>>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true',
         | 'local_dictionary_include'='name')
       """.stripMargin)
@@ -1272,7 +1272,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st array<struct<si:int,sd:string>>)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true')
       """.stripMargin)
     sql("alter table local1 set tblproperties('local_dictionary_exclude'='st,name')")
@@ -1296,7 +1296,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st array<struct<si:int,sd:string>>,f string,g int,h string)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true','local_dictionary_include'='st')
       """.stripMargin)
     sql("alter table local1 unset tblproperties('local_dictionary_include')")
@@ -1325,7 +1325,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st struct<si:int,sd:string,sh:array<string>>,f string,g int,h string)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true','local_dictionary_include'='st')
       """.stripMargin)
     sql("alter table local1 unset tblproperties('local_dictionary_include')")
@@ -1354,7 +1354,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st struct<si:int,sd:string>,f string,g int,h string)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true','local_dictionary_include'='st')
       """.stripMargin)
     sql("alter table local1 unset tblproperties('local_dictionary_include')")
@@ -1383,7 +1383,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string,city string, st array<string>,g string,f int,h string)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | tblproperties('long_string_columns'='name','local_dictionary_enable'='true','local_dictionary_include'='st')
       """.stripMargin)
     sql("alter table local1 unset tblproperties('local_dictionary_include')")
@@ -1414,7 +1414,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties('local_dictionary_enable'='true',
+        | STORED AS carbondata tblproperties('local_dictionary_enable'='true',
         | 'local_dictionary_threshold'='20000','local_dictionary_include'='city','no_inverted_index'='name')
       """.stripMargin)
     sql("alter table local1 add columns (alt string) tblproperties('local_dictionary_include'='alt')")
@@ -1440,7 +1440,7 @@ class LocalDictionarySupportAlterTableTest extends QueryTest with BeforeAndAfter
     sql(
       """
         | CREATE TABLE local1(id int, name string, city string, age int)
-        | STORED BY 'org.apache.carbondata.format' tblproperties
+        | STORED AS carbondata tblproperties
         | ('local_dictionary_threshold'='20000','local_dictionary_include'='city',
         | 'no_inverted_index'='name')
       """.stripMargin)

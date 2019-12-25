@@ -18,13 +18,11 @@
 package org.apache.carbondata.spark.testsuite.createTable
 
 import org.apache.hadoop.fs.Path
-import org.apache.spark.sql.CarbonSession
-import org.apache.spark.sql.hive.CarbonSessionCatalog
 import org.apache.spark.sql.test.util.QueryTest
 import org.apache.spark.util.SparkUtil
 import org.scalatest.BeforeAndAfterAll
-
 import org.apache.carbondata.hive.MapredCarbonInputFormat
+import org.apache.spark.sql.hive.CarbonSessionCatalogUtil
 
 class TestCreateHiveTableWithCarbonDS extends QueryTest with BeforeAndAfterAll {
 
@@ -36,7 +34,7 @@ class TestCreateHiveTableWithCarbonDS extends QueryTest with BeforeAndAfterAll {
     sql("DROP TABLE IF EXISTS source")
   }
 
-  test("test create table and verify the hive table correctness with stored by") {
+  test("test create table and verify the hive table correctness with STORED AS") {
     sql("DROP TABLE IF EXISTS source")
     sql(
       s"""
@@ -51,8 +49,8 @@ class TestCreateHiveTableWithCarbonDS extends QueryTest with BeforeAndAfterAll {
 
   private def verifyTable = {
     if (SparkUtil.isSparkVersionXandAbove("2.2")) {
-      val table = sqlContext.sparkSession.asInstanceOf[CarbonSession].sessionState.catalog
-        .asInstanceOf[CarbonSessionCatalog].getClient().getTable("default", "source")
+      val table = CarbonSessionCatalogUtil
+        .getClient(sqlContext.sparkSession).getTable("default", "source")
       assertResult(table.schema.fields.length)(3)
       if (SparkUtil.isSparkVersionEqualTo("2.2")) {
         assertResult(table.storage.locationUri.get)(new Path(s"file:$storeLocation/source").toUri)

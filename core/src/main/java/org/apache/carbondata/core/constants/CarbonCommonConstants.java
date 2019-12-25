@@ -168,6 +168,12 @@ public final class CarbonCommonConstants {
   public static final String LOCK_PATH_DEFAULT = "";
 
   /**
+   * Specifies the lock implement class.
+   */
+  @CarbonProperty
+  public static final String LOCK_CLASS = "carbon.lock.class";
+
+  /**
    * ZOOKEEPER_LOCATION this is the location in zookeeper file system where locks are created.
    * mechanism of carbon
    */
@@ -335,6 +341,14 @@ public final class CarbonCommonConstants {
   @CarbonProperty
   public static final String CARBON_SYSTEM_FOLDER_LOCATION = "carbon.system.folder.location";
 
+  @CarbonProperty
+  public static final String CARBON_DATAMAP_SCHEMA_STORAGE = "carbon.datamap.schema.storage";
+
+  public static final String CARBON_DATAMAP_SCHEMA_STORAGE_DEFAULT = "DISK";
+
+  public static final String CARBON_DATAMAP_SCHEMA_STORAGE_DISK = "DISK";
+
+  public static final String CARBON_DATAMAP_SCHEMA_STORAGE_DATABASE = "DATABASE";
   /**
    * It is internal configuration and used only for test purpose.
    * It will merge the carbon index files with in the segment to single segment.
@@ -449,7 +463,7 @@ public final class CarbonCommonConstants {
   public static final String TABLE_BLOCKSIZE = "table_blocksize";
 
   // default block size in MB
-  public static final String TABLE_BLOCK_SIZE_DEFAULT = "1024";
+  public static final String TABLE_BLOCK_SIZE_DEFAULT = "256";
 
   // table blocklet size in MB
   public static final String TABLE_BLOCKLET_SIZE = "table_blocklet_size";
@@ -1304,6 +1318,11 @@ public final class CarbonCommonConstants {
 
   public static final String ENABLE_VECTOR_READER_DEFAULT = "true";
 
+  @CarbonProperty(dynamicConfigurable = true)
+  public static final String ENABLE_TABLE_STATUS_BACKUP = "carbon.enable.tablestatus.backup";
+
+  public static final String ENABLE_TABLE_STATUS_BACKUP_DEFAULT = "false";
+
   /**
    * property to set is IS_DRIVER_INSTANCE
    */
@@ -1618,6 +1637,8 @@ public final class CarbonCommonConstants {
 
   public static final String OBS_PREFIX = "obs://";
 
+  public static final String LUXORFS_PREFIX = "luxorfs://";
+
   /**
    * Access Key for s3n
    */
@@ -1879,6 +1900,11 @@ public final class CarbonCommonConstants {
    * 256 mb size
    */
   public static final long CARBON_256MB = 256 * 1024 * 1024;
+
+  /**
+   * CUSTOM TYPE
+   */
+  public static final String CARBON_LOCK_TYPE_CUSTOM = "CUSTOM";
 
   /**
    * ZOOKEEPERLOCK TYPE
@@ -2281,4 +2307,7 @@ public final class CarbonCommonConstants {
 
   public static final String ASYNC_QUERY_RESULT_LIMIT = "carbon.async.query.result.limit";
   public static final String ASYNC_QUERY_RESULT_LIMIT_DEFAULT = "5000";
+
+  public static final String DATABASE_LOCATION_PROVIDER = "org.apache.carbondata.database.location.provider";
+
 }

@@ -13,7 +13,7 @@ package org.apache.spark.sql.hive
 
 import org.apache.spark.sql.{CarbonEnv, SparkSession}
 import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.catalyst.expressions.Expression
+import org.apache.spark.sql.catalyst.expressions.{Expression, ScalaUDF}
 import org.apache.spark.util.CarbonInternalScalaUtil
 import org.apache.spark.util.si.FileInternalUtil
 
@@ -86,6 +86,8 @@ object CarbonInternalHiveMetadataUtil {
     expression.transform {
       case hiveUDF: HiveSimpleUDF if hiveUDF.function.isInstanceOf[NonIndexUDFExpression] =>
         hiveUDF.asInstanceOf[HiveSimpleUDF].children.head
+      case scalaUDF: ScalaUDF if "NI".equalsIgnoreCase(scalaUDF.udfName.get) =>
+        scalaUDF.children.head
     }
   }
 }

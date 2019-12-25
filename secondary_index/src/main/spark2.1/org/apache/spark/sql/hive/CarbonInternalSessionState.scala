@@ -132,7 +132,7 @@ object CarbonInternalSessionState {
 
     sparkSession.sessionStateListenerManager
       .addListener(new CarbonSessionCloseListener(sparkSession))
-    CarbonCommonInitializer.init
+    CarbonCommonInitializer.init()
   }
 }
 

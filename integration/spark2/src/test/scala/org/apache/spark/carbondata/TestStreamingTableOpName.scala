@@ -74,7 +74,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
         |    c2 int,
         |    c3 string,
         |    c5 string
-        | ) STORED BY 'org.apache.carbondata.format'
+        | ) STORED AS carbondata
         | TBLPROPERTIES ('streaming' = 'true')
       """.stripMargin)
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO TABLE source""")
@@ -129,6 +129,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
     createTable(tableName = "stream_table_empty", streaming = true, withBatchLoad = false)
 
     var csvDataDir = integrationPath + "/spark2/target/csvdatanew"
+    new File(csvDataDir).delete()
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir)
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir, SaveMode.Append)
   }
@@ -138,7 +139,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE correct(
         |    c1 string
-        | ) STORED BY 'org.apache.carbondata.format'
+        | ) STORED AS carbondata
         | TBLPROPERTIES ('streaming' = 'true')
       """.stripMargin)
     sql("DROP TABLE correct")
@@ -146,7 +147,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
       """
         | CREATE TABLE correct(
         |    c1 string
-        | ) STORED BY 'org.apache.carbondata.format'
+        | ) STORED AS carbondata
         | TBLPROPERTIES ('streaming' = 'false')
       """.stripMargin)
     sql("DROP TABLE correct")
@@ -155,7 +156,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
         """
           | create table wrong(
           |    c1 string
-          | ) STORED BY 'org.apache.carbondata.format'
+          | ) STORED AS carbondata
           | TBLPROPERTIES ('streaming' = 'invalid')
         """.stripMargin)
     }
@@ -259,7 +260,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
     val identifier = new TableIdentifier("stream_table_file", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdata").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdata").getCanonicalPath
     // streaming ingest 10 rows
     generateCSVDataFile(spark, idStart = 10, rowNums = 10, csvDataDir)
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
@@ -283,7 +284,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
     val identifier = new TableIdentifier("agg_table", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     // streaming ingest 10 rows
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
       identifier)
@@ -299,11 +300,12 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test if data is loaded into preaggregate after handoff is fired") {
+    sql("drop table if exists streaming.agg_table2")
     createTable(tableName = "agg_table2", streaming = true, withBatchLoad = false)
     val identifier = new TableIdentifier("agg_table2", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     // streaming ingest 10 rows
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
       identifier)
@@ -360,11 +362,12 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test whether data is loaded into preaggregate after handoff is fired") {
+    sql("drop table if exists streaming.agg_table2")
     createTable(tableName = "agg_table2", streaming = true, withBatchLoad = false)
     val identifier = new TableIdentifier("agg_table2", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     // streaming ingest 10 rows
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
       identifier)
@@ -403,11 +406,12 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test whether data is loaded into preaggregate before handoff is fired") {
+    sql("drop table if exists streaming.agg_table2")
     createTable(tableName = "agg_table2", streaming = true, withBatchLoad = false)
     val identifier = new TableIdentifier("agg_table2", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     // streaming ingest 10 rows
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
       identifier)
@@ -444,7 +448,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
     val identifier = new TableIdentifier("timeseries_table", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
       identifier)
     thread.start()
@@ -471,7 +475,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
     val identifier = new TableIdentifier("timeseries_table", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
       identifier)
     thread.start()
@@ -493,6 +497,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test if minor compaction is successful for streaming and preaggregate tables") {
+    sql("drop table if exists streaming.agg_table2")
     createTable(tableName = "agg_table2", streaming = true, withBatchLoad = false)
     sql("create datamap p1 on table agg_table2 using 'preaggregate' as select name, sum(salary) from agg_table2 group by name")
     sql("create datamap p2 on table agg_table2 using 'preaggregate' as select name, min(salary) from agg_table2 group by name")
@@ -555,7 +560,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
     val identifier = new TableIdentifier("agg_table2", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     // streaming ingest 10 rows
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir)
     val thread = createFileStreamingThread(spark, carbonTable, csvDataDir, intervalSecond = 1,
@@ -568,12 +573,12 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test if data is displayed when alias is used for column name") {
-    sql("drop table if exists agg_table2")
+    sql("drop table if exists streaming.agg_table2")
     createTable(tableName = "agg_table2", streaming = true, withBatchLoad = false)
     val identifier = new TableIdentifier("agg_table2", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdata1").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdata1").getCanonicalPath
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir)
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir, SaveMode.Append)
     // streaming ingest 10 rows
@@ -600,11 +605,12 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
   }
 
   test("test if data is loaded in aggregate table after handoff is done for streaming table") {
+    sql("drop table if exists streaming.agg_table3")
     createTable(tableName = "agg_table3", streaming = true, withBatchLoad = false)
     val identifier = new TableIdentifier("agg_table3", Option("streaming"))
     val carbonTable = CarbonEnv.getInstance(spark).carbonMetaStore.lookupRelation(identifier)(spark)
       .asInstanceOf[CarbonRelation].metaData.carbonTable
-    val csvDataDir = new File("target/csvdatanew").getCanonicalPath
+    val csvDataDir = new File(integrationPath + "/spark2/target/csvdatanew").getCanonicalPath
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir)
     generateCSVDataFile(spark, idStart = 10, rowNums = 5, csvDataDir, SaveMode.Append)
     // streaming ingest 10 rows
@@ -1679,7 +1685,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
          | city STRING,
          | salary FLOAT
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('streaming'='true')
          | """.stripMargin)
 
@@ -1708,7 +1714,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
          | city STRING,
          | salary FLOAT
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('streaming'='true')
          | """.stripMargin)
 
@@ -1878,31 +1884,31 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
 
     sql(
       s"""
-        |CREATE STREAM stream123 ON TABLE sink
-        |STMPROPERTIES(
-        |  'trigger'='ProcessingTime',
-        |  'interval'='1 seconds',
-        |  'BAD_RECORDS_LOGGER_ENABLE' = 'FALSE',
-        |  'BAD_RECORDS_ACTION' = 'FORCE',
-        |  'BAD_RECORD_PATH'='$warehouse')
-        |AS
-        |  SELECT *
-        |  FROM source
-        |  WHERE id % 2 = 1
+         |CREATE STREAM stream123 ON TABLE sink
+         |STMPROPERTIES(
+         |  'trigger'='ProcessingTime',
+         |  'interval'='1 seconds',
+         |  'BAD_RECORDS_LOGGER_ENABLE' = 'FALSE',
+         |  'BAD_RECORDS_ACTION' = 'FORCE',
+         |  'BAD_RECORD_PATH'='$warehouse')
+         |AS
+         |  SELECT *
+         |  FROM source
+         |  WHERE id % 2 = 1
       """.stripMargin).show(false)
     sql(
       s"""
-        |CREATE STREAM IF NOT EXISTS stream123 ON TABLE sink
-        |STMPROPERTIES(
-        |  'trigger'='ProcessingTime',
-        |  'interval'='1 seconds',
-        |  'BAD_RECORDS_LOGGER_ENABLE' = 'FALSE',
-        |  'BAD_RECORDS_ACTION' = 'FORCE',
-        |  'BAD_RECORD_PATH'='$warehouse')
-        |AS
-        |  SELECT *
-        |  FROM source
-        |  WHERE id % 2 = 1
+         |CREATE STREAM IF NOT EXISTS stream123 ON TABLE sink
+         |STMPROPERTIES(
+         |  'trigger'='ProcessingTime',
+         |  'interval'='1 seconds',
+         |  'BAD_RECORDS_LOGGER_ENABLE' = 'FALSE',
+         |  'BAD_RECORDS_ACTION' = 'FORCE',
+         |  'BAD_RECORD_PATH'='$warehouse')
+         |AS
+         |  SELECT *
+         |  FROM source
+         |  WHERE id % 2 = 1
       """.stripMargin).show(false)
     Thread.sleep(200)
     sql("select * from sink").show
@@ -2556,7 +2562,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
          | register TIMESTAMP,
          | updated TIMESTAMP
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES(${if (streaming) "'streaming'='true', " else "" }
          | 'sort_columns'='name', 'dictionary_include'='city,register', 'BAD_RECORD_PATH'='$badRecordFilePath')
          | """.stripMargin)
@@ -2585,7 +2591,7 @@ class TestStreamingTableOpName extends QueryTest with BeforeAndAfterAll {
          | updated TIMESTAMP,
          | file struct<school:array<string>, age:int>
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES(${if (streaming) "'streaming'='true', " else "" }
          | 'sort_columns'='name', 'dictionary_include'='id,name,salary,tax,percent,updated', 'BAD_RECORD_PATH'='$badRecordFilePath')
          | """.stripMargin)

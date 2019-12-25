@@ -22,6 +22,7 @@ import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -29,11 +30,14 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.carbondata.common.logging.LogServiceFactory;
 import org.apache.carbondata.core.constants.CarbonCommonConstants;
 import org.apache.carbondata.core.datamap.Segment;
+import org.apache.carbondata.core.datastore.filesystem.CarbonFile;
 import org.apache.carbondata.core.datastore.impl.FileFactory;
+import org.apache.carbondata.core.exception.ConcurrentOperationException;
 import org.apache.carbondata.core.fileoperations.AtomicFileOperationFactory;
 import org.apache.carbondata.core.fileoperations.AtomicFileOperations;
 import org.apache.carbondata.core.fileoperations.FileWriteOperation;
@@ -53,9 +57,12 @@ import org.apache.carbondata.core.util.CarbonUtil;
 import org.apache.carbondata.core.util.DeleteLoadFolders;
 import org.apache.carbondata.core.util.path.CarbonTablePath;
 
+import static org.apache.carbondata.core.constants.CarbonCommonConstants.DEFAULT_CHARSET;
+
 import com.google.gson.Gson;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+
 
 /**
  * Manages Load/Segment status
@@ -68,6 +75,8 @@ public class SegmentStatusManager {
   private AbsoluteTableIdentifier identifier;
 
   private Configuration configuration;
+
+  private static final int READ_TABLE_STATUS_RETRY_COUNT = 3;
 
   public SegmentStatusManager(AbsoluteTableIdentifier identifier) {
     this.identifier = identifier;
@@ -248,39 +257,70 @@ public class SegmentStatusManager {
     }
   }
 
-  public static LoadMetadataDetails[] readTableStatusFile(String tableStatusPath)
-      throws IOException {
-    Gson gsonObjectToRead = new Gson();
+  /**
+   * Read file and return its content as string
+   *
+   * @param path path to read
+   * @return file content, null is file does not exist
+   * @throws IOException if IO errors
+   */
+  private static String readFileAsString(String path) throws IOException {
     DataInputStream dataInputStream = null;
     BufferedReader buffReader = null;
     InputStreamReader inStream = null;
-    LoadMetadataDetails[] listOfLoadFolderDetailsArray;
-    AtomicFileOperations fileOperation =
-        AtomicFileOperationFactory.getAtomicFileOperations(tableStatusPath);
+    AtomicFileOperations fileOperation = AtomicFileOperationFactory.getAtomicFileOperations(path);
 
-    try {
-      if (!FileFactory.isFileExist(tableStatusPath, FileFactory.getFileType(tableStatusPath))) {
-        return new LoadMetadataDetails[0];
-      }
-      dataInputStream = fileOperation.openForRead();
-      inStream = new InputStreamReader(dataInputStream,
-          Charset.forName(CarbonCommonConstants.DEFAULT_CHARSET));
-      buffReader = new BufferedReader(inStream);
-      listOfLoadFolderDetailsArray =
-          gsonObjectToRead.fromJson(buffReader, LoadMetadataDetails[].class);
-    } catch (IOException e) {
-      LOG.error("Failed to read metadata of load", e);
-      throw e;
-    } finally {
-      closeStreams(buffReader, inStream, dataInputStream);
+    if (!FileFactory.isFileExist(path)) {
+      return null;
     }
 
-    // if listOfLoadFolderDetailsArray is null, return empty array
-    if (null == listOfLoadFolderDetailsArray) {
+    // When storing table status file in object store, reading of table status file may
+    // fail (receive EOFException) when table status file is being modifying
+    // so here we retry multiple times before throwing EOFException
+    int retry = READ_TABLE_STATUS_RETRY_COUNT;
+    while (retry > 0) {
+      try {
+        dataInputStream = fileOperation.openForRead();
+        inStream = new InputStreamReader(dataInputStream, Charset.forName(DEFAULT_CHARSET));
+        buffReader = new BufferedReader(inStream);
+        return buffReader.readLine();
+      } catch (EOFException ex) {
+        retry--;
+        if (retry == 0) {
+          // we have retried several times, throw this exception to make the execution failed
+          LOG.error("Failed to read table status file after retry", ex);
+          throw ex;
+        }
+        try {
+          // sleep for some time before retry
+          TimeUnit.MILLISECONDS.sleep(10);
+        } catch (InterruptedException e) {
+          // ignored
+        }
+      } catch (IOException e) {
+        LOG.error("Failed to read table status file", e);
+        throw e;
+      } finally {
+        closeStreams(buffReader, inStream, dataInputStream);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Read table status file and decoded to segment meta arrays
+   *
+   * @param tableStatusPath table status file path
+   * @return segment metadata
+   * @throws IOException if IO errors
+   */
+  public static LoadMetadataDetails[] readTableStatusFile(String tableStatusPath)
+      throws IOException {
+    String content = readFileAsString(tableStatusPath);
+    if (content == null) {
       return new LoadMetadataDetails[0];
     }
-
-    return listOfLoadFolderDetailsArray;
+    return new Gson().fromJson(content, LoadMetadataDetails[].class);
   }
 
   /**
@@ -500,40 +540,74 @@ public class SegmentStatusManager {
   }
 
   /**
-   * writes load details into a given file at @param dataLoadLocation
+   * Backup the table status file as 'tablestatus.backup' in the same path
    *
-   * @param dataLoadLocation
-   * @param listOfLoadFolderDetailsArray
-   * @throws IOException
+   * @param tableStatusPath table status file path
    */
-  public static void writeLoadDetailsIntoFile(String dataLoadLocation,
+  private static void backupTableStatus(String tableStatusPath) throws IOException {
+    CarbonFile file = FileFactory.getCarbonFile(tableStatusPath);
+    if (file.exists()) {
+      String backupPath = tableStatusPath + ".backup";
+      String currentContent = readFileAsString(tableStatusPath);
+      if (currentContent != null) {
+        writeStringIntoFile(backupPath, currentContent);
+      }
+    }
+  }
+
+  /**
+   * writes load details to specified path
+   *
+   * @param tableStatusPath path of the table status file
+   * @param listOfLoadFolderDetailsArray segment metadata
+   * @throws IOException if IO errors
+   */
+  public static void writeLoadDetailsIntoFile(
+      String tableStatusPath,
       LoadMetadataDetails[] listOfLoadFolderDetailsArray) throws IOException {
-    AtomicFileOperations fileWrite =
-        AtomicFileOperationFactory.getAtomicFileOperations(dataLoadLocation);
+    // When overwriting table status file, if process crashed, table status file
+    // will be in corrupted state. This can happen in an unstable environment,
+    // like in the cloud. To prevent the table corruption, user can enable following
+    // property to enable backup of the table status before overwriting it.
+    if (tableStatusPath.endsWith(CarbonTablePath.TABLE_STATUS_FILE) &&
+        CarbonProperties.isEnableTableStatusBackup()) {
+      backupTableStatus(tableStatusPath);
+    }
+    String content = new Gson().toJson(listOfLoadFolderDetailsArray);
+    mockForTest();
+    // If process crashed during following write, table status file need to be
+    // manually recovered.
+    writeStringIntoFile(tableStatusPath, content);
+  }
+
+  // a dummy func for mocking in testcase, which simulates IOException
+  private static void mockForTest() throws IOException {
+  }
+
+  /**
+   * writes string content to specified path
+   *
+   * @param filePath path of the file to write
+   * @param content content to write
+   * @throws IOException if IO errors
+   */
+  private static void writeStringIntoFile(String filePath, String content) throws IOException {
+    AtomicFileOperations fileWrite = AtomicFileOperationFactory.getAtomicFileOperations(filePath);
     BufferedWriter brWriter = null;
     DataOutputStream dataOutputStream = null;
-    Gson gsonObjectToWrite = new Gson();
-    // write the updated data into the metadata file.
-
     try {
       dataOutputStream = fileWrite.openForWrite(FileWriteOperation.OVERWRITE);
       brWriter = new BufferedWriter(new OutputStreamWriter(dataOutputStream,
-              Charset.forName(CarbonCommonConstants.DEFAULT_CHARSET)));
-
-      String metadataInstance = gsonObjectToWrite.toJson(listOfLoadFolderDetailsArray);
-      brWriter.write(metadataInstance);
+              Charset.forName(DEFAULT_CHARSET)));
+      brWriter.write(content);
     } catch (IOException ioe) {
-      LOG.error("Error message: " + ioe.getLocalizedMessage());
+      LOG.error("Write file failed: " + ioe.getLocalizedMessage());
       fileWrite.setFailed();
       throw ioe;
     } finally {
-      if (null != brWriter) {
-        brWriter.flush();
-      }
       CarbonUtil.closeStreams(brWriter);
       fileWrite.close();
     }
-
   }
 
   /**
@@ -678,7 +752,6 @@ public class SegmentStatusManager {
    * @param newMetadata
    * @return
    */
-
   private static List<LoadMetadataDetails> updateLatestTableStatusDetails(
       LoadMetadataDetails[] oldMetadata, LoadMetadataDetails[] newMetadata) {
 
@@ -889,7 +962,7 @@ public class SegmentStatusManager {
 
       dataOutputStream = writeOperation.openForWrite(FileWriteOperation.OVERWRITE);
       brWriter = new BufferedWriter(new OutputStreamWriter(dataOutputStream,
-          Charset.forName(CarbonCommonConstants.DEFAULT_CHARSET)));
+          Charset.forName(DEFAULT_CHARSET)));
 
       String metadataInstance = gsonObjectToWrite.toJson(listOfLoadFolderDetails.toArray());
       brWriter.write(metadataInstance);
@@ -989,7 +1062,9 @@ public class SegmentStatusManager {
               // update the metadata details from old to new status.
               List<LoadMetadataDetails> latestStatus =
                   updateLoadMetadataFromOldToNew(tuple2.details, latestMetadata);
-              writeLoadMetadata(identifier, latestStatus);
+              writeLoadDetailsIntoFile(
+                  CarbonTablePath.getTableStatusFilePath(identifier.getTablePath()),
+                  latestStatus.toArray(new LoadMetadataDetails[0]));
             }
             updationCompletionStatus = true;
           } else {
@@ -1012,6 +1087,63 @@ public class SegmentStatusManager {
                     isForceDeletion, partitionSpecs);
           }
         }
+      }
+    }
+  }
+
+  public static void truncateTable(CarbonTable carbonTable)
+    throws ConcurrentOperationException, IOException {
+    ICarbonLock carbonTableStatusLock =
+      CarbonLockFactory.getCarbonLockObj(carbonTable.getAbsoluteTableIdentifier(), LockUsage.TABLE_STATUS_LOCK);
+    boolean locked = false;
+    try {
+      // Update load metadate file after cleaning deleted nodes
+      locked = carbonTableStatusLock.lockWithRetries();
+      if (locked) {
+        LOG.info("Table status lock has been successfully acquired.");
+
+        LoadMetadataDetails[] listOfLoadFolderDetailsArray =
+          SegmentStatusManager.readLoadMetadata(
+            CarbonTablePath.getMetadataPath(carbonTable.getTablePath()));
+        for (LoadMetadataDetails listOfLoadFolderDetails : listOfLoadFolderDetailsArray) {
+          boolean writing;
+          switch (listOfLoadFolderDetails.getSegmentStatus()) {
+            case INSERT_IN_PROGRESS:
+              writing = true;
+              break;
+            case INSERT_OVERWRITE_IN_PROGRESS:
+              writing = true;
+              break;
+            case STREAMING:
+              writing = true;
+              break;
+            default:
+              writing = false;
+          }
+          if (writing) {
+            throw new ConcurrentOperationException(carbonTable, "insert", "truncate");
+          }
+        }
+        for (LoadMetadataDetails listOfLoadFolderDetails : listOfLoadFolderDetailsArray) {
+          listOfLoadFolderDetails.setSegmentStatus(SegmentStatus.MARKED_FOR_DELETE);
+        }
+        SegmentStatusManager
+          .writeLoadDetailsIntoFile(
+            CarbonTablePath.getTableStatusFilePath(carbonTable.getTablePath()),
+            listOfLoadFolderDetailsArray);
+      } else {
+        String dbName = carbonTable.getDatabaseName();
+        String tableName = carbonTable.getTableName();
+        String errorMsg = "truncate table request is failed for " +
+          dbName + "." + tableName +
+          ". Not able to acquire the table status lock due to other operation " +
+          "running in the background.";
+        LOG.error(errorMsg);
+        throw new IOException(errorMsg + " Please try after some time.");
+      }
+    } finally {
+      if (locked) {
+        CarbonLockUtil.fileUnlock(carbonTableStatusLock, LockUsage.TABLE_STATUS_LOCK);
       }
     }
   }

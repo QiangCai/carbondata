@@ -13,6 +13,7 @@ package org.apache.spark.sql.parser
 
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
 import org.apache.spark.sql.ShowIndexesCommand
+import org.apache.spark.sql.catalyst.CarbonParserUtil
 import org.apache.spark.sql.command._
 import org.apache.spark.sql.execution.command.AlterTableModel
 
@@ -198,7 +199,7 @@ class CarbonInternalSpark2SqlParser extends CarbonSpark2SqlParser {
     opt(";") ^^ {
       case dbName ~ table ~ segs =>
         val alterTableModel =
-          AlterTableModel(convertDbNameToLowerCase(dbName), table, None, null,
+          AlterTableModel(CarbonParserUtil.convertDbNameToLowerCase(dbName), table, None, null,
             Some(System.currentTimeMillis()), null, segs)
         SIRebuildSegmentCommand(alterTableModel)
     }

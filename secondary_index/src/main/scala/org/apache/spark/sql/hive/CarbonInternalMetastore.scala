@@ -183,15 +183,13 @@ object CarbonInternalMetastore {
             // to false as there is no index table for this table
             CarbonInternalScalaUtil
               .addOrModifyTableProperty(carbonTable,
-                Map("indexTableExists" -> "false"), schema, needLock)(sparkSession,
-                sparkSession.sessionState.catalog.asInstanceOf[CarbonSessionCatalog])
+                Map("indexTableExists" -> "false"), schema, needLock)(sparkSession)
           } else {
             // modify the tableProperties of mainTable by adding "indexTableExists" property
             // to true as there are some index table for this table
             CarbonInternalScalaUtil
               .addOrModifyTableProperty(carbonTable,
-                Map("indexTableExists" -> "true"), schema, needLock)(sparkSession,
-                sparkSession.sessionState.catalog.asInstanceOf[CarbonSessionCatalog])
+                Map("indexTableExists" -> "true"), schema, needLock)(sparkSession)
           }
         }
       } catch {

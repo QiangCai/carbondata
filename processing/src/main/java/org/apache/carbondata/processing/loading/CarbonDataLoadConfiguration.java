@@ -30,6 +30,8 @@ import org.apache.carbondata.core.metadata.encoder.Encoding;
 import org.apache.carbondata.core.metadata.schema.BucketingInfo;
 import org.apache.carbondata.core.metadata.schema.SortColumnRangeInfo;
 import org.apache.carbondata.core.metadata.schema.table.column.CarbonColumn;
+import org.apache.carbondata.core.stats.LoadStats;
+import org.apache.carbondata.core.util.OutputFilesInfoHolder;
 import org.apache.carbondata.processing.loading.converter.DictionaryCardinalityFinder;
 
 public class CarbonDataLoadConfiguration {
@@ -128,6 +130,10 @@ public class CarbonDataLoadConfiguration {
   private String columnCompressor;
 
   private int numberOfLoadingCores;
+
+  private LoadStats loadStats;
+
+  private OutputFilesInfoHolder outputFilesInfoHolder;
 
   public CarbonDataLoadConfiguration() {
   }
@@ -453,5 +459,21 @@ public class CarbonDataLoadConfiguration {
 
   public void setSegmentPath(String segmentPath) {
     this.segmentPath = segmentPath;
+  }
+
+  public LoadStats getLoadStats() {
+    return loadStats;
+  }
+
+  public void setLoadStats(LoadStats loadStats) {
+    this.loadStats = loadStats;
+  }
+
+  public OutputFilesInfoHolder getOutputFilesInfoHolder() {
+    return outputFilesInfoHolder;
+  }
+
+  public void setOutputFilesInfoHolder(OutputFilesInfoHolder outputFilesInfoHolder) {
+    this.outputFilesInfoHolder = outputFilesInfoHolder;
   }
 }

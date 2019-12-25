@@ -19,6 +19,7 @@ package org.apache.carbondata.examples
 import java.io.File
 import java.sql.{DriverManager, ResultSet, Statement}
 
+import org.apache.commons.io.FileUtils
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.fs.permission.{FsAction, FsPermission}
 
@@ -48,7 +49,7 @@ object HiveExample {
 
   def createCarbonTable(store: String): Unit = {
 
-    val carbonSession = ExampleUtils.createCarbonSession("HiveExample")
+    val carbonSession = ExampleUtils.createSparkSession("HiveExample")
 
     carbonSession.sql("""DROP TABLE IF EXISTS HIVE_CARBON_EXAMPLE""".stripMargin)
 
@@ -56,7 +57,7 @@ object HiveExample {
       s"""
          | CREATE TABLE HIVE_CARBON_EXAMPLE
          | (ID int,NAME string,SALARY double)
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
        """.stripMargin)
 
     var inputPath = FileFactory
@@ -82,7 +83,7 @@ object HiveExample {
       .sql(
         s"""CREATE TABLE TEST_BOUNDARY (c1_int int,c2_Bigint Bigint,c3_Decimal Decimal(38,30),
            |c4_double double,c5_string string,c6_Timestamp Timestamp,c7_Datatype_Desc string)
-           |STORED BY 'org.apache.carbondata.format' TBLPROPERTIES
+           |STORED AS carbondata TBLPROPERTIES
            |('DICTIONARY_INCLUDE'='c6_Timestamp')""".stripMargin)
 
     inputPath = FileFactory
@@ -100,11 +101,16 @@ object HiveExample {
     // for HiveServer can run on the same metastore
     checkAndDeleteDBLock
 
+    val metaFolder = new File(metaStoreLoc)
+    if (metaFolder.exists()) {
+      FileUtils.deleteDirectory(metaFolder)
+    }
+    FileUtils.moveDirectory(new File("metastore_db"), metaFolder)
   }
 
   def checkAndDeleteDBLock: Unit = {
-    val dbLockPath = FileFactory.getUpdatedFilePath(s"$metaStoreLoc/db.lck")
-    val dbexLockPath = FileFactory.getUpdatedFilePath(s"$metaStoreLoc/dbex.lck")
+    val dbLockPath = FileFactory.getUpdatedFilePath(s"metastore_db/db.lck")
+    val dbexLockPath = FileFactory.getUpdatedFilePath(s"metastore_db/dbex.lck")
     if(FileFactory.isFileExist(dbLockPath)) {
       FileFactory.deleteFile(dbLockPath, FileFactory.getFileType(dbLockPath))
     }

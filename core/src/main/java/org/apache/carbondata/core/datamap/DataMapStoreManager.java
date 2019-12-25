@@ -39,6 +39,7 @@ import org.apache.carbondata.core.metadata.AbsoluteTableIdentifier;
 import org.apache.carbondata.core.metadata.CarbonMetadata;
 import org.apache.carbondata.core.metadata.schema.table.CarbonTable;
 import org.apache.carbondata.core.metadata.schema.table.DataMapSchema;
+import org.apache.carbondata.core.metadata.schema.table.DataMapSchemaFactory;
 import org.apache.carbondata.core.metadata.schema.table.DataMapSchemaStorageProvider;
 import org.apache.carbondata.core.metadata.schema.table.DiskBasedDMSchemaStorageProvider;
 import org.apache.carbondata.core.metadata.schema.table.RelationIdentifier;
@@ -87,8 +88,8 @@ public final class DataMapStoreManager {
 
   private Map<String, TableSegmentRefresher> segmentRefreshMap = new ConcurrentHashMap<>();
 
-  private DataMapSchemaStorageProvider provider = new DiskBasedDMSchemaStorageProvider(
-      CarbonProperties.getInstance().getSystemFolderLocation());
+  private DataMapSchemaStorageProvider provider =
+      DataMapSchemaFactory.getDataMapSchemaStorageProvider();
 
   private static final Logger LOGGER =
       LogServiceFactory.getLogService(DataMapStoreManager.class.getName());

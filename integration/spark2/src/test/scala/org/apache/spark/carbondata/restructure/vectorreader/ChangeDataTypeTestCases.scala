@@ -37,7 +37,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
       beforeAll
       sql(
         "CREATE TABLE changedatatypetest(intField INT,stringField STRING,charField STRING," +
-        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED BY 'carbondata'")
+        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED AS carbondata")
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/restructure/data1.csv' INTO TABLE " +
           s"changedatatypetest OPTIONS('FILEHEADER'='intField,stringField,charField,timestampField,"
           + s"decimalField')")
@@ -59,7 +59,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
       beforeAll
       sql(
         "CREATE TABLE changedatatypetest(intField INT,stringField STRING,charField STRING," +
-        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED BY 'carbondata'")
+        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED AS carbondata")
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/restructure/data1.csv' INTO TABLE " +
           s"changedatatypetest OPTIONS('FILEHEADER'='intField,stringField,charField,timestampField,"
           + s"decimalField')")
@@ -86,7 +86,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
       beforeAll
       sql(
         "CREATE TABLE changedatatypetest(intField INT,stringField STRING,charField STRING," +
-        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED BY 'carbondata'")
+        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED AS carbondata")
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/restructure/data1.csv' INTO TABLE " +
           s"changedatatypetest OPTIONS('FILEHEADER'='intField,stringField,charField,timestampField,"
           + s"decimalField')")
@@ -108,7 +108,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
       beforeAll
       sql(
         "CREATE TABLE changedatatypetest(intField INT,stringField STRING,charField STRING," +
-        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED BY 'carbondata'")
+        "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED AS carbondata")
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/restructure/data1.csv' INTO TABLE " +
           s"changedatatypetest OPTIONS('FILEHEADER'='intField,stringField,charField,timestampField,"
           + s"decimalField')")
@@ -135,7 +135,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
       beforeAll
       sql(
         "CREATE TABLE changedatatypetest(intField INT,stringField STRING,charField STRING," +
-          "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED BY 'carbondata'")
+          "timestampField TIMESTAMP,decimalField DECIMAL(6,2)) STORED AS carbondata")
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/restructure/data1.csv' INTO TABLE " +
         s"changedatatypetest OPTIONS('FILEHEADER'='intField,stringField,charField,timestampField,"
         + s"decimalField')")
@@ -152,7 +152,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
   test("test data type change for with pre-aggregate table should throw exception") {
     sql("drop table if exists preaggMain")
     sql("drop table if exists PreAggMain_preagg1")
-    sql("create table preaggMain (a int, b string, c string) stored by 'carbondata'")
+    sql("create table preaggMain (a int, b string, c string) STORED AS carbondata")
     sql(
       "create datamap preagg1 on table PreAggMain using 'preaggregate' as select" +
       " a,sum(b) from PreAggMain group by a")
@@ -170,7 +170,7 @@ class ChangeDataTypeTestCases extends Spark2QueryTest with BeforeAndAfterAll {
     def test_change_data_type() = {
       beforeAll
     sql("drop table if exists table_sort")
-    sql("CREATE TABLE table_sort (imei int,age int,mac string) STORED BY 'carbondata' TBLPROPERTIES('DICTIONARY_EXCLUDE'='imei,age','SORT_COLUMNS'='imei,age')")
+    sql("CREATE TABLE table_sort (imei int,age int,mac string) STORED AS carbondata TBLPROPERTIES('DICTIONARY_EXCLUDE'='imei,age','SORT_COLUMNS'='imei,age')")
     sql("insert into table_sort select 32674,32794,'MAC1'")
     sql("alter table table_sort change age age bigint")
     sql("insert into table_sort select 32675,9223372036854775807,'MAC2'")

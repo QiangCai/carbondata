@@ -32,7 +32,7 @@ class BooleanDataTypesFilterTest extends QueryTest with BeforeAndAfterEach with 
       + "../../../..").getCanonicalPath
     val storeLocation = s"$rootPath/integration/spark2/src/test/resources/bool/supportBooleanOnlyBoolean.csv"
 
-    sql("CREATE TABLE if not exists carbon_table(booleanField BOOLEAN) STORED BY 'carbondata'")
+    sql("CREATE TABLE if not exists carbon_table(booleanField BOOLEAN) STORED AS carbondata")
     sql(
       s"""
          | LOAD DATA LOCAL INPATH '$storeLocation'
@@ -57,7 +57,7 @@ class BooleanDataTypesFilterTest extends QueryTest with BeforeAndAfterEach with 
          | floatField FLOAT,
          | complexData ARRAY<STRING>
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('sort_columns'='','DICTIONARY_INCLUDE'='dateField, charField')
        """.stripMargin)
     sql(
@@ -365,7 +365,7 @@ class BooleanDataTypesFilterTest extends QueryTest with BeforeAndAfterEach with 
          | complexData ARRAY<STRING>,
          | booleanField2 BOOLEAN
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('sort_columns'='','DICTIONARY_INCLUDE'='dateField, charField')
        """.stripMargin)
     sql(
@@ -407,7 +407,7 @@ class BooleanDataTypesFilterTest extends QueryTest with BeforeAndAfterEach with 
          | complexData ARRAY<STRING>,
          | booleanField2 BOOLEAN
          | )
-         | STORED BY 'carbondata'
+         | STORED AS carbondata
          | TBLPROPERTIES('sort_columns'='','DICTIONARY_INCLUDE'='dateField, charField')
        """.stripMargin)
     sql(

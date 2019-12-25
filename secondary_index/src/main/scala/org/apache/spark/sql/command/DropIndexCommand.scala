@@ -147,8 +147,7 @@ private[sql] case class DropIndex(ifExistsSet: Boolean,
           // modify the tableProperties of mainTable by adding "indexTableExists" property
           CarbonInternalScalaUtil
             .addOrModifyTableProperty(parentCarbonTable,
-              Map("indexTableExists" -> "false"), schema, false)(sparkSession,
-              sparkSession.sessionState.catalog.asInstanceOf[CarbonSessionCatalog])
+              Map("indexTableExists" -> "false"), schema, false)(sparkSession)
 
           CarbonInternalHiveMetadataUtil.refreshTable(dbName, parentTableName, sparkSession)
         }

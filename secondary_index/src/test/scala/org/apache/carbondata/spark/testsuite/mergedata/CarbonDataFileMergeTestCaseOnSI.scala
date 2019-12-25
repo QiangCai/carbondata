@@ -20,7 +20,7 @@ import org.apache.carbondata.core.util.CarbonProperties
 import org.apache.carbondata.core.util.path.CarbonTablePath
 import org.apache.carbondata.spark.core.CarbonInternalCommonConstants
 import org.apache.spark.sql.CarbonEnv
-import org.apache.spark.sql.test.util.QueryTest
+import org.apache.spark.sql.common.util.QueryTest
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 
 import scala.util.Random
@@ -68,11 +68,11 @@ class CarbonDataFileMergeTestCaseOnSI
     sql(
       """
         | CREATE TABLE indexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         |  TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(
-      "CREATE INDEX indexmerge_index1 on table indexmerge (name) as 'carbondata' tblproperties" +
+      "CREATE INDEX indexmerge_index1 on table indexmerge (name) AS 'carbondata' tblproperties" +
       "('table_blocksize'='1')")
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE indexmerge OPTIONS('header'='false', " +
         s"'GLOBAL_SORT_PARTITIONS'='100')")
@@ -89,7 +89,7 @@ class CarbonDataFileMergeTestCaseOnSI
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -98,7 +98,7 @@ class CarbonDataFileMergeTestCaseOnSI
         s"'GLOBAL_SORT_PARTITIONS'='100')")
     val rows = sql("""Select count(*) from nonindexmerge where name='n164419'""").collect()
     sql(
-      "CREATE INDEX nonindexmerge_index1 on table nonindexmerge (name) as 'carbondata' " +
+      "CREATE INDEX nonindexmerge_index1 on table nonindexmerge (name) AS 'carbondata' " +
       "tblproperties('table_blocksize'='1')")
     CarbonProperties.getInstance()
       .addProperty(CarbonInternalCommonConstants.CARBON_SI_SEGMENT_MERGE, "true")
@@ -117,7 +117,7 @@ class CarbonDataFileMergeTestCaseOnSI
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -126,7 +126,7 @@ class CarbonDataFileMergeTestCaseOnSI
         s"'GLOBAL_SORT_PARTITIONS'='100')")
     val rows = sql("""Select count(*) from nonindexmerge where name='n164419'""").collect()
     sql(
-    "CREATE INDEX nonindexmerge_index2 on table nonindexmerge (name) as 'carbondata' " +
+    "CREATE INDEX nonindexmerge_index2 on table nonindexmerge (name) AS 'carbondata' " +
     "tblproperties('table_blocksize'='1')")
     CarbonProperties.getInstance()
       .addProperty(CarbonInternalCommonConstants.CARBON_SI_SEGMENT_MERGE, "true")
@@ -150,11 +150,11 @@ class CarbonDataFileMergeTestCaseOnSI
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(
-      "CREATE INDEX nonindexmerge_index2 on table nonindexmerge (name) as 'carbondata' " +
+      "CREATE INDEX nonindexmerge_index2 on table nonindexmerge (name) AS 'carbondata' " +
       "tblproperties('table_blocksize'='1')")
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
         s"'GLOBAL_SORT_PARTITIONS'='100')")
@@ -174,7 +174,7 @@ class CarbonDataFileMergeTestCaseOnSI
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -183,7 +183,7 @@ class CarbonDataFileMergeTestCaseOnSI
         s"'GLOBAL_SORT_PARTITIONS'='100')")
     val rows = sql("""Select count(*) from nonindexmerge where name='n164419'""").collect()
     sql(
-    "CREATE INDEX nonindexmerge_index3 on table nonindexmerge (name) as 'carbondata' " +
+    "CREATE INDEX nonindexmerge_index3 on table nonindexmerge (name) AS 'carbondata' " +
     "tblproperties('table_blocksize'='1')")
     CarbonProperties.getInstance()
       .addProperty(CarbonInternalCommonConstants.CARBON_SI_SEGMENT_MERGE, "true")
@@ -205,7 +205,7 @@ class CarbonDataFileMergeTestCaseOnSI
     sql(
       """
         | CREATE TABLE nonindexmerge(id INT, name STRING, city STRING, age INT)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
         | TBLPROPERTIES('SORT_COLUMNS'='city,name', 'SORT_SCOPE'='GLOBAL_SORT')
       """.stripMargin)
     sql(s"LOAD DATA LOCAL INPATH '$file2' INTO TABLE nonindexmerge OPTIONS('header'='false', " +
@@ -218,7 +218,7 @@ class CarbonDataFileMergeTestCaseOnSI
         s"'GLOBAL_SORT_PARTITIONS'='100')")
     val rows = sql("""Select count(*) from nonindexmerge where name='n164419'""").collect()
     sql(
-    "CREATE INDEX nonindexmerge_index4 on table nonindexmerge (name) as 'carbondata' " +
+    "CREATE INDEX nonindexmerge_index4 on table nonindexmerge (name) AS 'carbondata' " +
     "tblproperties('table_blocksize'='1')")
     sql("clean files for table nonindexmerge_index4")
     assert(getDataFileCount("nonindexmerge_index4", "0.2") < 15)

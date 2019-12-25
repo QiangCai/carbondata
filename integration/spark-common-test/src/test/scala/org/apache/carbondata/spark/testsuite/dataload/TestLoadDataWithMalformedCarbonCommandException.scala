@@ -17,6 +17,7 @@
 
 package org.apache.carbondata.spark.testsuite.dataload
 
+import org.apache.spark.sql.AnalysisException
 import org.scalatest.BeforeAndAfterAll
 import org.apache.spark.sql.test.util.QueryTest
 
@@ -25,14 +26,15 @@ import org.apache.carbondata.common.exceptions.sql.MalformedCarbonCommandExcepti
 class TestLoadDataWithMalformedCarbonCommandException extends QueryTest with BeforeAndAfterAll {
 
   override def beforeAll {
-
+    sql("drop table if exists TestLoadTableOptions")
+    sql("drop table if exists t3")
     sql("CREATE table TestLoadTableOptions (ID int, date String, country String, name String," +
-        "phonetype String, serialname String, salary int) stored by 'org.apache.carbondata.format'")
-
+        "phonetype String, serialname String, salary int) STORED AS carbondata")
   }
 
   override def afterAll {
-    sql("drop table TestLoadTableOptions")
+    sql("drop table if exists TestLoadTableOptions")
+    sql("drop table if exists t3")
   }
 
   def buildTableWithNoExistDictExclude() = {
@@ -41,7 +43,7 @@ class TestLoadDataWithMalformedCarbonCommandException extends QueryTest with Bef
            CREATE TABLE IF NOT EXISTS t3
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
            TBLPROPERTIES('DICTIONARY_EXCLUDE'='country,phonetype,CCC')
         """)
   }
@@ -52,7 +54,7 @@ class TestLoadDataWithMalformedCarbonCommandException extends QueryTest with Bef
            CREATE TABLE IF NOT EXISTS t3
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
            TBLPROPERTIES('DICTIONARY_INCLUDE'='AAA,country')
         """)
   }
@@ -63,7 +65,7 @@ class TestLoadDataWithMalformedCarbonCommandException extends QueryTest with Bef
            CREATE TABLE IF NOT EXISTS t3
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
            TBLPROPERTIES('DICTIONARY_INCLUDE'='country','DICTIONARY_EXCLUDE'='country')
         """)
   }
@@ -74,7 +76,7 @@ class TestLoadDataWithMalformedCarbonCommandException extends QueryTest with Bef
            CREATE TABLE IF NOT EXISTS t3
            (ID Int, date Timestamp, country String,
            name String, phonetype String, serialname String, salary Int)
-           STORED BY 'org.apache.carbondata.format'
+           STORED AS carbondata
            TBLPROPERTIES('DICTIONARY_INCLUDE'='country','DICTIONARY_EXCLUDE'='country ')
       """)
   }
@@ -116,11 +118,11 @@ class TestLoadDataWithMalformedCarbonCommandException extends QueryTest with Bef
   }
 
   test("test load data with duplicate options") {
-    val e = intercept[MalformedCarbonCommandException] {
+    val e = intercept[AnalysisException] {
       sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/dataretention1.csv' INTO TABLE " +
         "TestLoadTableOptions OPTIONS('DELIMITER' =  ',', 'quotechar'='\"', 'DELIMITER' =  '$')")
     }
-    assert(e.getMessage.equals("Error: Duplicate option(s): delimiter"))
+    assert(e.getMessage.contains("Found duplicate keys 'DELIMITER'"))
   }
 
   test("test load data with case sensitive options") {

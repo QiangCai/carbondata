@@ -19,7 +19,7 @@ package org.apache.spark.sql.parser
 import scala.collection.mutable
 
 import org.antlr.v4.runtime.tree.TerminalNode
-import org.apache.spark.sql.{CarbonSession, HideSensitiveInfo, SparkSession}
+import org.apache.spark.sql.{CarbonUtils, HideSensitiveInfo, SparkSession}
 import org.apache.spark.sql.catalyst.parser.{AbstractSqlParser, SqlBaseParser}
 import org.apache.spark.sql.catalyst.parser.SqlBaseParser._
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -44,7 +44,7 @@ class CarbonSparkSqlParser(conf: SQLConf, sparkSession: SparkSession) extends Ab
   private val substitutor = new VariableSubstitution(conf)
 
   override def parsePlan(sqlText: String): LogicalPlan = {
-    CarbonSession.updateSessionInfoToCurrentThread(sparkSession)
+    CarbonUtils.updateSessionInfoToCurrentThread(sparkSession)
     try {
       val parsedPlan = super.parsePlan(sqlText)
       CarbonScalaUtil.cleanParserThreadLocals
@@ -85,7 +85,7 @@ class CarbonHelperSqlAstBuilder(conf: SQLConf,
   /**
    * Parse a key-value map from a [[TablePropertyListContext]], assuming all values are specified.
    */
-  def visitPropertyKeyValues(ctx: TablePropertyListContext): Map[String, String] = {
+  override def visitPropertyKeyValues(ctx: TablePropertyListContext): Map[String, String] = {
     val props = visitTablePropertyList(ctx)
     CarbonSparkSqlParserUtil.visitPropertyKeyValues(ctx, props)
   }

@@ -30,7 +30,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+        "utilization int,salary int) STORED AS carbondata " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
         "'DICTIONARY_EXCLUDE'='empname')")
     sql("drop table if exists createindextemptable")
@@ -41,14 +41,14 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists stream_si")
     sql("drop table if exists part_si")
     sql("CREATE TABLE stream_si(c1 string,c2 int,c3 string,c5 string) " +
-        "STORED BY 'org.apache.carbondata.format' TBLPROPERTIES ('streaming' = 'true')")
+        "STORED AS carbondata TBLPROPERTIES ('streaming' = 'true')")
     sql("CREATE TABLE part_si(c1 string,c2 int,c3 string,c5 string) PARTITIONED BY (c6 string)" +
-        "STORED BY 'org.apache.carbondata.format' ")
+        "STORED AS carbondata ")
   }
 
   test("test create index table with no parent table") {
     try {
-      sql("create index index_without_parentTable on table carbon_dummy (empname) AS 'org.apache.carbondata.format'")
+      sql("create index index_without_parentTable on table carbon_dummy (empname) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -60,7 +60,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
   test("test create index table on measure column") {
     try {
-      sql("create index index_on_measure on table carbon (salary) AS 'org.apache.carbondata.format'")
+      sql("create index index_on_measure on table carbon (salary) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -73,7 +73,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
   test("test create index table on dimension,measure column") {
     try {
-      sql("create index index_on_measure on table carbon (empname, salary) AS 'org.apache.carbondata.format'")
+      sql("create index index_on_measure on table carbon (empname, salary) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -87,7 +87,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
   test("Test case insensitive create & drop index command") {
     sql("drop INDEX if exists index_case_insensitive ON dEfaUlt.caRbon")
-    sql("CREATE INDEX index_case_insensitive ON TABLE dEfaUlt.cArBon (workgroupcategory) AS 'org.apache.carbondata.format'")
+    sql("CREATE INDEX index_case_insensitive ON TABLE dEfaUlt.cArBon (workgroupcategory) AS 'carbondata'")
     sql("drop INDEX index_case_insensitive ON CarBOn")
   }
 
@@ -95,7 +95,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     try {
       sql("create index indexOnCarbon on table carbon (empno,empname,designation,doj,workgroupcategory," +
           "workgroupcategoryname,deptno,deptname,projectcode,projectjoindate,projectenddate,attendance," +
-          "utilization,salary) AS 'org.apache.carbondata.format'")
+          "utilization,salary) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -110,7 +110,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   test("test create index table with duplicate column") {
     try {
       sql("create index index_on_measure on table carbon (empno,empname,designation,doj,"+
-          "workgroupcategory,empno) AS 'org.apache.carbondata.format'")
+          "workgroupcategory,empno) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -125,7 +125,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     try {
       sql("drop index if exists index_on_measure on carbon")
       sql("create index index_on_measure on table carbon (empno,empname,designation,doj,"+
-          "workgroupcategory) AS 'org.apache.carbondata.format'")
+          "workgroupcategory) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -139,7 +139,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   test("test create index table on more than one column") {
     try {
       sql("drop index if exists index_more_columns on carbon")
-      sql("create index index_more_columns on table carbon (doj,designation,deptname) AS 'org.apache.carbondata.format'")
+      sql("create index index_more_columns on table carbon (doj,designation,deptname) AS 'carbondata'")
       assert(true)
     } catch {
       case ex: Exception =>
@@ -152,7 +152,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   test("test create index table with invalid column") {
     try {
       sql("drop index if exists index_with_invalid_column on carbon")
-      sql("create index index_with_invalid_column on table carbon (abc) AS 'org.apache.carbondata.format'")
+      sql("create index index_with_invalid_column on table carbon (abc) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -164,7 +164,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
   test("test create index table with index table name containing invalid characters") {
     try {
-      sql("create index #$%^^!@#$*() on table carbon (abc) AS 'org.apache.carbondata.format'")
+      sql("create index #$%^^!@#$*() on table carbon (abc) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -174,7 +174,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
   test("test create index table with index table name same as fact table") {
     try {
-      sql("create index carbon on table carbon (empname) AS 'org.apache.carbondata.format'")
+      sql("create index carbon on table carbon (empname) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -185,7 +185,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   test("test create index table on first dimension column of fact table") {
     try {
       sql("drop index if exists index_first_column on carbon")
-      sql("create index index_first_column on table carbon (empno) AS 'org.apache.carbondata.format'")
+      sql("create index index_first_column on table carbon (empno) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -197,7 +197,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
 //  test("test create index table on no dictionary column") {
 //    try {
-//      sql("create index index_no_dictionary on table carbon (empname) AS 'org.apache.carbondata.format'")
+//      sql("create index index_no_dictionary on table carbon (empname) AS 'carbondata'")
 //      assert(true)
 //    } catch {
 //      case ex: Exception =>
@@ -208,7 +208,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   test("test create index table on dictionary column") {
     try {
       sql("drop index if exists index_dictionary_1 on carbon")
-      sql("create index index_dictionary_1 on table carbon (workgroupcategory) AS 'org.apache.carbondata.format'")
+      sql("create index index_dictionary_1 on table carbon (workgroupcategory) AS 'carbondata'")
       assert(true)
     } catch {
       case ex: Exception =>
@@ -221,8 +221,8 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   test("test 2 create index with same name") {
     try {
       sql("drop index if exists index_1 on carbon")
-      sql("create index index_1 on table carbon (workgroupcategory) AS 'org.apache.carbondata.format'")
-      sql("create index index_1 on table carbon (workgroupcategory) AS 'org.apache.carbondata.format'")
+      sql("create index index_1 on table carbon (workgroupcategory) AS 'carbondata'")
+      sql("create index index_1 on table carbon (workgroupcategory) AS 'carbondata'")
       assert(false)
     } catch {
       case ex: Exception =>
@@ -234,7 +234,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
 
   /* test("test secondary index with delete from tablename -> should fail") {
-    sql("create index indexdelete on table carbon (deptno) AS 'org.apache.carbondata.format'")
+    sql("create index indexdelete on table carbon (deptno) AS 'carbondata'")
     try {
       sql("delete from carbon where empname='ayushi'")
       assert(false)
@@ -246,7 +246,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
   } */
 
   /* test("test secondary index with update tablename -> should fail") {
-    sql("create index indexupdate on table carbon (deptno) AS 'org.apache.carbondata.format'")
+    sql("create index indexupdate on table carbon (deptno) AS 'carbondata'")
     try {
       sql("update carbon set (salary) = (salary + 1)")
       assert(false)
@@ -261,10 +261,10 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     try {
       sql("drop table if exists TCarbonSource")
       sql("drop table if exists TCarbon")
-      sql("create table TCarbonSource (imei string,deviceInformationId int,MAC string,deviceColor string,device_backColor string,modelId string,marketName string,AMSize string,ROMSize string,CUPAudit string,CPIClocked string,series string,productionDate timestamp,bomCode string,internalModels string, deliveryTime string, channelsId string, channelsName string , deliveryAreaId string, deliveryCountry string, deliveryProvince string, deliveryCity string,deliveryDistrict string, deliveryStreet string, oxSingleNumber string, ActiveCheckTime string, ActiveAreaId string, ActiveCountry string, ActiveProvince string, Activecity string, ActiveDistrict string, ActiveStreet string, ActiveOperatorId string, Active_releaseId string, Active_EMUIVersion string, Active_operaSysVersion string, Active_BacVerNumber string, Active_BacFlashVer string, Active_webUIVersion string, Active_webUITypeCarrVer string,Active_webTypeDataVerNumber string, Active_operatorsVersion string, Active_phonePADPartitionedVersions string, Latest_YEAR int, Latest_MONTH int, Latest_DAY Decimal(30,10), Latest_HOUR string, Latest_areaId string, Latest_country string, Latest_province string, Latest_city string, Latest_district string, Latest_street string, Latest_releaseId string, Latest_EMUIVersion string, Latest_operaSysVersion string, Latest_BacVerNumber string, Latest_BacFlashVer string, Latest_webUIVersion string, Latest_webUITypeCarrVer string, Latest_webTypeDataVerNumber string, Latest_operatorsVersion string, Latest_phonePADPartitionedVersions string, Latest_operatorId string, gamePointDescription string,gamePointId double,contractNumber BigInt) STORED BY 'org.apache.carbondata.format'")
+      sql("create table TCarbonSource (imei string,deviceInformationId int,MAC string,deviceColor string,device_backColor string,modelId string,marketName string,AMSize string,ROMSize string,CUPAudit string,CPIClocked string,series string,productionDate timestamp,bomCode string,internalModels string, deliveryTime string, channelsId string, channelsName string , deliveryAreaId string, deliveryCountry string, deliveryProvince string, deliveryCity string,deliveryDistrict string, deliveryStreet string, oxSingleNumber string, ActiveCheckTime string, ActiveAreaId string, ActiveCountry string, ActiveProvince string, Activecity string, ActiveDistrict string, ActiveStreet string, ActiveOperatorId string, Active_releaseId string, Active_EMUIVersion string, Active_operaSysVersion string, Active_BacVerNumber string, Active_BacFlashVer string, Active_webUIVersion string, Active_webUITypeCarrVer string,Active_webTypeDataVerNumber string, Active_operatorsVersion string, Active_phonePADPartitionedVersions string, Latest_YEAR int, Latest_MONTH int, Latest_DAY Decimal(30,10), Latest_HOUR string, Latest_areaId string, Latest_country string, Latest_province string, Latest_city string, Latest_district string, Latest_street string, Latest_releaseId string, Latest_EMUIVersion string, Latest_operaSysVersion string, Latest_BacVerNumber string, Latest_BacFlashVer string, Latest_webUIVersion string, Latest_webUITypeCarrVer string, Latest_webTypeDataVerNumber string, Latest_operatorsVersion string, Latest_phonePADPartitionedVersions string, Latest_operatorId string, gamePointDescription string,gamePointId double,contractNumber BigInt) STORED AS carbondata")
       sql(s"LOAD DATA INPATH '$resourcesPath/100_olap.csv' INTO table TCarbonSource options ('DELIMITER'=',', 'FILEHEADER'='imei,deviceInformationId,MAC,deviceColor,device_backColor,modelId,marketName,AMSize,ROMSize,CUPAudit,CPIClocked,series,productionDate,bomCode,internalModels,deliveryTime,channelsId,channelsName,deliveryAreaId,deliveryCountry,deliveryProvince,deliveryCity,deliveryDistrict,deliveryStreet,oxSingleNumber,ActiveCheckTime,ActiveAreaId,ActiveCountry,ActiveProvince,Activecity,ActiveDistrict,ActiveStreet,ActiveOperatorId,Active_releaseId,Active_EMUIVersion,Active_operaSysVersion,Active_BacVerNumber,Active_BacFlashVer,Active_webUIVersion,Active_webUITypeCarrVer,Active_webTypeDataVerNumber,Active_operatorsVersion,Active_phonePADPartitionedVersions,Latest_YEAR,Latest_MONTH,Latest_DAY,Latest_HOUR,Latest_areaId,Latest_country,Latest_province,Latest_city,Latest_district,Latest_street,Latest_releaseId,Latest_EMUIVersion,Latest_operaSysVersion,Latest_BacVerNumber,Latest_BacFlashVer,Latest_webUIVersion,Latest_webUITypeCarrVer,Latest_webTypeDataVerNumber,Latest_operatorsVersion,Latest_phonePADPartitionedVersions,Latest_operatorId,gamePointDescription,gamePointId,contractNumber', 'bad_records_logger_enable'='false','bad_records_action'='FORCE')")
-      sql("create table TCarbon (imei string,deviceInformationId int,MAC string,deviceColor string,device_backColor string,modelId string,marketName string,AMSize string,ROMSize string,CUPAudit string,CPIClocked string,series string,productionDate timestamp,bomCode string,internalModels string, deliveryTime string, channelsId string, channelsName string , deliveryAreaId string, deliveryCountry string, deliveryProvince string, deliveryCity string,deliveryDistrict string, deliveryStreet string, oxSingleNumber string, ActiveCheckTime string, ActiveAreaId string, ActiveCountry string, ActiveProvince string, Activecity string, ActiveDistrict string, ActiveStreet string, ActiveOperatorId string, Active_releaseId string, Active_EMUIVersion string, Active_operaSysVersion string, Active_BacVerNumber string, Active_BacFlashVer string, Active_webUIVersion string, Active_webUITypeCarrVer string,Active_webTypeDataVerNumber string, Active_operatorsVersion string, Active_phonePADPartitionedVersions string, Latest_YEAR int, Latest_MONTH int, Latest_DAY Decimal(30,10), Latest_HOUR string, Latest_areaId string, Latest_country string, Latest_province string, Latest_city string, Latest_district string, Latest_street string, Latest_releaseId string, Latest_EMUIVersion string, Latest_operaSysVersion string, Latest_BacVerNumber string, Latest_BacFlashVer string, Latest_webUIVersion string, Latest_webUITypeCarrVer string, Latest_webTypeDataVerNumber string, Latest_operatorsVersion string, Latest_phonePADPartitionedVersions string, Latest_operatorId string, gamePointDescription string,gamePointId double,contractNumber BigInt) STORED BY 'org.apache.carbondata.format'")
-      sql("create index index_on_insert on table TCarbon (deviceColor) AS 'org.apache.carbondata.format'")
+      sql("create table TCarbon (imei string,deviceInformationId int,MAC string,deviceColor string,device_backColor string,modelId string,marketName string,AMSize string,ROMSize string,CUPAudit string,CPIClocked string,series string,productionDate timestamp,bomCode string,internalModels string, deliveryTime string, channelsId string, channelsName string , deliveryAreaId string, deliveryCountry string, deliveryProvince string, deliveryCity string,deliveryDistrict string, deliveryStreet string, oxSingleNumber string, ActiveCheckTime string, ActiveAreaId string, ActiveCountry string, ActiveProvince string, Activecity string, ActiveDistrict string, ActiveStreet string, ActiveOperatorId string, Active_releaseId string, Active_EMUIVersion string, Active_operaSysVersion string, Active_BacVerNumber string, Active_BacFlashVer string, Active_webUIVersion string, Active_webUITypeCarrVer string,Active_webTypeDataVerNumber string, Active_operatorsVersion string, Active_phonePADPartitionedVersions string, Latest_YEAR int, Latest_MONTH int, Latest_DAY Decimal(30,10), Latest_HOUR string, Latest_areaId string, Latest_country string, Latest_province string, Latest_city string, Latest_district string, Latest_street string, Latest_releaseId string, Latest_EMUIVersion string, Latest_operaSysVersion string, Latest_BacVerNumber string, Latest_BacFlashVer string, Latest_webUIVersion string, Latest_webUITypeCarrVer string, Latest_webTypeDataVerNumber string, Latest_operatorsVersion string, Latest_phonePADPartitionedVersions string, Latest_operatorId string, gamePointDescription string,gamePointId double,contractNumber BigInt) STORED AS carbondata")
+      sql("create index index_on_insert on table TCarbon (deviceColor) AS 'carbondata'")
       sql("insert into index_on_insert select * from TCarbonSource")
       assert(false)
     } catch  {
@@ -280,7 +280,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
         "designation String, doj Timestamp, workgroupcategory int, " +
         "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
         "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-        "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+        "utilization int,salary int) STORED AS CARBONDATA " +
         "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
         "'DICTIONARY_EXCLUDE'='empname')")
     sql(s"LOAD DATA LOCAL INPATH '$resourcesPath/data.csv' INTO " +
@@ -288,7 +288,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     val withoutIndex =
       sql("select empno from carbontable where empname = 'ayushi' or empname = 'krithin' or empname = 'madhan'")
         .collect().toSeq
-    sql("create index empnameindex on table carbontable (empname) AS 'org.apache.carbondata.format'")
+    sql("create index empnameindex on table carbontable (empname) AS 'carbondata'")
 
     checkAnswer(sql("select empno from carbontable where empname = 'ayushi' or empname = 'krithin' or empname = 'madhan'"),
       withoutIndex)
@@ -302,7 +302,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
           "designation String, doj Timestamp, workgroupcategory int, " +
           "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
           "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-          "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+          "utilization int,salary int) STORED AS CARBONDATA " +
           "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
           "'DICTIONARY_EXCLUDE'='empname')")
     }catch  {
@@ -316,7 +316,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
           "designation String, doj Timestamp, workgroupcategory int, " +
           "workgroupcategoryname String, deptno int, deptname String, projectcode int, " +
           "projectjoindate Timestamp, projectenddate Timestamp, attendance int, " +
-          "utilization int,salary int) STORED BY 'org.apache.carbondata.format' " +
+          "utilization int,salary int) STORED AS CARBONDATA " +
           "TBLPROPERTIES('DICTIONARY_INCLUDE'='empno,workgroupcategory,deptno,projectcode'," +
           "'DICTIONARY_EXCLUDE'='empname')")
     }catch  {
@@ -334,8 +334,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
 
     try {
       sql(
-        "create index empnameindex on table createindextemptable (city) AS 'org.apache.carbondata" +
-        ".format'")
+        "create index empnameindex on table createindextemptable (city) AS 'carbondata'")
       assert(false)
     } catch {
       case e: Exception =>
@@ -347,8 +346,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     sql(s"CREATE DATABASE if not exists temptablecheckDB")
     sql("USE temptablecheckDB")
     sql(
-      "CREATE TABLE createindextemptable1(id int, name string, city string, age int) STORED BY " +
-      "'org.apache.carbondata.format'")
+      "CREATE TABLE createindextemptable1(id int, name string, city string, age int) STORED AS CARBONDATA ")
     sql(
       "CREATE temporary table createindextemptable1(id int,name string,city string,age int) using" +
       " parquet options(path='/tmp')")
@@ -359,8 +357,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     try {
       sql("drop index if exists empnameindex on temptablecheckDB.createindextemptable1")
       sql(
-        "create index empnameindex on table createindextemptable1 (city) AS 'org.apache" +
-        ".carbondata.format'")
+        "create index empnameindex on table createindextemptable1 (city) AS 'carbondata'")
       assert(false)
     } catch {
       case e: Exception =>
@@ -371,8 +368,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     sql("insert into temptablecheckDB.createindextemptable1 select 1,'string','string',3")
     try {
       sql(
-        "create index empnameindex on table temptablecheckDB.createindextemptable1 (city) AS 'org" +
-        ".apache.carbondata.format'")
+        "create index empnameindex on table temptablecheckDB.createindextemptable1 (city) AS 'carbondata'")
       assert(true)
     } catch {
       case e: Exception =>
@@ -403,8 +399,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     sql(s"CREATE DATABASE if not exists temptablecheckDB")
     sql("USE temptablecheckDB")
     sql(
-      "CREATE TABLE dropindextemptable1(id int, name string, city string, age int) STORED BY 'org" +
-      ".apache.carbondata.format'")
+      "CREATE TABLE dropindextemptable1(id int, name string, city string, age int) STORED AS CARBONDATA")
     sql(
       "CREATE temporary table dropindextemptable1(id int,name string,city string,age int) using " +
       "parquet options(path='/tmp')")
@@ -415,8 +410,7 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     sql("insert into temptablecheckDB.dropindextemptable1 select 1,'string','string',3")
     sql("insert into temptablecheckDB.dropindextemptable1 select 1,'string','string',3")
     sql(
-      "create index empnaindex on table temptablecheckDB.dropindextemptable1 (city) AS 'org" +
-      ".apache.carbondata.format'")
+      "create index empnaindex on table temptablecheckDB.dropindextemptable1 (city) AS 'carbondata'")
     /*try {
       sql("drop index if exists empnaindex on dropindextemptable1")
       assert(false)
@@ -450,15 +444,15 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     CarbonProperties.getInstance()
       .addProperty(CarbonInternalCommonConstants.HIGH_CARDINALITY_THRESHOLD,
         CarbonInternalCommonConstants.HIGH_CARDINALITY_THRESHOLD_MIN.toString)
-    sql("create table table1(a string, b string) stored by 'carbondata'")
-    sql("create index index1 on table table1(b) as 'carbondata'")
+    sql("create table table1(a string, b string) stored as carbondata")
+    sql("create index index1 on table table1(b) AS 'carbondata'")
     sql(s"load data local inpath '$pluginResourcesPath/data_10000.csv' into table table1 options" +
         s"('fileheader' = 'a,b', 'delimiter' = ',')")
     assert(!sql("describe formatted table1").collect()(0).get(2).toString.contains("DICTIONARY"))
     assert(!sql("describe formatted index1").collect()(0).get(2).toString.contains("DICTIONARY"))
-
+    sql("describe formatted index1").show(100, false)
     val tableInfo: org.apache.carbondata.format.TableInfo = CarbonMetastore
-      .readSchemaFileToThriftTable(s"$storeLocation/../warehouse/index1/Metadata/schema")
+      .readSchemaFileToThriftTable(s"$warehouse/index1/Metadata/schema")
     val column = tableInfo.getFact_table.getTable_columns.asScala.filter(_.getColumn_name == "b").head
     CarbonProperties.getInstance()
       .addProperty(CarbonInternalCommonConstants.HIGH_CARDINALITY_THRESHOLD,
@@ -473,36 +467,33 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     // create table
     sql(
       "CREATE table carbon_si_same_name_test (empno int, empname String, designation String) " +
-      "STORED BY 'org.apache.carbondata.format'")
+      "STORED AS CARBONDATA")
     // insert data
     sql("insert into carbon_si_same_name_test select 11,'arvind','lead'")
     sql("insert into carbon_si_same_name_test select 12,'krithi','TA'")
     // create index
     sql(
-      "create index si_drop_i1 on table carbon_si_same_name_test (designation) AS 'org.apache" +
-      ".carbondata.format'")
+      "create index si_drop_i1 on table carbon_si_same_name_test (designation) AS 'carbondata'")
     intercept[Exception] {
       sql(
-        "create index si_drop_i1 on table carbon_si_same_name_test (designation) AS 'org.apache" +
-        ".carbondata.format'")
+        "create index si_drop_i1 on table carbon_si_same_name_test (designation) AS 'carbondata'")
     }
     sql("DROP INDEX IF EXISTS si_drop_i1 on carbon_si_same_name_test")
     sql(
-      "create index si_drop_i1 on table carbon_si_same_name_test (designation) AS 'org.apache" +
-      ".carbondata.format'")
+      "create index si_drop_i1 on table carbon_si_same_name_test (designation) AS 'carbondata'")
     checkAnswer(sql("select designation from si_drop_i1"),
       sql("select designation from carbon_si_same_name_test"))
   }
 
   test("test blocking secondary Index on streaming table") {
     intercept[RuntimeException] {
-      sql("""create index streamin_index on table stream_si(c3) as 'org.apache.carbondata.format'""").show()
+      sql("""create index streamin_index on table stream_si(c3) AS 'carbondata'""").show()
     }
   }
 
   test("test blocking secondary Index on Partition table") {
     intercept[RuntimeException] {
-      sql("""create index part_index on table part_si(c3) as 'org.apache.carbondata.format'""").show()
+      sql("""create index part_index on table part_si(c3) AS 'carbondata'""").show()
     }
   }
 
@@ -529,10 +520,10 @@ class TestCreateIndexTable extends QueryTest with BeforeAndAfterAll {
     private def createAndInsertSecondaryIndex() {
     sql("drop table if exists test1")
     sql(
-      """create table test1 (name string, id decimal(3,2),country string) stored by 'carbondata'
+      """create table test1 (name string, id decimal(3,2),country string) stored as carbondata
         |TBLPROPERTIES('DICTIONARY_INCLUDE'='id') """.stripMargin)
     sql("""insert into test1 select 'xx',1.22 as a,'china'""")
-    sql("""create index t_ind1 on table test1(id,country) as 'carbondata'""")
+    sql("""create index t_ind1 on table test1(id,country) AS 'carbondata'""")
   }
 
   override def afterAll: Unit = {

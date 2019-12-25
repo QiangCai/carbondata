@@ -31,7 +31,7 @@ import org.apache.carbondata.spark.acl.ACLFileFactory
  */
 object CarbonCommonInitializer {
 
-  val init = {
+  def init(enableACL: Boolean = true): Unit = {
     CarbonEnv.init
     // register internal carbon property to propertySet
     CarbonPluginProperties.validateAndLoadDefaultInternalProperties()
@@ -46,6 +46,74 @@ object CarbonCommonInitializer {
         )
     }
 
+    if (enableACL) {
+      initACL0()
+    }
+
+    operationListenerBus
+      .addListener(classOf[CarbonEnvInitPreEvent],
+        new CarbonEnvInitPreEventListener
+      )
+
+    // SI Listeners
+    operationListenerBus
+      .addListener(classOf[LoadTablePreStatusUpdateEvent], new SILoadEventListener)
+    operationListenerBus
+      .addListener(classOf[LoadTablePostStatusUpdateEvent],
+        new SILoadEventListenerForFailedSegments)
+    operationListenerBus
+      .addListener(classOf[LookupRelationPostEvent], new SIRefreshEventListener)
+    // TODO: get create relation event
+    operationListenerBus
+      .addListener(classOf[CreateCarbonRelationPostEvent], new
+          CreateCarbonRelationEventListener
+      )
+    operationListenerBus
+      .addListener(classOf[DropTablePreEvent], new SIDropEventListener)
+    operationListenerBus
+      .addListener(classOf[AlterTableDropColumnPreEvent], new AlterTableDropColumnEventListener)
+    operationListenerBus
+      .addListener(classOf[AlterTableRenamePostEvent], new AlterTableRenameEventListener)
+    operationListenerBus
+      .addListener(classOf[AlterTableColRenameAndDataTypeChangePreEvent],
+        new AlterTableColumnRenameEventListener)
+    operationListenerBus
+      .addListener(classOf[AlterTableColRenameAndDataTypeChangePostEvent],
+        new AlterTableColumnRenameEventListener)
+    operationListenerBus
+      .addListener(classOf[DeleteSegmentByIdPostEvent], new DeleteSegmentByIdListener)
+    operationListenerBus
+      .addListener(classOf[DeleteSegmentByDatePostEvent], new DeleteSegmentByDateListener)
+    operationListenerBus
+      .addListener(classOf[CleanFilesPostEvent], new CleanFilesPostEventListener)
+    operationListenerBus
+      .addListener(classOf[AlterTableCompactionPreStatusUpdateEvent],
+        new AlterTableCompactionPostEventListener)
+    operationListenerBus
+      .addListener(classOf[AlterTableMergeIndexEvent],
+        new AlterTableMergeIndexSIEventListener)
+    operationListenerBus
+      .addListener(classOf[UpdateTablePreEvent], new UpdateTablePreEventListener)
+    operationListenerBus
+      .addListener(classOf[DeleteFromTablePostEvent], new DeleteFromTableEventListener)
+    operationListenerBus
+      .addListener(classOf[DeleteFromTablePreEvent], new DeleteFromTableEventListener)
+    operationListenerBus
+      .addListener(classOf[DropTableCacheEvent], DropCacheSIEventListener)
+    operationListenerBus
+      .addListener(classOf[ShowTableCacheEvent], ShowCacheSIEventListener)
+    if (enableACL) {
+      initACL1()
+    } else {
+      operationListenerBus
+        .addListener(classOf[CreateDataMapPreExecutionEvent],
+          new ACLDataMapEventListener.PreDataMapEventListener
+        )
+    }
+  }
+
+  def initACL0(): Unit = {
+    val operationListenerBus = OperationListenerBus.getInstance()
     // ACL Listeners
     FileFactory.setFileTypeInterface(new ACLFileFactory())
     operationListenerBus
@@ -200,59 +268,11 @@ object CarbonCommonInitializer {
       .addListener(classOf[UpdateTableAbortEvent],
         new ACLIUDUpdateEventListener.ACLAbortIUDUpdateEventListener
       )
+  }
 
-    operationListenerBus
-      .addListener(classOf[CarbonEnvInitPreEvent],
-        new CarbonEnvInitPreEventListener
-      )
 
-    // SI Listeners
-    operationListenerBus
-      .addListener(classOf[LoadTablePreStatusUpdateEvent], new SILoadEventListener)
-    operationListenerBus
-      .addListener(classOf[LoadTablePostStatusUpdateEvent],
-        new SILoadEventListenerForFailedSegments)
-    operationListenerBus
-      .addListener(classOf[LookupRelationPostEvent], new SIRefreshEventListener)
-    // TODO: get create relation event
-    operationListenerBus
-      .addListener(classOf[CreateCarbonRelationPostEvent], new
-          CreateCarbonRelationEventListener
-      )
-    operationListenerBus
-      .addListener(classOf[DropTablePreEvent], new SIDropEventListener)
-    operationListenerBus
-      .addListener(classOf[AlterTableDropColumnPreEvent], new AlterTableDropColumnEventListener)
-    operationListenerBus
-      .addListener(classOf[AlterTableRenamePostEvent], new AlterTableRenameEventListener)
-    operationListenerBus
-      .addListener(classOf[AlterTableColRenameAndDataTypeChangePreEvent],
-        new AlterTableColumnRenameEventListener)
-    operationListenerBus
-      .addListener(classOf[AlterTableColRenameAndDataTypeChangePostEvent],
-        new AlterTableColumnRenameEventListener)
-    operationListenerBus
-      .addListener(classOf[DeleteSegmentByIdPostEvent], new DeleteSegmentByIdListener)
-    operationListenerBus
-      .addListener(classOf[DeleteSegmentByDatePostEvent], new DeleteSegmentByDateListener)
-    operationListenerBus
-      .addListener(classOf[CleanFilesPostEvent], new CleanFilesPostEventListener)
-    operationListenerBus
-      .addListener(classOf[AlterTableCompactionPreStatusUpdateEvent],
-        new AlterTableCompactionPostEventListener)
-    operationListenerBus
-      .addListener(classOf[AlterTableMergeIndexEvent],
-        new AlterTableMergeIndexSIEventListener)
-    operationListenerBus
-      .addListener(classOf[UpdateTablePreEvent], new UpdateTablePreEventListener)
-    operationListenerBus
-      .addListener(classOf[DeleteFromTablePostEvent], new DeleteFromTableEventListener)
-    operationListenerBus
-      .addListener(classOf[DeleteFromTablePreEvent], new DeleteFromTableEventListener)
-    operationListenerBus
-      .addListener(classOf[DropTableCacheEvent], DropCacheSIEventListener)
-    operationListenerBus
-      .addListener(classOf[ShowTableCacheEvent], ShowCacheSIEventListener)
+  def initACL1(): Unit = {
+    val operationListenerBus = OperationListenerBus.getInstance()
     // refresh table listner
     operationListenerBus
       .addListener(classOf[RefreshTablePreExecutionEvent],

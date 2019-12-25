@@ -48,7 +48,7 @@ class CollectSegmentsTestCase extends QueryTest with BeforeAndAfterAll {
         |  workgroupcategory int, workgroupcategoryname String, deptno int, deptname String,
         |  projectcode int, projectjoindate Timestamp, projectenddate Date,attendance int,
         |  utilization int,salary int, empno int)
-        | STORED BY 'org.apache.carbondata.format'
+        | STORED AS carbondata
       """.stripMargin)
 
     sql(s"""LOAD DATA local inpath '$resourcesPath/data.csv' INTO TABLE collect_segments OPTIONS('DELIMITER'= ',', 'QUOTECHAR'= '"')""")

@@ -241,7 +241,8 @@ object CarbonInternalMergerUtil {
               rebuiltSegments.toSeq,
               segmentIdToLoadStartTimeMap,
               indexCarbonTable.getTablePath,
-              indexCarbonTable, mergeIndexProperty = false, false)
+              indexCarbonTable, mergeIndexProperty = false
+            )
 
             if (CarbonProperties.getInstance()
               .isDistributedPruningEnabled(indexCarbonTable.getDatabaseName,

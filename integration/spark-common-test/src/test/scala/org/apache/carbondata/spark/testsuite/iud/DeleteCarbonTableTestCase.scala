@@ -38,12 +38,12 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("drop database  if exists iud_db cascade")
     sql("create database  iud_db")
 
-    sql("""create table iud_db.source2 (c11 string,c22 int,c33 string,c55 string, c66 int) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.source2 (c11 string,c22 int,c33 string,c55 string, c66 int) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/source2.csv' INTO table iud_db.source2""")
     sql("use iud_db")
   }
   test("delete data from carbon table with alias [where clause ]") {
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from iud_db.dest d where d.c1 = 'a'""").show
     checkAnswer(
@@ -53,7 +53,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   }
   test("delete data from  carbon table[where clause ]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from iud_db.dest where c2 = 2""").show
     checkAnswer(
@@ -63,7 +63,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   }
   test("delete data from  carbon table[where IN  ]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from dest where c1 IN ('d', 'e')""").show
     checkAnswer(
@@ -74,7 +74,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("delete data from  carbon table[with alias No where clause]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from iud_db.dest a""").show
     checkAnswer(
@@ -84,7 +84,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   }
   test("delete data from  carbon table[No alias No where clause]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from dest""").show()
     checkAnswer(
@@ -95,7 +95,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("delete data from  carbon table[ JOIN with another table ]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql(""" DELETE FROM dest t1 INNER JOIN source2 t2 ON t1.c1 = t2.c11""").show(truncate = false)
     checkAnswer(
@@ -106,7 +106,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("delete data from  carbon table[where numeric condition  ]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c3 string,c5 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from  iud_db.dest where c2 >= 4""").show()
     checkAnswer(
@@ -117,7 +117,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition delete data from carbon table with alias [where clause ]") {
     sql("drop table if exists iud_db.dest")
-    sql("""create table iud_db.dest (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from iud_db.dest d where d.c1 = 'a'""").show
     checkAnswer(
@@ -128,7 +128,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("partition delete data from  carbon table[where clause ]") {
     sql("""drop table if exists iud_db.dest""")
-    sql("""create table iud_db.dest (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""")
+    sql("""create table iud_db.dest (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""")
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest""")
     sql("""delete from iud_db.dest where c2 = 2""").show
     checkAnswer(
@@ -165,7 +165,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("test if delete is unsupported for pre-aggregate tables") {
     sql("drop table if exists preaggMain")
     sql("drop table if exists preaggmain_preagg1")
-    sql("create table preaggMain (a string, b string, c string) stored by 'carbondata'")
+    sql("create table preaggMain (a string, b string, c string) STORED AS carbondata")
     sql("create datamap preagg1 on table PreAggMain USING 'preaggregate' as select a,sum(b) from PreAggMain group by a")
     intercept[RuntimeException] {
       sql("delete from preaggmain where a = 'abc'").show()
@@ -179,7 +179,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("test select query after compaction, delete and clean files") {
     sql("drop table if exists select_after_clean")
-    sql("create table select_after_clean(id int, name string) stored by 'carbondata'")
+    sql("create table select_after_clean(id int, name string) STORED AS carbondata")
     sql("insert into select_after_clean select 1,'abc'")
     sql("insert into select_after_clean select 2,'def'")
     sql("insert into select_after_clean select 3,'uhj'")
@@ -196,7 +196,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
 
   test("test number of update table status files after delete query where no records are deleted") {
     sql("drop table if exists update_status_files")
-    sql("create table update_status_files(name string,age int) stored by 'carbondata'")
+    sql("create table update_status_files(name string,age int) STORED AS carbondata")
     sql("insert into update_status_files select 'abc',1")
     sql("insert into update_status_files select 'def',2")
     sql("insert into update_status_files select 'xyz',4")
@@ -223,12 +223,12 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("tuple-id for partition table ") {
     sql("drop table if exists iud_db.dest_tuple_part")
     sql(
-      """create table iud_db.dest_tuple_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED BY 'org.apache.carbondata.format'""".stripMargin)
+      """create table iud_db.dest_tuple_part (c1 string,c2 int,c5 string) PARTITIONED BY(c3 string) STORED AS carbondata""".stripMargin)
     sql(
       s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest_tuple_part""".stripMargin)
     sql("drop table if exists iud_db.dest_tuple")
     sql(
-      """create table iud_db.dest_tuple (c1 string,c2 int,c5 string,c3 string) STORED BY 'org.apache.carbondata.format'""".stripMargin)
+      """create table iud_db.dest_tuple (c1 string,c2 int,c5 string,c3 string) STORED AS carbondata""".stripMargin)
     sql(s"""LOAD DATA LOCAL INPATH '$resourcesPath/IUD/dest.csv' INTO table iud_db.dest_tuple""")
 
     val dataframe_part = sql("select getTupleId() as tupleId from iud_db.dest_tuple_part").collect()
@@ -304,7 +304,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
     sql("drop table if exists test_dm_main")
     sql("drop table if exists test_dm_main_preagg1")
 
-    sql("create table test_dm_main (a string, b string, c string) stored by 'carbondata'")
+    sql("create table test_dm_main (a string, b string, c string) STORED AS carbondata")
     sql("insert into test_dm_main select 'aaa','bbb','ccc'")
     sql("insert into test_dm_main select 'bbb','bbb','ccc'")
     sql("insert into test_dm_main select 'ccc','bbb','ccc'")
@@ -327,7 +327,7 @@ class DeleteCarbonTableTestCase extends QueryTest with BeforeAndAfterAll {
   test("block deleting records from table which has index datamap") {
     sql("drop table if exists test_dm_index")
 
-    sql("create table test_dm_index (a string, b string, c string) stored by 'carbondata'")
+    sql("create table test_dm_index (a string, b string, c string) STORED AS carbondata")
     sql("insert into test_dm_index select 'ccc','bbb','ccc'")
 
     sql(

@@ -17,7 +17,7 @@ import scala.collection.JavaConverters._
 
 import org.apache.spark.sql.CarbonEnv
 import org.apache.spark.sql.catalyst.TableIdentifier
-import org.apache.spark.sql.test.util.QueryTest
+import org.apache.spark.sql.common.util.QueryTest
 import org.apache.spark.util.CarbonInternalScalaUtil
 
 import org.apache.carbondata.core.cache.CacheProvider
@@ -47,7 +47,7 @@ class TestCacheOperationsForSI extends QueryTest with BeforeAndAfterAll {
     sql(s"CREATE TABLE $tableName(empno int, empname String, designation String, " +
       s"doj Timestamp, workgroupcategory int, workgroupcategoryname String, deptno int, " +
       s"deptname String, projectcode int, projectjoindate Timestamp, projectenddate Timestamp," +
-      s"attendance int,utilization int, salary int) stored by 'carbondata' " +
+      s"attendance int,utilization int, salary int) STORED AS carbondata " +
       s"TBLPROPERTIES('DICTIONARY_INCLUDE'='designation, workgroupcategoryname')")
     sql(s"LOAD DATA INPATH '$resourcesPath/data.csv' INTO TABLE $tableName")
     sql(s"CREATE INDEX $indexName ON TABLE $tableName (workgroupcategoryname, empname) " +
@@ -90,7 +90,7 @@ class TestCacheOperationsForSI extends QueryTest with BeforeAndAfterAll {
     sql(s"CREATE TABLE $tableName(empno int, empname String, designation String, " +
         s"doj Timestamp, workgroupcategory int, workgroupcategoryname String, deptno int, " +
         s"deptname String, projectcode int, projectjoindate Timestamp, projectenddate Timestamp," +
-        s"attendance int,utilization int, salary int) stored by 'carbondata' " +
+        s"attendance int,utilization int, salary int) STORED AS carbondata " +
         s"TBLPROPERTIES('DICTIONARY_INCLUDE'='designation, workgroupcategoryname')")
     sql(s"LOAD DATA INPATH '$resourcesPath/data.csv' INTO TABLE $tableName")
     sql(s"CREATE INDEX $indexName ON TABLE $tableName (workgroupcategoryname, empname) " +
