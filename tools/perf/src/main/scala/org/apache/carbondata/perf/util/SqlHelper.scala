@@ -15,25 +15,44 @@
  * limitations under the License.
  */
 
-package org.apache.carbondata.perf.tpcds
+package org.apache.carbondata.perf.util
 
-import java.io.File
+import java.io.{File, FileReader}
 
-import org.apache.spark.sql.{CarbonEnv, SparkSession}
+import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
+
+import org.apache.commons.lang3.StringUtils
+import org.apache.spark.sql.{CarbonEnv, DataFrame, SparkSession}
 
 import org.apache.carbondata.core.constants.CarbonCommonConstants
 import org.apache.carbondata.core.util.CarbonProperties
 
 /**
- * PerfUtils
+ * SqlHelper
  */
-object PerfUtils {
+class SqlHelper {
 
-  def main(args: Array[String]): Unit = {
-    val spark = PerfUtils.createSparkSession("Tpc-ds Query", 4)
-    CreateTable.loadAllData(spark)
-    executeQuery(Query9.sql9)(spark)
-    Thread.sleep(1000000)
+  val spark: SparkSession = createSparkSession("Sql Helper", 2)
+
+  def sql(sqlText: String): DataFrame = spark.sql(sqlText)
+
+  def loadSql(filePath: String, variableMap: Map[String, String]): Array[String] = {
+    val source = Source.fromFile(filePath)
+    var sqls =
+      source
+        .getLines()
+        .filter(!StringUtils.isEmpty(_))
+        .mkString("\n")
+    source.close()
+    variableMap.foreach { case (key, value) =>
+      sqls = sqls.replaceAll("\\$\\{" + key + "\\}", value)
+    }
+    sqls
+      .split(";", -1)
+      .map(_.stripPrefix("\n"))
+      .map(_.stripSuffix("\n"))
+      .filter(!StringUtils.isEmpty(_))
   }
 
   def executeQuery(currentSql: String)(spark: SparkSession): Unit = {
@@ -48,7 +67,7 @@ object PerfUtils {
     spark.sql("use carbon")
     // spark.sql(Query14.sql14a).collect()
     val t3 = System.currentTimeMillis()
-    spark.sql(currentSql).show(false).collect()
+    spark.sql(currentSql).show(false)
     val t4 = System.currentTimeMillis()
     val carbonTime = t4 - t3
     System.out.println(s"finish carbon query, taken time: ${ carbonTime } ms")
@@ -78,12 +97,12 @@ object PerfUtils {
       .config("spark.driver.host", "localhost")
       .config("spark.sql.crossJoin.enabled", "true")
       .config("spark.sql.extensions", "org.apache.spark.sql.CarbonExtensions")
+      .config("hive.exec.max.dynamic.partitions", "20000")
       .enableHiveSupport()
       .getOrCreate()
     CarbonEnv.getInstance(spark)
     spark.sparkContext.setLogLevel("ERROR")
     spark
   }
-
 
 }
