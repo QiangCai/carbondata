@@ -32,7 +32,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
@@ -66,7 +66,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
@@ -114,7 +114,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
@@ -156,7 +156,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
@@ -206,7 +206,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
@@ -245,7 +245,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
@@ -264,7 +264,7 @@ stored as ${FILE}
 tblproperties(
 'cache_level'='blocklet',
 'carbon.column.compressor'='zstd',
-'carbon.local.dictionary.enable'='false',
+'LOCAL_DICTIONARY_ENABLE'='false',
 'table_blocksize'='1024',
 'table_blocklet_size'='256');
 
