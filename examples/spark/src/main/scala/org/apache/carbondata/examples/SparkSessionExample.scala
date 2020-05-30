@@ -61,7 +61,7 @@ object SparkSessionExample {
     sparkSession.sql("SELECT * FROM csv_table").show()
 
     sparkTableExample(sparkSession)
-    hiveTableExample(sparkSession)
+    // hiveTableExample(sparkSession)
 
     // Drop table
     sparkSession.sql("DROP TABLE IF EXISTS csv_table")
@@ -81,10 +81,11 @@ object SparkSessionExample {
          | stringField STRING,
          | timestampField TIMESTAMP,
          | decimalField DECIMAL(18,2),
-         | dateField DATE,
-         | charField CHAR(5)
+         | dateField DATE
          | )
-         | USING carbondata
+         | stored as carbondata
+         | tblproperties('sort_scope'='global_sort', 'sort_columns'='charField, stringField')
+         | partitioned by (charField string)
        """.stripMargin)
 
     validateTable(sparkSession, "sparksession_table")
