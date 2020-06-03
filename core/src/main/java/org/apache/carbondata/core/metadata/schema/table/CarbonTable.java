@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.carbondata.common.exceptions.sql.MalformedIndexCommandException;
 import org.apache.carbondata.common.logging.LogServiceFactory;
@@ -1281,4 +1282,26 @@ public class CarbonTable implements Serializable, Writable {
     return allIndexes;
   }
 
+  /**
+   * runtime filter can be on sort_columns and partition columns
+   */
+  public List<String> getRuntimeFilterColumns() {
+    List<String> filterColumns = getSortColumns();
+    if (isHivePartitionTable()) {
+      int sortColumnCount = filterColumns.size();
+      for (ColumnSchema columnSchema : partition.getColumnSchemaList()) {
+        boolean isExists = false;
+        for (int i = 0; i < sortColumnCount; i++) {
+          if (columnSchema.getColumnName().equals(filterColumns.get(i))) {
+            isExists = true;
+            break;
+          }
+        }
+        if (!isExists) {
+          filterColumns.add(columnSchema.getColumnName());
+        }
+      }
+    }
+    return filterColumns;
+  }
 }

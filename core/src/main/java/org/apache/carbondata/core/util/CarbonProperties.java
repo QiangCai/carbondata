@@ -2019,4 +2019,11 @@ public final class CarbonProperties {
   public static void setAuditEnabled(boolean enabled) {
     getInstance().addProperty(CarbonCommonConstants.CARBON_ENABLE_AUDIT, String.valueOf(enabled));
   }
+
+  public static boolean isRuntimeFilterEnabled() {
+    return Boolean.parseBoolean(getInstance().getProperty(
+        CarbonCommonConstants.CARBON_RUNTIME_FILTER_ENABLE,
+        CarbonCommonConstants.CARBON_RUNTIME_FILTER_ENABLE_DEFAULT
+    ));
+  }
 }

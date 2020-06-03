@@ -35,7 +35,7 @@ import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, Project}
 import org.apache.spark.sql.catalyst.plans.physical.{HashPartitioning, Partitioning, UnknownPartitioning}
 import org.apache.spark.sql.execution._
 import org.apache.spark.sql.execution.datasources.{CatalogFileIndex, HadoopFsRelation, InMemoryFileIndex, LogicalRelation, SparkCarbonTableFormat}
-import org.apache.spark.sql.execution.joins.{BuildLeft, BuildRight}
+import org.apache.spark.sql.execution.joins.{BuildLeft, BuildRight, CarbonRuntimePlan, PlanRuntimeFilter}
 import org.apache.spark.sql.hive.MatchLogicalRelation
 import org.apache.spark.sql.index.CarbonIndexUtil
 import org.apache.spark.sql.optimizer.CarbonFilters
@@ -81,6 +81,8 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
   def apply(plan: LogicalPlan): Seq[SparkPlan] = {
     val transformedPlan = makeDeterministic(plan)
     transformedPlan match {
+      case CarbonRuntimePlan(child) =>
+        PlanRuntimeFilter(child):: Nil
       case PhysicalOperation(projects, filters, l: LogicalRelation)
         if l.relation.isInstanceOf[CarbonDatasourceHadoopRelation] =>
         val relation = l.relation.asInstanceOf[CarbonDatasourceHadoopRelation]
@@ -159,28 +161,8 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
             carbon,
             condition)
         condition.map(FilterExec(_, pushedDownJoin)).getOrElse(pushedDownJoin) :: Nil
-      case ExtractEquiJoinKeys(LeftSemi, leftKeys, rightKeys, condition,
-      left, right)
-        if isLeftSemiExistPushDownEnabled &&
-            isAllCarbonPlan(left) && isAllCarbonPlan(right) =>
-        LOGGER.info(s"pushing down for ExtractEquiJoinKeysLeftSemiExist:right")
-        val carbon = planLater(left)
-        val pushedDownJoin = BroadCastSIFilterPushJoin(
-          leftKeys: Seq[Expression],
-          rightKeys: Seq[Expression],
-          LeftSemi,
-          BuildRight,
-          carbon,
-          planLater(right),
-          condition)
-        condition.map(FilterExec(_, pushedDownJoin)).getOrElse(pushedDownJoin) :: Nil
       case _ => Nil
     }
-  }
-
-  private def isAllCarbonPlan(plan: LogicalPlan): Boolean = {
-    val allRelations = plan.collect { case logicalRelation: LogicalRelation => logicalRelation }
-    allRelations.forall(x => x.relation.isInstanceOf[CarbonDatasourceHadoopRelation])
   }
 
   private def isCarbonPlan(plan: LogicalPlan): Boolean = {
@@ -192,12 +174,6 @@ private[sql] class CarbonLateDecodeStrategy extends SparkStrategy {
         true
       case _ => false
     }
-  }
-
-  private def isLeftSemiExistPushDownEnabled: Boolean = {
-    CarbonProperties.getInstance.getProperty(
-      CarbonCommonConstants.CARBON_PUSH_LEFTSEMIEXIST_JOIN_AS_IN_FILTER,
-      CarbonCommonConstants.CARBON_PUSH_LEFTSEMIEXIST_JOIN_AS_IN_FILTER_DEFAULT).toBoolean
   }
 
   /**
