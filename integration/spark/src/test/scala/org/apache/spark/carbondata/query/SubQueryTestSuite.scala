@@ -49,7 +49,7 @@ class SubQueryTestSuite extends QueryTest with BeforeAndAfterAll {
         queryExecution.executedPlan
     var broadCastExists = false
     executedPlan.collect {
-      case s: BroadcastHashJoinExec => broadCastExists = true
+      case _: BroadcastHashJoinExec => broadCastExists = true
     }
     assert(broadCastExists, "Broad cast join does not exist on small table")
     sql("drop table if exists anothertable")

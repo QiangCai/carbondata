@@ -26,16 +26,17 @@ import org.apache.spark.sql.catalyst.catalog.{CatalogStorageFormat, ExternalCata
 import org.apache.spark.sql.catalyst.expressions.{Alias, Attribute, AttributeReference, AttributeSet, Expression, ExpressionSet, ExprId, NamedExpression, ScalaUDF, SubqueryExpression}
 import org.apache.spark.sql.catalyst.expressions.codegen._
 import org.apache.spark.sql.catalyst.expressions.codegen.Block._
-import org.apache.spark.sql.catalyst.optimizer.Optimizer
+import org.apache.spark.sql.catalyst.optimizer.{CombineFilters, Optimizer, PruneFilters, PushDownPredicate, PushPredicateThroughJoin}
 import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, OneRowRelation, SubqueryAlias}
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.command.ExplainCommand
+import org.apache.spark.sql.execution.joins.{InsertRuntimeFilter, RemoveRuntimeFilter}
 import org.apache.spark.sql.hive.{CarbonMVRules, HiveExternalCatalog}
 import org.apache.spark.sql.optimizer.{CarbonIUDRule, CarbonUDFTransformRule, MVRewriteRule}
 import org.apache.spark.sql.secondaryindex.optimizer.CarbonSITransformationRule
 import org.apache.spark.sql.types.{DataType, Metadata}
 
-import org.apache.carbondata.core.util.ThreadLocalSessionInfo
+import org.apache.carbondata.core.util.{CarbonProperties, ThreadLocalSessionInfo}
 
 object CarbonToSparkAdapter {
 
@@ -194,16 +195,29 @@ class CarbonOptimizer(
     optimizer: Optimizer) extends Optimizer(catalog) {
 
   private lazy val mvRules = Seq(Batch("Materialized View Optimizers", Once,
-    Seq(new MVRewriteRule(session)): _*))
+    new MVRewriteRule(session)))
 
   private lazy val iudRule = Batch("IUD Optimizers", fixedPoint,
     Seq(new CarbonIUDRule(), new CarbonUDFTransformRule(), new CarbonFileIndexReplaceRule()): _*)
 
   private lazy val secondaryIndexRule = Batch("SI Optimizers", Once,
-    Seq(new CarbonSITransformationRule(session)): _*)
+    new CarbonSITransformationRule(session))
+
+  private lazy val _runtimeFilterRules = Seq(
+    Batch("Insert Runtime Filter", Once, InsertRuntimeFilter),
+    Batch("Push down Runtime Filter", fixedPoint,
+      Seq(CombineFilters, PushDownPredicate, PushPredicateThroughJoin): _*),
+    Batch("Remove Runtime Filter", Once, RemoveRuntimeFilter, PruneFilters)
+  )
+
+  private def runtimeFilterRules = if (CarbonProperties.isRuntimeFilterEnabled) {
+    _runtimeFilterRules
+  } else {
+    Seq.empty[Batch]
+  }
 
   override def defaultBatches: Seq[Batch] = {
-    mvRules ++ convertedBatch() :+ iudRule :+ secondaryIndexRule
+    mvRules ++ convertedBatch() ++ Seq(iudRule, secondaryIndexRule) ++ runtimeFilterRules
   }
 
   def convertedBatch(): Seq[Batch] = {

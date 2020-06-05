@@ -1521,6 +1521,12 @@ public final class CarbonCommonConstants {
 
   public static final String CARBON_QUERY_STAGE_INPUT_DEFAULT = "false";
 
+  @CarbonProperty(dynamicConfigurable = true)
+  public static final String CARBON_RUNTIME_FILTER_ENABLE =
+      "carbon.runtime.filter.enabled";
+
+  public static final String CARBON_RUNTIME_FILTER_ENABLE_DEFAULT = "true";
+
   //////////////////////////////////////////////////////////////////////////////////////////
   // Index parameter start here
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -2303,16 +2309,6 @@ public final class CarbonCommonConstants {
    * Default first day of week
    */
   public static final String CARBON_TIMESERIES_FIRST_DAY_OF_WEEK_DEFAULT = "SUNDAY";
-
-  @CarbonProperty
-  public static final String CARBON_PUSH_LEFTSEMIEXIST_JOIN_AS_IN_FILTER =
-      "carbon.infilter.subquery.pushdown.enable";
-
-
-  /**
-   * CARBON_PUSH_LEFTSEMIEXIST_JOIN_AS_IN_FILTER_DEFAULT
-   */
-  public static final String CARBON_PUSH_LEFTSEMIEXIST_JOIN_AS_IN_FILTER_DEFAULT = "false";
 
   /**
    * key to get broadcast record size from properties
