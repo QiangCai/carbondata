@@ -17,10 +17,10 @@
 
 package org.apache.carbondata.perf.command
 
-import org.apache.spark.sql.SqlHelper._
+import org.apache.spark.sql.SqlHelper.{runDir, runFile}
 
-import org.apache.carbondata.perf.Constant._
-import org.apache.carbondata.perf.PerfHelper._
+import org.apache.carbondata.perf.Constant.{allFormats, csvdb, csvFolder, sqlDir}
+import org.apache.carbondata.perf.PerfHelper.{myPrintln, showDetailContest, showSummaryContest}
 
 /**
  * tpcds create and load table
@@ -29,19 +29,21 @@ case class TpcdsCreateTable() extends Command {
 
   def run(): Unit = {
     loadCsv(csvFolder, csvdb)
-    val parquetTimes = insertInto(csvdb, parquetdb, "parquet")
-    val carbonTimes = insertInto(csvdb, carbondb, "carbondata")
-    showSummary(parquetdb, parquetTimes, carbondb, carbonTimes)
+    val resultDetails = allFormats.map { case (format, db) =>
+      (db, insertInto(csvdb, db, format))
+    }
+    showDetailContest(resultDetails)
+    showSummaryContest(resultDetails)
   }
 
   def loadCsv(csvFolder: String, dbName: String): Unit = {
-    runFile(s"$sqlFolder/text/alltables.sql",
+    runFile(s"$sqlDir/text/alltables.sql",
       Some(Map("DB" -> dbName, "LOCATION" -> csvFolder)))
   }
 
   def insertInto(source: String, target: String, fileFormat: String): Seq[(String, Long)] = {
     myPrintln(s"start to load $target...")
-    runDir(s"$sqlFolder/partitioned",
+    runDir(s"$sqlDir/partitioned",
       Some(Map("DB" -> target, "SOURCE" -> source, "FILE" -> fileFormat)))
   }
 }

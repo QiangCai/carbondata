@@ -17,15 +17,27 @@
 
 package org.apache.carbondata.perf
 
-object Constant {
-  val codeWorkSpace = "/home/david/Documents/code/carbondata"
-  val sqlFolder = s"$codeWorkSpace/tools/perf/src/main/resources/tpcds/spark"
+import java.io.File
 
-  val tpcds_scala = 10
-  val csvdb = s"csvdb$tpcds_scala"
-  val parquetdb = s"parquetdb$tpcds_scala"
-  val carbondb = s"carbondb$tpcds_scala"
-  val csvFolder = s"/opt/bigdata/data/tpcds/$tpcds_scala"
-  val warehouse = "/opt/bigdata/data/warehouse"
-  val metadata = "/opt/bigdata/data/metadata/metastore_db"
+import org.apache.carbondata.perf.PerfCli.{dataDir, tpcds_scale}
+
+object Constant {
+  val sqlDir = {
+    val rootPath = new File(this.getClass.getResource("/").getPath
+                            + "../../../..").getCanonicalPath
+    s"$rootPath/tools/perf/src/main/resources/tpcds/spark"
+  }
+
+  // data and metadata location
+  val csvFolder = s"$dataDir/tpcds/$tpcds_scale"
+  val warehouse = s"$dataDir/warehouse"
+  val metadata = s"$dataDir/metadata/metastore_db"
+
+  // file formats and databases
+  val csvdb = s"csvdb$tpcds_scale"
+  val parquetdb = s"parquetdb$tpcds_scale"
+  val orcdb = s"orcdb$tpcds_scale"
+  val carbondb = s"carbondb$tpcds_scale"
+  val allDatabases = Seq(csvdb, parquetdb, orcdb, carbondb)
+  val allFormats = Seq(("parquet", parquetdb), ("orc", orcdb), ("carbon", carbondb))
 }

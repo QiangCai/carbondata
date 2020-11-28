@@ -19,13 +19,19 @@ package org.apache.carbondata.perf
 
 import java.io.{BufferedReader, InputStreamReader}
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.SqlHelper
 
-import org.apache.carbondata.perf.Constant.{carbondb, parquetdb}
+import org.apache.carbondata.perf.Constant.{carbondb, orcdb, parquetdb}
 import org.apache.carbondata.perf.PerfHelper.{myPrint, myPrintln}
-import org.apache.carbondata.perf.command.{TpcdsCleaner, TpcdsCreateTable, TpcdsQueryRunner}
+import org.apache.carbondata.perf.command.{TpcdsCleaner, TpcdsCreateTable, TpcdsExplain, TpcdsQueryRunner}
+import org.apache.carbondata.perf.MatchTpcdsQuery.MatchTpcdsExplian
 
 object PerfCli {
+
+  // need to set these for your env
+  val dataDir = "/opt/bigdata/data"
+  val tpcds_scale = 10
 
   def main(args: Array[String]): Unit = {
     val input = new BufferedReader(new InputStreamReader(System.in))
@@ -35,28 +41,37 @@ object PerfCli {
     SqlHelper.initConfiguration()
     while(continue) {
       myPrint(sqlPrompt)
+      newCommandExecuted = false
       newLine = input.readLine()
       val trimLine = newLine.trim
-      if (trimLine.startsWith("!") && builder.length() == 0) {
-        if (trimLine.equalsIgnoreCase("!q")) {
-          continue = false
+      if (StringUtils.isNotEmpty(trimLine)) {
+        if (trimLine.startsWith("!") && builder.length() == 0) {
+          if (trimLine.equalsIgnoreCase("!q")) {
+            continue = false
+          } else {
+            catchException(newLine)(executeCommand)
+          }
+        } else if (trimLine.endsWith(";")) {
+          builder.append(newLine)
+          val statement = builder.toString
+          builder.setLength(0)
+          catchException(statement)(executeSql)
+        } else {
+          builder.append(newLine).append("\n")
         }
-        catchException(newLine)(executeCommand)
-      } else if (trimLine.endsWith(";")) {
-        builder.append(newLine)
-        val statement = builder.toString
-        builder.setLength(0)
-        catchException(statement)(executeSql)
-      } else {
-        builder.append(newLine).append("\n")
       }
     }
   }
 
+  private lazy val user = System.getProperty("user.name")
+  private var currentDatabase = "default"
+  private var newCommandExecuted = true
+
   private def sqlPrompt: String = {
-    val user = System.getProperty("user.name")
-    val database = SqlHelper.getCurrentDatabase()
-    s"$user's sql in $database/>"
+    if (newCommandExecuted) {
+      currentDatabase = SqlHelper.getCurrentDatabase()
+    }
+    s"$user's sql in $currentDatabase/>"
   }
 
   private def executeCommand(command: String): Unit = {
@@ -65,6 +80,7 @@ object PerfCli {
       case "tpcds load" => TpcdsCreateTable().run()
       case "tpcds clean" => TpcdsCleaner().run()
       case MatchTpcdsQuery(queryRunner) => queryRunner.run()
+      case MatchTpcdsExplian(explain) => explain.run()
       case _ =>
         myPrintln(s"Unknown command: $normalizeCommand")
     }
@@ -87,6 +103,7 @@ object PerfCli {
 
   private def catchException(sqlText: String)(func: String => Unit): Unit = {
     try {
+      newCommandExecuted = true
       func(sqlText)
     } catch {
       case e: Throwable =>
@@ -109,6 +126,7 @@ object MatchTpcdsQuery {
       case "tpcds query" => Some(TpcdsQueryRunner())
       case "tpcds carbon query" => Some(TpcdsQueryRunner(Some(carbondb)))
       case "tpcds parquet query" => Some(TpcdsQueryRunner(Some(parquetdb)))
+      case "tpcds orc query" => Some(TpcdsQueryRunner(Some(orcdb)))
       case _ =>
         if (command.startsWith("tpcds query ")) {
           Some(TpcdsQueryRunner(None, collectFileList("tpcds query ".length)))
@@ -116,9 +134,21 @@ object MatchTpcdsQuery {
           Some(TpcdsQueryRunner(Some(carbondb), collectFileList("tpcds carbon query ".length)))
         } else if (command.startsWith("tpcds parquet query ")) {
           Some(TpcdsQueryRunner(Some(parquetdb), collectFileList("tpcds parquet query ".length)))
+        } else if (command.startsWith("tpcds orc query ")) {
+          Some(TpcdsQueryRunner(Some(parquetdb), collectFileList("tpcds orc query ".length)))
         } else {
           None
         }
+    }
+  }
+
+  object MatchTpcdsExplian {
+    def unapply(command: String): Option[TpcdsExplain] = {
+      command match {
+        case "tpcds carbon explain" | "tpcds parquet explain" | "tpcds orc explain" =>
+          Some(TpcdsExplain(carbondb))
+        case _ => None
+      }
     }
   }
 }

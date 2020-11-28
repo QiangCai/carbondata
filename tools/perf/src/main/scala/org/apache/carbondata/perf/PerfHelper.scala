@@ -36,7 +36,7 @@ object PerfHelper {
     for (file <- files) {
       sqlListWithFileName += loadSqlFile(dirPath + "/" + file, variableMap)
     }
-    sqlListWithFileName.toSeq
+    sqlListWithFileName
   }
 
   def loadSqlFile(filePath: String,
@@ -99,51 +99,82 @@ object PerfHelper {
     formatter.print(new Duration(millis).toPeriod)
   }
 
-  def showSummary(
-      db1: String,
-      db1Times: Seq[(String, Long)],
-      db2: String,
-      db2Times: Seq[(String, Long)]): Unit = {
-    val db1Time = db1Times.map(_._2).sum
-    val db2Time = db2Times.map(_._2).sum
-    val maxLen = Math.max(db1.length, db2.length)
-    myPrintln(s"${rightPad(db1, maxLen)} taken time: ${formatMillis(db1Time)}")
-    myPrintln(s"${rightPad(db2, maxLen)} taken time: ${formatMillis(db2Time)}")
-    myPrintln(s"$db2 vs $db1 = ${ formatFloat(db2Time.toFloat / db1Time) } : 1\n")
+  // resultDetails: Seq((database, Seq((fileName, time))))
+  def showSummaryContest(resultDetails: Seq[(String, Seq[(String, Long)])]): Unit = {
+    val dbTimes = resultDetails.map { databaseDetail =>
+      (databaseDetail._1, databaseDetail._2.map(_._2).sum)
+    }
+    val maxLen = resultDetails.map(_._1.length).max
+    val timePercent = dbTimes.zipWithIndex.map { case (dbTime, index) =>
+      myPrintln(s"${ rightPad(dbTime._1, maxLen) } taken time: ${ formatMillis(dbTime._2) }")
+      if (index == 0) {
+        "1"
+      } else {
+        formatFloat(dbTime._2.toFloat / dbTimes.head._2)
+      }
+    }
+    myPrintln(dbTimes.map(_._1).mkString(" vs ") + " = "  + timePercent.mkString(" : "))
+    myPrintln("")
   }
 
-  def showDetails(db1: String,
-      db1Times: Seq[(String, Long)],
-      db2: String,
-      db2Times: Seq[(String, Long)]): Unit = {
-    val map = new mutable.HashMap[String, (Long, Long, Float)]()
-    db1Times.foreach{ case (file, time) =>
+  // resultDetails: Seq((database, Seq((fileName, time))))
+  def showDetailContest(resultDetails: Seq[(String, Seq[(String, Long)])]): Unit = {
+
+    val numDatabases = resultDetails.size
+    val map = new mutable.HashMap[String, (Array[Long], Array[Float])]()
+
+    def initValues(file: String, time: Long, index: Int): Unit = {
+      val times = new Array[Long](numDatabases)
+      val percent = new Array[Float](numDatabases - 1)
+      times(index) = time
+      map(file) = (times, percent)
+    }
+
+    resultDetails.head._2.foreach{ case (file, time) =>
       val info = map.get(file)
       if (info.isEmpty) {
-        map(file) = (time, 0L, 0f)
+        initValues(file, time, 0)
       } else {
-        map(file) = info.get.copy(_1 = time)
+        info.get._1(0) = time
       }
     }
-    db2Times.foreach { case (file, time) =>
-      val info = map.get(file)
-      if (info.isEmpty) {
-        map(file) = (0L, time, 0f)
-      } else {
-        val (v1, _, v3) = info.get
-        val newV3 = if (v1 != 0) {
-          time.toFloat / v1
+
+    resultDetails.zipWithIndex.tail.foreach { case ((_, files), index) =>
+      files.foreach { case (file, time) =>
+        val info = map.get(file)
+        if (info.isEmpty) {
+          initValues(file, time, 1)
         } else {
-          v3
+          val (times, percents) = info.get
+          times(index) = time
+          val baseTime = times(0)
+          if (baseTime != 0) {
+            percents(index - 1) = time.toFloat / baseTime
+          }
         }
-        map(file) = info.get.copy(_2 = time, _3 = newV3)
       }
     }
-    val head = Seq(Seq("file name", db1, db2, s"$db2/$db1"))
-    val body = map.map { case (key, value) =>
-      Seq(key, formatMillis(value._1), formatMillis(value._2), formatFloat(value._3))
+
+    val numColumns = resultDetails.length + 2
+    val headItems = new ArrayBuffer[String](numColumns)
+    headItems += "file name"
+    val result = resultDetails.map { case (db, _) =>
+      headItems += db
+      db
+    }.mkString(" : ")
+    headItems += result
+
+    val head: Seq[Seq[String]] = Seq(headItems)
+    val body: Seq[Seq[String]] = map.map { case (file, (times, percents)) =>
+      val bodyItems = new ArrayBuffer[String](numColumns)
+      bodyItems += file
+      times.map { time =>
+        bodyItems += formatMillis(time)
+      }
+      bodyItems += "1 : " + percents.map(value => formatFloat(value)).mkString(" : ")
+      bodyItems
     }.toSeq.sortBy(_.head)
-    show((head ++ body).toArray, 4)
+    show((head ++ body).toArray, numColumns)
   }
 
   def showSummary(
@@ -153,7 +184,7 @@ object PerfHelper {
     myPrintln(s"$db taken time: ${ formatMillis(dbTime) }")
   }
 
-  def showDetails(db: String, dbTimes: Seq[(String, Long)]): Unit = {
+  def showDetail(db: String, dbTimes: Seq[(String, Long)]): Unit = {
     val head = Seq(Seq("file name", db))
     val body = dbTimes.map { case (key, value) =>
       Seq(key, formatMillis(value))

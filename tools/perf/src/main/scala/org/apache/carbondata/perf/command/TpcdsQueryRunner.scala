@@ -19,8 +19,8 @@ package org.apache.carbondata.perf.command
 
 import org.apache.spark.sql.SqlHelper.runQueriesWithOption
 
-import org.apache.carbondata.perf.Constant.{carbondb, parquetdb, sqlFolder}
-import org.apache.carbondata.perf.PerfHelper.{loadSqlDir, loadSqlFile, showDetails, showSummary}
+import org.apache.carbondata.perf.Constant.{allFormats, sqlDir}
+import org.apache.carbondata.perf.PerfHelper.{loadSqlDir, loadSqlFile, showDetail, showDetailContest, showSummary, showSummaryContest}
 
 /**
  * tpcds query runner
@@ -46,7 +46,7 @@ case class TpcdsQueryRunner(database: Option[String] = None,
   }
 
   private def runOneDatabase(database: String): Unit = {
-    val sqlFiles = loadSqlDir(s"$sqlFolder/query")
+    val sqlFiles = loadSqlDir(s"$sqlDir/query")
     runSpecifiedFilesOnOneDatabases(database, sqlFiles)
   }
 
@@ -56,27 +56,28 @@ case class TpcdsQueryRunner(database: Option[String] = None,
   }
 
   private def runAllDatabases(): Unit = {
-    val sqlFiles = loadSqlDir(s"$sqlFolder/query")
+    val sqlFiles = loadSqlDir(s"$sqlDir/query")
     runSpecifiedFilesOnAllDatabases(sqlFiles)
   }
 
   private def loadSpecifiedFiles(queryFileIndexes: Seq[String]): Seq[(String, Array[String])] = {
     queryFileIndexes
-      .map(index => s"$sqlFolder/query/q" + index + ".sql")
+      .map(index => s"$sqlDir/query/q" + index + ".sql")
       .map(loadSqlFile(_))
   }
 
   private def runSpecifiedFilesOnAllDatabases(fileList: Seq[(String, Array[String])]): Unit = {
-    val parquetTime = runQueriesWithOption(fileList, dbOption = Some(parquetdb))
-    val carbonTime = runQueriesWithOption(fileList, dbOption = Some(carbondb))
-    showDetails(parquetdb, parquetTime, carbondb, carbonTime)
-    showSummary(parquetdb, parquetTime, carbondb, carbonTime)
+    val resultDetails = allFormats.map { case (_, db) =>
+      (db, runQueriesWithOption(fileList, dbOption = Some(db)))
+    }
+    showDetailContest(resultDetails)
+    showSummaryContest(resultDetails)
   }
 
   private def runSpecifiedFilesOnOneDatabases(database: String,
       fileList: Seq[(String, Array[String])]): Unit = {
     val times = runQueriesWithOption(fileList, dbOption = Some(database))
-    showDetails(database, times)
+    showDetail(database, times)
     showSummary(database, times)
   }
 }

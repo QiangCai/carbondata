@@ -31,7 +31,7 @@ import org.apache.carbondata.perf.PerfHelper._
  */
 object SqlHelper {
 
-  private val spark: SparkSession = createSparkSession("Sql Helper", 2)
+  private val spark: SparkSession = createSparkSession("Sql Helper", 3)
 
   private def sql(sqlText: String): DataFrame = spark.sql(sqlText)
 

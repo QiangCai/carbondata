@@ -17,17 +17,19 @@
 
 package org.apache.carbondata.perf.command
 
-import org.apache.spark.sql.SqlHelper.runQuery
+import org.apache.spark.sql.SqlHelper.runQueriesWithOption
 
-import org.apache.carbondata.perf.Constant.allDatabases
+import org.apache.carbondata.perf.Constant.sqlDir
+import org.apache.carbondata.perf.PerfHelper.{loadSqlDir, showDetail}
 
-/**
- * tpcds cleaner
- */
-case class TpcdsCleaner() extends Command {
+case class TpcdsExplain(database: String) extends Command {
   override def run(): Unit = {
-    allDatabases.foreach { db =>
-      runQuery(s"drop database if exists $db cascade", printSql = true, printResult = false)
+    val sqlFiles = loadSqlDir(s"$sqlDir/query")
+    val prefix = "explain extended "
+    val explainSqlFiles = sqlFiles.map { case (file, sqlList) =>
+      (file, sqlList.map(prefix + _))
     }
+    val result = runQueriesWithOption(explainSqlFiles, dbOption = Some(database))
+    showDetail(database, result)
   }
 }
